@@ -62,7 +62,10 @@ exports.handler = async (event) => {
           `https://api.coingecko.com/api/v3/coins/${coin}/history?date=${apiDate}&localization=false`,
           { headers: apiKeyHeaders() }
         );
-        if (!res.ok) throw new Error(`coingecko history ${res.status}`);
+        if (!res.ok) {
+          const bodyText = await res.text().catch(() => '');
+          throw new Error(`coingecko history ${res.status}: ${bodyText.slice(0, 300)}`);
+        }
         const json = await res.json();
         const p = json?.market_data?.current_price?.usd;
         if (!p) throw new Error('нет цены в ответе coingecko');
@@ -79,7 +82,10 @@ exports.handler = async (event) => {
           `https://api.coingecko.com/api/v3/simple/price?ids=${coin}&vs_currencies=usd`,
           { headers: apiKeyHeaders() }
         );
-        if (!res.ok) throw new Error(`coingecko simple/price ${res.status}`);
+        if (!res.ok) {
+          const bodyText = await res.text().catch(() => '');
+          throw new Error(`coingecko simple/price ${res.status}: ${bodyText.slice(0, 300)}`);
+        }
         const json = await res.json();
         const p = json?.[coin]?.usd;
         if (!p) throw new Error('нет цены в ответе coingecko');
