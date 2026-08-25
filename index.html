@@ -379,6 +379,33 @@
   }
   .amount-wrap input{padding-left:26px;}
 
+  .mode-toggle{
+    display:flex;
+    gap:8px;
+    margin-bottom:16px;
+    background:#0D1117;
+    border:1px solid var(--panel-border);
+    border-radius:9px;
+    padding:4px;
+  }
+  .mode-btn{
+    flex:1;
+    background:transparent;
+    border:none;
+    color:var(--muted);
+    font-family:var(--sans);
+    font-weight:700;
+    font-size:13px;
+    padding:10px;
+    border-radius:6px;
+    cursor:pointer;
+    transition:all .15s ease;
+  }
+  .mode-btn:hover{color:var(--text);}
+  .mode-btn.active{
+    background:rgba(240,185,11,0.12);
+    color:var(--gold);
+  }
   .cta{
     width:100%;
     background:var(--gold);
@@ -481,6 +508,15 @@
     margin:0 auto;
   }
   .r-mult-wrap{text-align:center; margin-bottom:6px;}
+  .r-tier{
+    text-align:center;
+    font-family:var(--mono);
+    font-weight:700;
+    font-size:13px;
+    letter-spacing:0.06em;
+    color:var(--gold);
+    margin-bottom:10px;
+  }
   .r-mult.pos{background:rgba(15,122,80,0.12); color:#0F7A50;}
   .r-mult.neg{background:rgba(168,42,48,0.12); color:#A82A30;}
   .r-compare{
@@ -558,15 +594,19 @@
       <div class="coin-grid" id="coinGrid"></div>
       <div class="selected-coin" id="selectedCoinLabel"></div>
     </div>
+    <div class="mode-toggle" id="modeToggle">
+      <button type="button" class="mode-btn active" data-mode="bought">I bought</button>
+      <button type="button" class="mode-btn" data-mode="sold">I sold too early</button>
+    </div>
     <div class="row">
       <div class="field">
-        <label>Amount</label>
+        <label id="amountLabel">Amount</label>
         <div class="amount-wrap">
           <input type="number" id="amount" value="1000" min="1">
         </div>
       </div>
       <div class="field">
-        <label>Purchase date</label>
+        <label id="dateLabel">Purchase date</label>
         <button type="button" class="date-trigger" id="dateTrigger">March 2020</button>
       </div>
     </div>
@@ -600,15 +640,16 @@
       <div class="r-sub" id="rSub"></div>
       <div class="r-source" id="rSource"></div>
       <div class="dashed"></div>
-      <div class="r-line"><span>Invested</span><span id="rInvested"></span></div>
-      <div class="r-line"><span>Price at purchase</span><span id="rBuyPrice"></span></div>
-      <div class="r-line"><span>Coins bought</span><span id="rCoinsQty"></span></div>
+      <div class="r-line"><span id="rInvestedLabel">Invested</span><span id="rInvested"></span></div>
+      <div class="r-line"><span id="rBuyPriceLabel">Price at purchase</span><span id="rBuyPrice"></span></div>
+      <div class="r-line"><span id="rCoinsQtyLabel">Coins bought</span><span id="rCoinsQty"></span></div>
       <div class="r-line"><span>Price now</span><span id="rNowPrice"></span></div>
       <div class="dashed"></div>
       <div class="r-big">
         <div class="label">Would be worth now</div>
         <div class="num" id="rResult">$0</div>
       </div>
+      <div class="r-tier" id="rTier"></div>
       <div class="r-mult-wrap"><span class="r-mult" id="rMult">x1.0</span></div>
       <div class="r-compare" id="rCompare"></div>
       <div class="r-footer">RECEIPT OF REGRET · TIMESTAMP <span id="rStamp"></span></div>
@@ -1193,7 +1234,46 @@ function animateCount(el, target, prefix, duration=900){
 }
 
 const calcBtn = document.getElementById('calcBtn');
-const calcBtnLabel = calcBtn.textContent;
+function calcBtnLabelForMode(){
+  return currentMode === 'sold' ? 'Show me what I lost →' : 'Show me what I missed →';
+}
+
+// ---- Bought vs "Sold too early" mode ----
+// The underlying math is identical either way (amount / priceThen * priceNow) —
+// only the labels and framing change. "Sold" reframes the same number as
+// "what you left on the table by cashing out early" instead of "what you missed
+// by not buying", since that's usually the more painful version of the story.
+let currentMode = 'bought';
+const modeToggle = document.getElementById('modeToggle');
+const amountLabel = document.getElementById('amountLabel');
+const dateLabel = document.getElementById('dateLabel');
+
+modeToggle.addEventListener('click', (e)=>{
+  const btn = e.target.closest('.mode-btn');
+  if(!btn) return;
+  currentMode = btn.dataset.mode;
+  modeToggle.querySelectorAll('.mode-btn').forEach(b=> b.classList.toggle('active', b===btn));
+  if(currentMode === 'sold'){
+    amountLabel.textContent = 'Amount sold (value then)';
+    dateLabel.textContent = 'Date sold';
+    calcBtn.textContent = 'Show me what I lost →';
+  } else {
+    amountLabel.textContent = 'Amount';
+    dateLabel.textContent = 'Purchase date';
+    calcBtn.textContent = 'Show me what I missed →';
+  }
+});
+
+// ---- Regret tiers — turns the bare multiplier into a shareable status ----
+function getTier(mult){
+  if(mult < 0.3)  return { label: 'TOTAL REKT', emoji: '💀' };
+  if(mult < 0.7)  return { label: 'CERTIFIED BAG HOLDER', emoji: '🧻' };
+  if(mult < 1)    return { label: 'MILD FUMBLE', emoji: '😬' };
+  if(mult < 3)    return { label: 'SOLID MOVE', emoji: '👍' };
+  if(mult < 10)   return { label: 'NICE CATCH', emoji: '🎣' };
+  if(mult < 50)   return { label: 'LEGENDARY TIMING', emoji: '🏆' };
+  return { label: 'DIAMOND HANDS VINDICATED', emoji: '💎' };
+}
 
 async function getPrices(coin, dateStr){
   const demoPoints = DATA[coin.symbol]?.points;
@@ -1228,7 +1308,7 @@ calcBtn.addEventListener('click', async ()=>{
 
   if(priceData.error){
     calcBtn.disabled = false;
-    calcBtn.textContent = calcBtnLabel;
+    calcBtn.textContent = calcBtnLabelForMode();
     alert(`Couldn't get prices for ${coin.symbol} — the API is unavailable and there's no demo data for this coin. Try BTC/ETH/SOL/DOGE/ADA/XRP/BNB, or try again.`);
     return;
   }
@@ -1241,8 +1321,13 @@ calcBtn.addEventListener('click', async ()=>{
   const spBuy = interpPrice(SP500, dateStr);
   const spNow = interpPrice(SP500, '2026-08');
   const spResult = amount * (spNow/spBuy);
+  const tier = getTier(mult);
 
-  document.getElementById('rSub').textContent = `${coin.name} · bought ${dateStr}`;
+  const verb = currentMode === 'sold' ? 'sold' : 'bought';
+  document.getElementById('rSub').textContent = `${coin.name} · ${verb} ${dateStr}`;
+  document.getElementById('rInvestedLabel').textContent = currentMode === 'sold' ? 'Sold for' : 'Invested';
+  document.getElementById('rBuyPriceLabel').textContent = currentMode === 'sold' ? 'Price when sold' : 'Price at purchase';
+  document.getElementById('rCoinsQtyLabel').textContent = currentMode === 'sold' ? 'Coins sold' : 'Coins bought';
   document.getElementById('rSource').textContent = source==='live' ? '● live data from coingecko' : '● offline demo data (api unavailable)';
   document.getElementById('rSource').className = 'r-source '+source;
   document.getElementById('rInvested').textContent = fmt(amount);
@@ -1252,6 +1337,7 @@ calcBtn.addEventListener('click', async ()=>{
   document.getElementById('rMult').textContent = 'x'+mult.toFixed(1);
   document.getElementById('rMult').className = 'r-mult '+(mult>=1?'pos':'neg');
   document.getElementById('rResult').className = 'num '+(mult>=1?'pos':'neg');
+  document.getElementById('rTier').textContent = `${tier.emoji} ${tier.label}`;
   document.getElementById('rCompare').textContent =
     `For comparison: the same amount in the S&P 500 would be worth ${fmtBig(spResult)} today.`;
   document.getElementById('rStamp').textContent = new Date().toISOString().slice(0,19).replace('T',' ');
@@ -1274,6 +1360,8 @@ calcBtn.addEventListener('click', async ()=>{
   lastResult = {
     coinName: coin.name,
     dateStr,
+    mode: currentMode,
+    tier,
     investedFmt: fmt(amount),
     buyPriceFmt: fmt(buyPrice),
     coinsQtyFmt: fmtCoinsQty(coins, coin.symbol),
@@ -1286,7 +1374,7 @@ calcBtn.addEventListener('click', async ()=>{
   document.getElementById('shareCardWrap').style.display = 'none';
 
   calcBtn.disabled = false;
-  calcBtn.textContent = calcBtnLabel;
+  calcBtn.textContent = calcBtnLabelForMode();
 });
 
 // keep the last computed result around so the share card can use it
@@ -1312,7 +1400,7 @@ function roundedZigzagPath(ctx, x, y, w, h, teeth, amp, r){
 async function drawShareCard(){
   const canvas = document.getElementById('shareCanvas');
   canvas.width = 640;
-  canvas.height = 696; // +36px for the new "Coins bought" row
+  canvas.height = 728; // +32px more for the tier line under the multiplier badge
   const ctx = canvas.getContext('2d');
   const W = canvas.width, H = canvas.height;
 
@@ -1351,7 +1439,7 @@ async function drawShareCard(){
   y += 26;
   ctx.fillStyle = 'rgba(42,36,24,0.45)';
   ctx.font = '400 13px "IBM Plex Mono"';
-  ctx.fillText(`${lastResult.coinName} · bought ${lastResult.dateStr}`, cx, y);
+  ctx.fillText(`${lastResult.coinName} · ${lastResult.mode === 'sold' ? 'sold' : 'bought'} ${lastResult.dateStr}`, cx, y);
 
   y += 30;
   ctx.strokeStyle = 'rgba(42,36,24,0.3)';
@@ -1366,9 +1454,9 @@ async function drawShareCard(){
     ctx.textAlign='right'; ctx.font='600 14px "IBM Plex Mono"';
     ctx.fillText(value, W-pad-30, y);
   }
-  priceRow('Invested', lastResult.investedFmt);
-  priceRow('Price at purchase', lastResult.buyPriceFmt);
-  priceRow('Coins bought', lastResult.coinsQtyFmt);
+  priceRow(lastResult.mode === 'sold' ? 'Sold for' : 'Invested', lastResult.investedFmt);
+  priceRow(lastResult.mode === 'sold' ? 'Price when sold' : 'Price at purchase', lastResult.buyPriceFmt);
+  priceRow(lastResult.mode === 'sold' ? 'Coins sold' : 'Coins bought', lastResult.coinsQtyFmt);
   priceRow('Price now', lastResult.nowPriceFmt);
 
   y += 30;
@@ -1400,7 +1488,14 @@ async function drawShareCard(){
   ctx.fillStyle = lastResult.mult>=1 ? '#0F7A50' : '#A82A30';
   ctx.fillText(badgeText, cx, y);
 
-  y += 44;
+  y += 36;
+  ctx.font = '700 15px "IBM Plex Mono"';
+  ctx.fillStyle = '#B8860B';
+  ctx.save(); ctx.letterSpacing='1px';
+  ctx.fillText(`${lastResult.tier.emoji} ${lastResult.tier.label}`, cx, y);
+  ctx.restore();
+
+  y += 40;
   ctx.font = '400 13px "IBM Plex Mono"';
   ctx.fillStyle = 'rgba(42,36,24,0.6)';
   wrapText(ctx, `Same amount in the S&P 500 would be worth ${lastResult.spResultFmt}`, cx, y, W-pad*2-80, 18);
