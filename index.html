@@ -845,6 +845,23 @@ function attachWheelScroll(container, onPick){
       }
     }, 120);
   }, { passive:true });
+
+  // Mouse wheel on desktop scrolls by "lines" (often 2-3 rows per notch), which
+  // makes it near-impossible to land on a precise month/year with a mouse.
+  // We take over wheel input entirely and step exactly one row per notch,
+  // with a short lock so one physical click can't fire multiple steps.
+  let wheelLocked = false;
+  container.addEventListener('wheel', (e)=>{
+    e.preventDefault();
+    if(wheelLocked) return;
+    wheelLocked = true;
+    const dir = e.deltaY > 0 ? 1 : -1;
+    const currentIdx = getSelectedIndex(container);
+    const maxIdx = container.querySelectorAll('.wheel-item').length - 1;
+    const nextIdx = Math.max(0, Math.min(maxIdx, currentIdx + dir));
+    scrollWheelTo(container, nextIdx, true);
+    setTimeout(()=>{ wheelLocked = false; }, 110);
+  }, { passive:false });
 }
 
 function refreshMonthDisabledState(){
