@@ -7,12 +7,16 @@
 // историю до последних 365 дней, а у нас даты покупки бывают из 2013 года.
 // Вместо этого дёргаем тот же /coins/{id}/history, что и price.js
 // (type=history), по нескольким сэмплированным датам — работает для любой
-// глубины истории и переиспользует тот же паттерн кэша/ключа.
+// глубины истории и переиспользует тот же паттерн кэша.
 //
-// Сэмплинг ограничен ~12 точками за запрос, чтобы не упереться в рейт-лимит
-// CoinGecko при холодном кэше.
+// Запросы идут пачками по BATCH_SIZE (а не все разом) с небольшой паузой
+// между пачками — 12 параллельных вызовов к одному и тому же demo-ключу
+// рискуют упереться в рейт-лимит CoinGecko, особенно если в этот же момент
+// идёт вызов price.js для того же расчёта.
 
 const inflight = new Map();
+const BATCH_SIZE = 3;
+const BATCH_DELAY_MS = 350;
 
 function apiKeyHeaders() {
   const key = process.env.COINGECKO_API_KEY;
@@ -24,6 +28,10 @@ async function dedupedFetch(key, fn) {
   const p = fn().finally(() => inflight.delete(key));
   inflight.set(key, p);
   return p;
+}
+
+function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 async function fetchPriceAt(coin, dateStr) {
@@ -66,6 +74,21 @@ function sampleMonths(fromStr, toStr, maxPoints) {
   return [...new Set(months)];
 }
 
+// вместо Promise.all по всем месяцам сразу — пачками по BATCH_SIZE,
+// с паузой между пачками, чтобы не долбить CoinGecko одним залпом
+async function fetchPointsThrottled(coin, months) {
+  const points = [];
+  for (let i = 0; i < months.length; i += BATCH_SIZE) {
+    const batch = months.slice(i, i + BATCH_SIZE);
+    const batchResults = await Promise.all(
+      batch.map(async (dateStr) => ({ date: dateStr, price: await fetchPriceAt(coin, dateStr) }))
+    );
+    points.push(...batchResults);
+    if (i + BATCH_SIZE < months.length) await sleep(BATCH_DELAY_MS);
+  }
+  return points;
+}
+
 exports.handler = async (event) => {
   const { coin, from } = event.queryStringParameters || {};
 
@@ -80,13 +103,8 @@ exports.handler = async (event) => {
   const to = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
 
   try {
-    const months = sampleMonths(from, to, 12);
-    const points = await Promise.all(
-      months.map(async (dateStr) => ({
-        date: dateStr,
-        price: await fetchPriceAt(coin, dateStr),
-      }))
-    );
+    const months = sampleMonths(from, to, 10);
+    const points = await fetchPointsThrottled(coin, months);
 
     return {
       statusCode: 200,
