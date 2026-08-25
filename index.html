@@ -437,6 +437,8 @@
     pointer-events:none;
   }
   .amount-wrap input{padding-left:26px;}
+  .amount-wrap.no-prefix::before{content:""; display:none;}
+  .amount-wrap.no-prefix input{padding-left:14px;}
   .mode-toggle{
     display:flex;
     gap:8px;
@@ -634,12 +636,6 @@
     margin-top:22px;
     line-height:1.6;
     opacity:0.6;
-  }
-  .r-chart-wrap{margin:14px 0 4px; display:none;}
-  .r-chart-wrap svg{width:100%; height:64px; display:block;}
-  .r-chart-caption{
-    font-size:10px; letter-spacing:0.06em; text-transform:uppercase;
-    color:rgba(42,36,24,0.45); text-align:center; margin-top:4px;
   }
 </style>
 </head>
@@ -1353,27 +1349,36 @@ function calcBtnLabelForMode(){
   return currentMode === 'sold' ? 'Show me what I lost →' : 'Show me what I missed →';
 }
 // ---- Bought vs "Sold too early" mode ----
-// The underlying math is identical either way (amount / priceThen * priceNow) —
-// only the labels and framing change. "Sold" reframes the same number as
-// "what you left on the table by cashing out early" instead of "what you missed
-// by not buying", since that's usually the more painful version of the story.
+// In "bought" mode, `amount` typed by the user is a DOLLAR amount invested
+// at the purchase date; coins are derived (amount / priceThen).
+// In "sold" mode, `amount` is now the exact number of COINS sold — the user
+// almost always remembers that precisely, unlike the dollar value they got
+// at the time, which used to be reconstructed backwards from a guess.
+// The `$` prefix on the amount field only makes sense for the dollar-input
+// case, so it's toggled off via the .no-prefix class in "sold" mode.
 let currentMode = 'bought';
 const modeToggle = document.getElementById('modeToggle');
 const amountLabel = document.getElementById('amountLabel');
 const dateLabel = document.getElementById('dateLabel');
+const amountWrap = document.querySelector('.amount-wrap');
+const amountInputEl = document.getElementById('amount');
 modeToggle.addEventListener('click', (e)=>{
   const btn = e.target.closest('.mode-btn');
   if(!btn) return;
   currentMode = btn.dataset.mode;
   modeToggle.querySelectorAll('.mode-btn').forEach(b=> b.classList.toggle('active', b===btn));
   if(currentMode === 'sold'){
-    amountLabel.textContent = 'Amount sold (value then)';
+    amountLabel.textContent = 'Coins sold';
     dateLabel.textContent = 'Date sold';
     calcBtn.textContent = 'Show me what I lost →';
+    amountWrap.classList.add('no-prefix');
+    if(amountInputEl.value === '1000') amountInputEl.value = '1';
   } else {
     amountLabel.textContent = 'Amount';
     dateLabel.textContent = 'Purchase date';
     calcBtn.textContent = 'Show me what I missed →';
+    amountWrap.classList.remove('no-prefix');
+    if(amountInputEl.value === '1') amountInputEl.value = '1000';
   }
 });
 // ---- Regret tiers — turns the bare multiplier into a shareable status ----
@@ -1387,7 +1392,7 @@ function getTier(mult){
   return { label: 'DIAMOND HANDS VINDICATED', emoji: '💎' };
 }
 // ---- Кривая стоимости позиции для графика на чеке ----
-async function fetchValueCurve(coin, dateStr, buyPrice, nowPrice, amount){
+async function fetchValueCurve(coin, dateStr, buyPrice, nowPrice, baseValue){
   try{
     const res = await fetch(`/.netlify/functions/range?coin=${coin.geckoId}&from=${dateStr}`);
     if(!res.ok) throw new Error('range proxy failed');
@@ -1399,7 +1404,7 @@ async function fetchValueCurve(coin, dateStr, buyPrice, nowPrice, amount){
       let price = p.price;
       if(i===0) price = buyPrice;
       if(i===points.length-1) price = nowPrice;
-      return amount * (price/buyPrice);
+      return baseValue * (price/buyPrice);
     });
   }catch(err){
     return null; // график опциональный — тихо скрываем при любой ошибке
@@ -1459,7 +1464,7 @@ async function getPrices(coin, dateStr){
   }
 }
 calcBtn.addEventListener('click', async ()=>{
-  const amount = parseFloat(document.getElementById('amount').value) || 0;
+  const amountInputVal = parseFloat(document.getElementById('amount').value) || 0;
   const dateStr = currentDateStr;
   const coin = currentCoin;
   calcBtn.disabled = true;
@@ -1472,21 +1477,25 @@ calcBtn.addEventListener('click', async ()=>{
     return;
   }
   const { buyPrice, nowPrice, source } = priceData;
-  const coins = amount / buyPrice;
+  // "bought": amountInputVal — доллары, вложенные тогда → coins = amount/priceThen.
+  // "sold": amountInputVal — количество монет, проданных тогда (введено напрямую,
+  // без реконструкции из угаданной суммы в долларах).
+  const coins = currentMode === 'sold' ? amountInputVal : (amountInputVal / buyPrice);
+  const baseValue = coins * buyPrice; // стоимость "тогда" — единая формула для обоих режимов
   const result = coins * nowPrice;
-  const mult = result/amount;
+  const mult = result / baseValue;
   const spBuy = interpPrice(SP500, dateStr);
   const spNow = interpPrice(SP500, '2026-08');
-  const spResult = amount * (spNow/spBuy);
+  const spResult = baseValue * (spNow/spBuy);
   const tier = getTier(mult);
   const verb = currentMode === 'sold' ? 'sold' : 'bought';
   document.getElementById('rSub').textContent = `${coin.name} · ${verb} ${dateStr}`;
-  document.getElementById('rInvestedLabel').textContent = currentMode === 'sold' ? 'Sold for' : 'Invested';
+  document.getElementById('rInvestedLabel').textContent = currentMode === 'sold' ? 'Value when sold' : 'Invested';
   document.getElementById('rBuyPriceLabel').textContent = currentMode === 'sold' ? 'Price when sold' : 'Price at purchase';
   document.getElementById('rCoinsQtyLabel').textContent = currentMode === 'sold' ? 'Coins sold' : 'Coins bought';
   document.getElementById('rSource').textContent = source==='live' ? '● live data from coingecko' : '● offline demo data (api unavailable)';
   document.getElementById('rSource').className = 'r-source '+source;
-  document.getElementById('rInvested').textContent = fmt(amount);
+  document.getElementById('rInvested').textContent = fmt(baseValue);
   document.getElementById('rBuyPrice').textContent = fmt(buyPrice);
   document.getElementById('rCoinsQty').textContent = fmtCoinsQty(coins, coin.symbol);
   document.getElementById('rNowPrice').textContent = fmt(nowPrice);
@@ -1496,7 +1505,7 @@ calcBtn.addEventListener('click', async ()=>{
   document.getElementById('rTier').textContent = `${tier.emoji} ${tier.label}`;
   document.getElementById('rCompare').textContent =
     `For comparison: the same amount in the S&P 500 would be worth ${fmtBig(spResult)} today.`;
-  let chartValues = await fetchValueCurve(coin, dateStr, buyPrice, nowPrice, amount);
+  let chartValues = await fetchValueCurve(coin, dateStr, buyPrice, nowPrice, baseValue);
   if(chartValues){
     renderValueCurveSvg(chartValues);
     document.getElementById('rChartCaption').textContent = `Position value · ${dateStr} → today`;
@@ -1523,7 +1532,7 @@ calcBtn.addEventListener('click', async ()=>{
     dateStr,
     mode: currentMode,
     tier,
-    investedFmt: fmt(amount),
+    investedFmt: fmt(baseValue),
     buyPriceFmt: fmt(buyPrice),
     coinsQtyFmt: fmtCoinsQty(coins, coin.symbol),
     nowPriceFmt: fmt(nowPrice),
@@ -1618,7 +1627,7 @@ async function drawShareCard(){
     ctx.textAlign='right'; ctx.font='600 14px "IBM Plex Mono"';
     ctx.fillText(value, W-pad-30, y);
   }
-  priceRow(lastResult.mode === 'sold' ? 'Sold for' : 'Invested', lastResult.investedFmt);
+  priceRow(lastResult.mode === 'sold' ? 'Value when sold' : 'Invested', lastResult.investedFmt);
   priceRow(lastResult.mode === 'sold' ? 'Price when sold' : 'Price at purchase', lastResult.buyPriceFmt);
   priceRow(lastResult.mode === 'sold' ? 'Coins sold' : 'Coins bought', lastResult.coinsQtyFmt);
   priceRow('Price now', lastResult.nowPriceFmt);
