@@ -875,7 +875,7 @@ async function fetchHistoricalPrice(geckoId, dateStr){
   try{
     // prefer our own proxy (netlify/functions/price.js) — it caches
     // on the CDN and stops every user hammering CoinGecko directly at once
-    const res = await fetch(`/api/price?type=history&coin=${geckoId}&date=${dateStr}`);
+    const res = await fetch(`/.netlify/functions/price?type=history&coin=${geckoId}&date=${dateStr}`);
     if(!res.ok) throw new Error('proxy history failed');
     const json = await res.json();
     if(!json.price) throw new Error('no price from proxy');
@@ -903,7 +903,7 @@ async function fetchCurrentPrice(geckoId){
 
   let price;
   try{
-    const res = await fetch(`/api/price?type=current&coin=${geckoId}`);
+    const res = await fetch(`/.netlify/functions/price?type=current&coin=${geckoId}`);
     if(!res.ok) throw new Error('proxy current failed');
     const json = await res.json();
     if(!json.price) throw new Error('no price from proxy');
@@ -1051,7 +1051,7 @@ async function runCoinSearch(q){
   try{
     try{
       // proxy first — a short edge-cache absorbs bursts from fast typing
-      const res = await fetch(`/api/search?query=${encodeURIComponent(q)}`);
+      const res = await fetch(`/.netlify/functions/search?query=${encodeURIComponent(q)}`);
       if(!res.ok) throw new Error('proxy search failed');
       const json = await res.json();
       coins = json.coins || [];
