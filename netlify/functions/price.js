@@ -40,18 +40,9 @@ exports.handler = async (event) => {
   const { type, coin, date } = event.queryStringParameters || {};
 
   if (!coin || (type !== 'current' && type !== 'history')) {
-    // ВРЕМЕННАЯ ДИАГНОСТИКА: показываем, что реально пришло на вход функции,
-    // чтобы понять, теряются ли query-параметры на пути через /api/price редирект.
-    // Уберём этот блок, как только разберёмся с причиной.
     return {
       statusCode: 400,
-      body: JSON.stringify({
-        error: 'нужны параметры: type=current|history, coin=<id>, date=YYYY-MM (для history)',
-        debug_queryStringParameters: event.queryStringParameters || null,
-        debug_rawQuery: event.rawQuery || null,
-        debug_path: event.path || null,
-        debug_rawUrl: event.rawUrl || null,
-      }),
+      body: JSON.stringify({ error: 'нужны параметры: type=current|history, coin=<id>, date=YYYY-MM (для history)' }),
     };
   }
 
