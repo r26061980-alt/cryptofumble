@@ -88,6 +88,39 @@
     max-width:50ch;
   }
 
+  .daily-regret{
+    background:linear-gradient(135deg, rgba(240,185,11,0.08), rgba(240,185,11,0.02));
+    border:1px solid rgba(240,185,11,0.25);
+    border-radius:12px;
+    padding:16px 18px;
+    margin-bottom:24px;
+  }
+  .daily-regret-label{
+    font-family:var(--mono);
+    font-size:10px;
+    letter-spacing:0.12em;
+    color:var(--gold);
+    margin-bottom:8px;
+    font-weight:700;
+  }
+  .daily-regret-text{
+    font-size:14px;
+    line-height:1.5;
+    color:var(--text);
+    margin-bottom:10px;
+  }
+  .daily-regret-text b{color:var(--gold);}
+  .daily-regret-cta{
+    background:none;
+    border:none;
+    color:var(--gold);
+    font-family:var(--sans);
+    font-weight:700;
+    font-size:13px;
+    cursor:pointer;
+    padding:0;
+  }
+  .daily-regret-cta:hover{text-decoration:underline;}
   .panel{
     background:var(--panel);
     border:1px solid var(--panel-border);
@@ -582,6 +615,12 @@
   <div class="eyebrow">live prices · coingecko</div>
   <h1>How much would you have <span>made</span> if you'd bought back then?</h1>
   <p class="sub">Pick a coin, an amount, and a date — find out what your money would be worth today. Painful, but useful.</p>
+
+  <div class="daily-regret" id="dailyRegret" style="display:none;">
+    <div class="daily-regret-label">📅 TODAY'S REGRET</div>
+    <div class="daily-regret-text" id="dailyRegretText">Loading…</div>
+    <button type="button" class="daily-regret-cta" id="dailyRegretCta">Try it yourself →</button>
+  </div>
 
   <div class="panel">
     <div class="field">
@@ -1134,6 +1173,61 @@ function updateSelectedUI(){
 }
 renderQuickPicks();
 updateSelectedUI();
+
+// ---- Daily Regret — same scenario for everyone on a given calendar day ----
+// Picked from real historical crashes/peaks (not fully random dates) so the
+// result is always dramatic enough to be worth sharing, never a boring x1.05.
+const DAILY_SCENARIOS = [
+  { symbol:'BTC',  date:'2020-03' }, // covid crash low
+  { symbol:'BTC',  date:'2021-11' }, // all-time high
+  { symbol:'BTC',  date:'2022-12' }, // FTX collapse bottom
+  { symbol:'ETH',  date:'2021-11' }, // all-time high
+  { symbol:'ETH',  date:'2022-06' }, // bear market bottom
+  { symbol:'DOGE', date:'2021-05' }, // meme mania peak
+  { symbol:'DOGE', date:'2020-01' }, // right before the pump
+  { symbol:'SOL',  date:'2022-12' }, // FTX-linked crash bottom
+  { symbol:'ADA',  date:'2021-09' }, // cycle peak
+  { symbol:'XRP',  date:'2017-12' }, // 2017 mania peak
+  { symbol:'BNB',  date:'2021-05' }, // cycle peak
+];
+
+async function loadDailyRegret(){
+  const dayOfYear = Math.floor((Date.now() - new Date(new Date().getFullYear(),0,0)) / 86400000);
+  const scenario = DAILY_SCENARIOS[dayOfYear % DAILY_SCENARIOS.length];
+  const amount = 1000;
+  const coin = { symbol: scenario.symbol, name: DATA[scenario.symbol].name, geckoId: GECKO_ID[scenario.symbol] };
+
+  try{
+    const priceData = await getPrices(coin, scenario.date);
+    if(priceData.error) throw new Error('no price data');
+    const { buyPrice, nowPrice } = priceData;
+    const coins = amount / buyPrice;
+    const result = coins * nowPrice;
+    const mult = result / amount;
+    const tier = getTier(mult);
+    const [y, m] = scenario.date.split('-');
+    const monthLabel = MONTH_NAMES[parseInt(m,10)-1];
+
+    document.getElementById('dailyRegretText').innerHTML =
+      `If you'd bought $1,000 of <b>${coin.name}</b> in ${monthLabel} ${y}, you'd have <b>${fmtBig(result)}</b> today. ${tier.emoji} ${tier.label}`;
+    document.getElementById('dailyRegret').style.display = 'block';
+
+    document.getElementById('dailyRegretCta').addEventListener('click', ()=>{
+      currentCoin = coin;
+      updateSelectedUI();
+      document.getElementById('amount').value = amount;
+      pickedYear = parseInt(y,10);
+      pickedMonth = parseInt(m,10);
+      currentDateStr = scenario.date;
+      dateTrigger.textContent = `${monthLabel} ${y}`;
+      document.querySelector('.panel').scrollIntoView({behavior:'smooth', block:'start'});
+    });
+  }catch(err){
+    // if even the demo fallback fails for some reason, just hide the banner —
+    // this is a nice-to-have, never worth showing a broken/empty state for
+  }
+}
+loadDailyRegret();
 
 // ---- Free-text coin search via CoinGecko /search ----
 const searchInput = document.getElementById('coinSearch');
