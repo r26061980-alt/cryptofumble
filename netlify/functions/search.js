@@ -4,6 +4,13 @@
 // в CoinGecko. Плюс защищает от злоупотребления: без ключа CoinGecko триггерит
 // 429 быстрее всего именно на search при вводе по буквам без debounce на фронте.
 
+// CoinGecko теперь требует Demo API Key даже для бесплатного тарифа —
+// ключ хранится в переменной окружения Netlify, не в коде.
+function apiKeyHeaders() {
+  const key = process.env.COINGECKO_API_KEY;
+  return key ? { 'x-cg-demo-api-key': key } : {};
+}
+
 exports.handler = async (event) => {
   const query = (event.queryStringParameters || {}).query;
 
@@ -13,7 +20,8 @@ exports.handler = async (event) => {
 
   try {
     const res = await fetch(
-      `https://api.coingecko.com/api/v3/search?query=${encodeURIComponent(query.trim())}`
+      `https://api.coingecko.com/api/v3/search?query=${encodeURIComponent(query.trim())}`,
+      { headers: apiKeyHeaders() }
     );
     if (!res.ok) throw new Error(`coingecko search ${res.status}`);
     const json = await res.json();
