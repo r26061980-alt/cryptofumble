@@ -1,0 +1,1378 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CryptoFumble — What Could You Have Made?</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0D1117;
+    --panel:#151A21;
+    --panel-border:#232A34;
+    --paper:#F7F1E3;
+    --paper-ink:#2A2418;
+    --green:#16C784;
+    --red:#EA3943;
+    --gold:#F0B90B;
+    --text:#E8E6DF;
+    --muted:#8B93A1;
+    --mono:'IBM Plex Mono', monospace;
+    --sans:'Manrope', sans-serif;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{
+    background:
+      radial-gradient(ellipse 900px 500px at 50% -10%, rgba(240,185,11,0.08), transparent 60%),
+      var(--bg);
+    color:var(--text);
+    font-family:var(--sans);
+    padding:32px 16px 64px;
+    min-height:100vh;
+  }
+  .wrap{max-width:640px; margin:0 auto;}
+
+  .eyebrow{
+    font-family:var(--mono);
+    font-size:12px;
+    letter-spacing:0.18em;
+    text-transform:uppercase;
+    color:var(--gold);
+    display:flex;
+    align-items:center;
+    gap:8px;
+    margin-bottom:14px;
+  }
+  .eyebrow::before{content:"●"; color:var(--green); font-size:9px; animation:pulse 1.6s infinite;}
+  @keyframes pulse{0%,100%{opacity:1;} 50%{opacity:0.25;}}
+
+  h1{
+    font-family:var(--sans);
+    font-weight:800;
+    font-size:clamp(28px, 6vw, 40px);
+    line-height:1.08;
+    letter-spacing:-0.02em;
+    margin-bottom:10px;
+  }
+  h1 span{color:var(--gold);}
+  .sub{
+    color:var(--muted);
+    font-size:15px;
+    line-height:1.5;
+    margin-bottom:28px;
+    max-width:50ch;
+  }
+
+  .panel{
+    background:var(--panel);
+    border:1px solid var(--panel-border);
+    border-radius:14px;
+    padding:22px;
+    margin-bottom:20px;
+  }
+  .field{margin-bottom:16px;}
+  .field:last-child{margin-bottom:0;}
+  label{
+    display:block;
+    font-family:var(--mono);
+    font-size:11px;
+    letter-spacing:0.1em;
+    text-transform:uppercase;
+    color:var(--muted);
+    margin-bottom:8px;
+  }
+  .coin-grid{
+    display:grid;
+    grid-template-columns:repeat(4, 1fr);
+    gap:8px;
+  }
+  .coin-search-wrap{position:relative; margin-bottom:10px;}
+  #coinSearch{
+    width:100%;
+    background:#0D1117;
+    border:1px solid var(--panel-border);
+    color:var(--text);
+    font-family:var(--sans);
+    font-size:14px;
+    padding:11px 14px;
+    border-radius:8px;
+    outline:none;
+    transition:border-color .15s ease;
+  }
+  #coinSearch:focus{border-color:var(--gold);}
+  .coin-dropdown{
+    display:none;
+    position:absolute;
+    left:0; right:0; top:calc(100% + 6px);
+    background:#10141A;
+    border:1px solid var(--panel-border);
+    border-radius:10px;
+    max-height:260px;
+    overflow-y:auto;
+    z-index:20;
+    box-shadow:0 12px 30px rgba(0,0,0,0.4);
+  }
+  .coin-dropdown.open{display:block;}
+  .coin-opt{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    padding:10px 12px;
+    cursor:pointer;
+    border-bottom:1px solid var(--panel-border);
+  }
+  .coin-opt:last-child{border-bottom:none;}
+  .coin-opt:hover{background:rgba(240,185,11,0.08);}
+  .coin-opt img{width:22px; height:22px; border-radius:50%; flex-shrink:0;}
+  .co-avatar{
+    width:22px; height:22px; border-radius:50%; flex-shrink:0;
+    background:rgba(240,185,11,0.15); color:var(--gold);
+    display:flex; align-items:center; justify-content:center;
+    font-family:var(--mono); font-weight:700; font-size:11px;
+  }
+  .coin-dropdown-note{
+    padding:8px 12px; font-size:10px; letter-spacing:0.04em;
+    color:var(--muted); border-bottom:1px solid var(--panel-border);
+    text-transform:uppercase;
+  }
+  .coin-opt .co-sym{font-family:var(--mono); font-weight:700; font-size:13px; color:var(--gold);}
+  .co-avatar-sized{width:22px; height:22px; border-radius:50%; flex-shrink:0; display:block;}
+  .co-avatar-sized.avatar-fallback{
+    background:rgba(240,185,11,0.15); color:var(--gold);
+    display:flex; align-items:center; justify-content:center;
+    font-family:var(--mono); font-weight:700; font-size:11px;
+  }
+  .coin-opt .co-name{font-size:12px; color:var(--muted);}
+  .coin-dropdown .empty, .coin-dropdown .loading{
+    padding:14px; font-size:12px; color:var(--muted); text-align:center;
+  }
+  .selected-coin{
+    font-family:var(--mono);
+    font-size:11px;
+    color:var(--muted);
+    margin-top:8px;
+    min-height:14px;
+    display:flex;
+    align-items:center;
+    gap:6px;
+  }
+  .selected-coin b{color:var(--gold);}
+  .selected-coin-icon{width:16px; height:16px; border-radius:50%; flex-shrink:0;}
+  .selected-coin-icon.avatar-fallback{
+    background:rgba(240,185,11,0.15); color:var(--gold);
+    display:flex; align-items:center; justify-content:center;
+    font-family:var(--mono); font-weight:700; font-size:9px;
+  }
+  .coin-btn{
+    font-family:var(--mono);
+    font-weight:600;
+    font-size:13px;
+    background:#0D1117;
+    border:1px solid var(--panel-border);
+    color:var(--muted);
+    padding:10px 4px 9px;
+    border-radius:8px;
+    cursor:pointer;
+    transition:all .15s ease;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:5px;
+  }
+  .coin-btn:hover{border-color:var(--gold); color:var(--text);}
+  .coin-btn.active{
+    background:rgba(240,185,11,0.12);
+    border-color:var(--gold);
+    color:var(--gold);
+  }
+  .coin-btn-icon{
+    width:22px; height:22px; border-radius:50%;
+    display:block;
+  }
+  .coin-btn-icon.avatar-fallback{
+    background:rgba(139,147,161,0.15); color:var(--muted);
+    display:flex; align-items:center; justify-content:center;
+    font-family:var(--mono); font-weight:700; font-size:11px;
+  }
+  .coin-btn.active .coin-btn-icon.avatar-fallback{
+    background:rgba(240,185,11,0.2); color:var(--gold);
+  }
+
+  .row{display:flex; gap:12px;}
+  .row > .field{flex:1;}
+  input[type=number], input[type=month]{
+    width:100%;
+    background:#0D1117;
+    border:1px solid var(--panel-border);
+    color:var(--text);
+    font-family:var(--mono);
+    font-size:16px;
+    padding:12px 14px;
+    border-radius:8px;
+    outline:none;
+    transition:border-color .15s ease;
+  }
+  input[type=number]:focus, input[type=month]:focus{border-color:var(--gold);}
+
+  /* --- Date trigger button (opens wheel picker) --- */
+  .date-trigger{
+    width:100%;
+    text-align:left;
+    background:#0D1117;
+    border:1px solid var(--panel-border);
+    color:var(--text);
+    font-family:var(--mono);
+    font-size:16px;
+    padding:12px 14px;
+    border-radius:8px;
+    cursor:pointer;
+    position:relative;
+  }
+  .date-trigger:hover{border-color:var(--gold);}
+  .date-trigger::after{
+    content:"📅";
+    position:absolute;
+    right:14px; top:50%; transform:translateY(-50%);
+    font-size:14px; opacity:0.6;
+  }
+
+  /* --- Wheel picker bottom sheet --- */
+  .date-sheet-overlay{
+    display:none;
+    position:fixed; inset:0;
+    background:rgba(0,0,0,0.55);
+    z-index:100;
+    align-items:flex-end;
+    justify-content:center;
+  }
+  .date-sheet-overlay.open{display:flex;}
+  .date-sheet{
+    width:100%;
+    max-width:640px;
+    background:#151A21;
+    border-radius:20px 20px 0 0;
+    border:1px solid var(--panel-border);
+    border-bottom:none;
+    padding-bottom:env(safe-area-inset-bottom, 0px);
+    animation:sheetUp .25s cubic-bezier(.2,.9,.3,1.1);
+  }
+  @keyframes sheetUp{
+    from{transform:translateY(100%);}
+    to{transform:translateY(0);}
+  }
+  .date-sheet-header{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:14px 18px;
+    border-bottom:1px solid var(--panel-border);
+    font-family:var(--sans);
+    font-weight:700;
+    font-size:14px;
+  }
+  .date-sheet-header button{
+    background:none; border:none;
+    font-family:var(--sans);
+    font-size:14px;
+    cursor:pointer;
+    padding:4px 2px;
+  }
+  #dateCancel{color:var(--muted); font-weight:500;}
+  #dateDone{color:var(--gold); font-weight:800;}
+
+  .wheel-wrap{
+    position:relative;
+    display:flex;
+    justify-content:center;
+    gap:0;
+    height:220px; /* 5 rows x 44px */
+    overflow:hidden;
+    padding:0 20px;
+  }
+  .wheel-highlight{
+    position:absolute;
+    left:20px; right:20px; top:88px; /* center row: (220-44)/2 */
+    height:44px;
+    background:rgba(240,185,11,0.08);
+    border-top:1px solid rgba(240,185,11,0.35);
+    border-bottom:1px solid rgba(240,185,11,0.35);
+    pointer-events:none;
+    z-index:2;
+  }
+  .wheel-fade{
+    position:absolute; left:0; right:0; height:88px;
+    pointer-events:none; z-index:3;
+  }
+  .wheel-fade-top{top:0; background:linear-gradient(#151A21, rgba(21,26,33,0));}
+  .wheel-fade-bottom{bottom:0; background:linear-gradient(rgba(21,26,33,0), #151A21);}
+  .wheel-col{
+    flex:1;
+    max-width:220px;
+    overflow-y:scroll;
+    scroll-snap-type:y mandatory;
+    scrollbar-width:none;
+    -ms-overflow-style:none;
+  }
+  .wheel-col::-webkit-scrollbar{display:none;}
+  .wheel-item{
+    height:44px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    scroll-snap-align:center;
+    font-family:var(--mono);
+    font-size:17px;
+    color:var(--muted);
+    transition:color .15s ease, opacity .15s ease;
+    opacity:0.4;
+    user-select:none;
+  }
+  .wheel-item.picked{
+    color:var(--text);
+    font-weight:700;
+    opacity:1;
+  }
+  .wheel-item.disabled{
+    color:#3A414D;
+    opacity:0.25;
+  }
+  .date-sheet-hint{
+    text-align:center;
+    font-size:11px;
+    color:var(--muted);
+    padding:2px 18px 16px;
+    min-height:16px;
+  }
+  .amount-wrap{position:relative;}
+  .amount-wrap::before{
+    content:"$";
+    position:absolute;
+    left:14px; top:50%; transform:translateY(-50%);
+    color:var(--muted);
+    font-family:var(--mono);
+    pointer-events:none;
+  }
+  .amount-wrap input{padding-left:26px;}
+
+  .cta{
+    width:100%;
+    background:var(--gold);
+    color:#1A1400;
+    border:none;
+    font-family:var(--sans);
+    font-weight:800;
+    font-size:15px;
+    padding:15px;
+    border-radius:9px;
+    cursor:pointer;
+    letter-spacing:-0.01em;
+    transition:transform .1s ease, box-shadow .15s ease;
+  }
+  .cta:hover{box-shadow:0 6px 24px rgba(240,185,11,0.25); transform:translateY(-1px);}
+  .cta:active{transform:translateY(0);}
+  .cta:disabled{opacity:0.65; cursor:wait; transform:none; box-shadow:none;}
+  .cta .spin{
+    display:inline-block; width:13px; height:13px; margin-right:8px;
+    border:2px solid rgba(26,20,0,0.25); border-top-color:#1A1400;
+    border-radius:50%; vertical-align:-2px;
+    animation:spin .7s linear infinite;
+  }
+  @keyframes spin{to{transform:rotate(360deg);}}
+  .r-source{
+    font-size:9px; letter-spacing:0.12em; text-transform:uppercase;
+    text-align:center; margin-top:2px; opacity:0.5;
+  }
+  .r-source.live{color:#0F7A50; opacity:0.8;}
+  .r-source.demo{color:#A87A2A; opacity:0.8;}
+
+  /* --- RECEIPT REVEAL --- */
+  #receipt-holder{
+    display:none;
+    margin-top:24px;
+  }
+  .receipt{
+    background:var(--paper);
+    color:var(--paper-ink);
+    font-family:var(--mono);
+    padding:28px 24px 22px;
+    position:relative;
+    clip-path:polygon(
+      0% 1.5%, 4% 0%, 8% 1.5%, 12% 0%, 16% 1.5%, 20% 0%, 24% 1.5%, 28% 0%, 32% 1.5%, 36% 0%,
+      40% 1.5%, 44% 0%, 48% 1.5%, 52% 0%, 56% 1.5%, 60% 0%, 64% 1.5%, 68% 0%, 72% 1.5%, 76% 0%,
+      80% 1.5%, 84% 0%, 88% 1.5%, 92% 0%, 96% 1.5%, 100% 0%,
+      100% 98.5%, 96% 100%, 92% 98.5%, 88% 100%, 84% 98.5%, 80% 100%, 76% 98.5%, 72% 100%,
+      68% 98.5%, 64% 100%, 60% 98.5%, 56% 100%, 52% 98.5%, 48% 100%, 44% 98.5%, 40% 100%,
+      36% 98.5%, 32% 100%, 28% 98.5%, 24% 100%, 20% 98.5%, 16% 100%, 12% 98.5%, 8% 100%,
+      4% 98.5%, 0% 100%
+    );
+    box-shadow:0 20px 60px rgba(0,0,0,0.45);
+    animation:dropIn .5s cubic-bezier(.2,.9,.3,1.3);
+  }
+  @keyframes dropIn{
+    from{opacity:0; transform:translateY(-16px) scale(0.98);}
+    to{opacity:1; transform:translateY(0) scale(1);}
+  }
+  .r-title{
+    text-align:center;
+    font-size:11px;
+    letter-spacing:0.2em;
+    text-transform:uppercase;
+    opacity:0.55;
+    margin-bottom:4px;
+  }
+  .r-sub{
+    text-align:center;
+    font-size:11px;
+    opacity:0.45;
+    margin-bottom:18px;
+  }
+  .dashed{border-top:1.5px dashed rgba(42,36,24,0.35); margin:14px 0;}
+  .r-line{
+    display:flex;
+    justify-content:space-between;
+    font-size:13px;
+    margin-bottom:8px;
+  }
+  .r-line span:last-child{font-weight:600;}
+  .r-big{
+    text-align:center;
+    margin:18px 0 10px;
+  }
+  .r-big .label{font-size:11px; letter-spacing:0.1em; text-transform:uppercase; opacity:0.5; margin-bottom:6px;}
+  .r-big .num{
+    font-size:clamp(30px, 9vw, 42px);
+    font-weight:700;
+    letter-spacing:-0.02em;
+  }
+  .r-big .num.pos{color:#0F7A50;}
+  .r-big .num.neg{color:#A82A30;}
+  .r-mult{
+    text-align:center;
+    font-size:13px;
+    font-weight:600;
+    padding:5px 12px;
+    border-radius:20px;
+    display:inline-block;
+    margin:0 auto;
+  }
+  .r-mult-wrap{text-align:center; margin-bottom:6px;}
+  .r-mult.pos{background:rgba(15,122,80,0.12); color:#0F7A50;}
+  .r-mult.neg{background:rgba(168,42,48,0.12); color:#A82A30;}
+  .r-compare{
+    font-size:12px;
+    opacity:0.6;
+    text-align:center;
+    margin-top:14px;
+    line-height:1.5;
+  }
+  .r-footer{
+    text-align:center;
+    font-size:10px;
+    opacity:0.4;
+    margin-top:16px;
+    letter-spacing:0.05em;
+  }
+
+  .share-cta{
+    width:100%;
+    background:#0D1117;
+    color:var(--gold);
+    border:1px solid var(--gold);
+    font-family:var(--sans);
+    font-weight:700;
+    font-size:14px;
+    padding:13px;
+    border-radius:9px;
+    cursor:pointer;
+    margin-top:14px;
+  }
+  .share-cta:hover{background:rgba(240,185,11,0.08);}
+
+  .disclaimer{
+    font-size:11px;
+    color:var(--muted);
+    text-align:center;
+    margin-top:22px;
+    line-height:1.6;
+    opacity:0.6;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="eyebrow">demo · illustrative data</div>
+  <h1>How much would you have <span>made</span> if you'd bought back then?</h1>
+  <p class="sub">Pick a coin, an amount, and a date — find out what your money would be worth today. Painful, but useful.</p>
+
+  <div class="panel">
+    <div class="field">
+      <label>Coin</label>
+      <div class="coin-search-wrap">
+        <input type="text" id="coinSearch" placeholder="Search any coin: solana, pepe, ton…" autocomplete="off">
+        <div class="coin-dropdown" id="coinDropdown"></div>
+      </div>
+      <div style="font-size:11px; color:var(--muted); margin-bottom:8px;">or quick pick:</div>
+      <div class="coin-grid" id="coinGrid"></div>
+      <div class="selected-coin" id="selectedCoinLabel"></div>
+    </div>
+    <div class="row">
+      <div class="field">
+        <label>Amount</label>
+        <div class="amount-wrap">
+          <input type="number" id="amount" value="1000" min="1">
+        </div>
+      </div>
+      <div class="field">
+        <label>Purchase date</label>
+        <button type="button" class="date-trigger" id="dateTrigger">March 2020</button>
+      </div>
+    </div>
+    <div class="field" style="margin-top:4px;">
+      <button class="cta" id="calcBtn">Show me what I missed →</button>
+    </div>
+  </div>
+
+  <!-- Custom date wheel-picker (native mobile-app style) -->
+  <div class="date-sheet-overlay" id="dateSheetOverlay">
+    <div class="date-sheet">
+      <div class="date-sheet-header">
+        <button type="button" id="dateCancel">Cancel</button>
+        <span>Purchase date</span>
+        <button type="button" id="dateDone">Done</button>
+      </div>
+      <div class="wheel-wrap">
+        <div class="wheel-highlight"></div>
+        <div class="wheel-fade wheel-fade-top"></div>
+        <div class="wheel-fade wheel-fade-bottom"></div>
+        <div class="wheel-col" id="monthWheel"></div>
+        <div class="wheel-col" id="yearWheel"></div>
+      </div>
+      <div class="date-sheet-hint" id="dateSheetHint"></div>
+    </div>
+  </div>
+
+  <div id="receipt-holder">
+    <div class="receipt">
+      <div class="r-title" id="rTitle">— receipt of regret —</div>
+      <div class="r-sub" id="rSub"></div>
+      <div class="r-source" id="rSource"></div>
+      <div class="dashed"></div>
+      <div class="r-line"><span>Invested</span><span id="rInvested"></span></div>
+      <div class="r-line"><span>Price at purchase</span><span id="rBuyPrice"></span></div>
+      <div class="r-line"><span>Coins bought</span><span id="rCoinsQty"></span></div>
+      <div class="r-line"><span>Price now</span><span id="rNowPrice"></span></div>
+      <div class="dashed"></div>
+      <div class="r-big">
+        <div class="label">Would be worth now</div>
+        <div class="num" id="rResult">$0</div>
+      </div>
+      <div class="r-mult-wrap"><span class="r-mult" id="rMult">x1.0</span></div>
+      <div class="r-compare" id="rCompare"></div>
+      <div class="r-footer">RECEIPT OF REGRET · TIMESTAMP <span id="rStamp"></span></div>
+    </div>
+    <button class="share-cta" id="shareBtn">📸 Generate share card</button>
+    <div id="shareCardWrap" style="display:none; margin-top:14px; text-align:center;">
+      <canvas id="shareCanvas" width="640" height="800" style="display:none;"></canvas>
+      <img id="shareCardImg" style="width:100%; border-radius:14px; box-shadow:0 12px 40px rgba(0,0,0,0.5);">
+      <a id="shareDownload" class="share-cta" style="display:block; text-decoration:none; margin-top:10px; box-sizing:border-box;" download="crypto-regret-card.png">⬇️ Download PNG</a>
+    </div>
+  </div>
+
+  <p class="disclaimer">Prices flow through our own caching proxy (Netlify function → CoinGecko), with a fallback to a direct call and then to demo data if everything else is unavailable. The source is always shown on the receipt.</p>
+</div>
+
+<script>
+// ---- Approximate historical price anchors (log-interpolated between points) ----
+// Format: [YYYY-MM, price]. Illustrative demo data, not exact market data.
+const DATA = {
+  BTC: { name:'Bitcoin', points:[
+    ['2013-01',13],['2013-04',100],['2013-11',350],['2013-12',750],
+    ['2014-01',800],['2014-06',600],['2014-12',320],
+    ['2015-06',230],['2015-12',430],
+    ['2016-06',670],['2016-12',960],
+    ['2017-06',2500],['2017-09',4000],['2017-12',13800],
+    ['2018-01',10000],['2018-06',6300],['2018-12',3800],
+    ['2019-06',10800],['2019-12',7200],
+    ['2020-01',9350],['2020-03',5900],['2020-06',9100],['2020-12',29000],
+    ['2021-01',33000],['2021-04',57800],['2021-07',33000],['2021-11',64000],['2021-12',46000],
+    ['2022-01',38000],['2022-06',20000],['2022-11',16500],['2022-12',16500],
+    ['2023-01',23000],['2023-06',30500],['2023-10',34000],['2023-12',42000],
+    ['2024-01',43000],['2024-03',70000],['2024-06',64000],['2024-12',95000],
+    ['2025-03',100000],['2025-06',105000],['2025-12',112000],
+    ['2026-01',118000],['2026-04',122000],['2026-08',128000]
+  ]},
+  ETH: { name:'Ethereum', points:[
+    ['2016-01',1],['2017-06',200],['2017-12',750],
+    ['2018-01',1200],['2018-06',460],['2018-12',130],
+    ['2019-06',280],['2019-12',130],
+    ['2020-01',130],['2020-03',110],['2020-06',225],['2020-12',730],
+    ['2021-01',1000],['2021-05',2700],['2021-07',1900],['2021-11',4800],['2021-12',3700],
+    ['2022-01',3300],['2022-06',1100],['2022-11',1200],['2022-12',1200],
+    ['2023-01',1550],['2023-06',1900],['2023-12',2300],
+    ['2024-01',2300],['2024-03',3900],['2024-06',3400],['2024-12',3400],
+    ['2025-06',3600],['2026-01',3900],['2026-08',4200]
+  ]},
+  SOL: { name:'Solana', points:[
+    ['2020-05',0.5],['2020-12',1.5],
+    ['2021-01',1.8],['2021-05',35],['2021-09',140],['2021-11',260],['2021-12',170],
+    ['2022-01',150],['2022-06',38],['2022-11',13],['2022-12',10],
+    ['2023-01',11],['2023-06',18],['2023-12',100],
+    ['2024-01',100],['2024-03',200],['2024-06',150],['2024-12',190],
+    ['2025-06',210],['2026-01',235],['2026-08',255]
+  ]},
+  DOGE:{ name:'Dogecoin', points:[
+    ['2017-12',0.0095],
+    ['2020-01',0.0023],['2020-12',0.0047],
+    ['2021-01',0.0086],['2021-04',0.34],['2021-05',0.65],['2021-07',0.21],['2021-11',0.23],['2021-12',0.17],
+    ['2022-01',0.14],['2022-06',0.06],['2022-11',0.09],['2022-12',0.07],
+    ['2023-01',0.075],['2023-06',0.065],['2023-12',0.09],
+    ['2024-01',0.085],['2024-03',0.16],['2024-06',0.13],['2024-12',0.32],
+    ['2025-06',0.28],['2026-01',0.26],['2026-08',0.24]
+  ]},
+  ADA: { name:'Cardano', points:[
+    ['2017-12',0.7],
+    ['2020-01',0.033],['2020-12',0.18],
+    ['2021-01',0.17],['2021-05',1.9],['2021-09',2.9],['2021-11',1.8],['2021-12',1.3],
+    ['2022-01',1.2],['2022-06',0.43],['2022-11',0.3],['2022-12',0.25],
+    ['2023-01',0.32],['2023-06',0.28],['2023-12',0.5],
+    ['2024-01',0.55],['2024-03',0.65],['2024-06',0.45],['2024-12',0.9],
+    ['2025-06',0.75],['2026-01',0.7],['2026-08',0.68]
+  ]},
+  XRP: { name:'XRP', points:[
+    ['2017-12',2.8],
+    ['2020-01',0.19],['2020-12',0.22],
+    ['2021-01',0.23],['2021-04',1.8],['2021-07',0.6],['2021-11',1.1],['2021-12',0.83],
+    ['2022-01',0.6],['2022-06',0.34],['2022-11',0.4],['2022-12',0.34],
+    ['2023-01',0.34],['2023-06',0.47],['2023-12',0.6],
+    ['2024-01',0.6],['2024-03',0.63],['2024-06',0.47],['2024-12',2.2],
+    ['2025-06',2.6],['2026-01',2.9],['2026-08',3.1]
+  ]},
+  BNB: { name:'BNB', points:[
+    ['2019-01',6],
+    ['2020-01',14],['2020-12',37],
+    ['2021-01',38],['2021-05',600],['2021-07',290],['2021-11',580],['2021-12',520],
+    ['2022-01',400],['2022-06',220],['2022-11',280],['2022-12',250],
+    ['2023-01',245],['2023-06',240],['2023-12',310],
+    ['2024-01',310],['2024-03',410],['2024-06',580],['2024-12',700],
+    ['2025-06',780],['2026-01',850],['2026-08',920]
+  ]}
+};
+// Rough S&P500 index anchors for "boring alternative" comparison
+const SP500 = [
+  ['2013-01',1500],['2015-01',2050],['2017-01',2270],['2019-01',2600],['2020-01',3230],
+  ['2020-12',3760],['2021-11',4700],['2022-12',3850],['2023-12',4770],['2024-12',6000],
+  ['2025-06',6300],['2026-08',6850]
+];
+
+function monthToTs(m){ const [y,mo]=m.split('-').map(Number); return y*12+mo; }
+
+function interpPrice(points, dateStr){
+  const t = monthToTs(dateStr);
+  const pts = points.map(p=>[monthToTs(p[0]), p[1]]);
+  if(t<=pts[0][0]) return pts[0][1];
+  if(t>=pts[pts.length-1][0]) return pts[pts.length-1][1];
+  for(let i=0;i<pts.length-1;i++){
+    const [t0,p0]=pts[i], [t1,p1]=pts[i+1];
+    if(t>=t0 && t<=t1){
+      const frac = (t-t0)/(t1-t0);
+      // log-interpolation, closer to real crypto price behavior
+      return Math.exp(Math.log(p0) + frac*(Math.log(p1)-Math.log(p0)));
+    }
+  }
+  return pts[pts.length-1][1];
+}
+
+function fmt(n){
+  if(n>=1000) return '$'+Math.round(n).toLocaleString('en-US');
+  if(n>=1) return '$'+n.toFixed(2);
+  return '$'+n.toFixed(6).replace(/0+$/,'').replace(/\.$/,'');
+}
+function fmtBig(n){
+  return '$'+Math.round(n).toLocaleString('en-US');
+}
+function fmtCoinsQty(qty, symbol){
+  // for cheap coins (DOGE, SHIB, etc.) the raw coin count is part of the joke,
+  // so large quantities round to a whole number with thousands separators,
+  // while pricier coins (BTC, etc.) need fractional precision
+  let numStr;
+  if(qty >= 1000){
+    numStr = Math.round(qty).toLocaleString('en-US');
+  } else if(qty >= 1){
+    numStr = qty.toFixed(4).replace(/0+$/,'').replace(/\.$/,'');
+  } else {
+    numStr = qty.toFixed(6).replace(/0+$/,'').replace(/\.$/,'');
+  }
+  return `${numStr} ${symbol}`;
+}
+
+// ---- Mobile-style wheel picker for the purchase date ----
+const MONTH_NAMES = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+const PICKER_MIN_YEAR = 2013;
+const PICKER_MAX_YEAR = 2026;
+const PICKER_MAX_MONTH_IN_MAX_YEAR = 8; // August 2026 = current month, anything later is the future
+
+let pickedMonth = 3;   // 1-12, starting value = March
+let pickedYear = 2020;
+let currentDateStr = '2020-03'; // source of truth for calculation, synced on "Done"
+
+const dateTrigger = document.getElementById('dateTrigger');
+const dateSheetOverlay = document.getElementById('dateSheetOverlay');
+const monthWheel = document.getElementById('monthWheel');
+const yearWheel = document.getElementById('yearWheel');
+const dateSheetHint = document.getElementById('dateSheetHint');
+const ROW_H = 44;
+const PAD_ROWS = 2; // (visible area height 220px = 5 rows) -> 2 padding rows top/bottom
+
+function buildWheel(container, items, isDisabled){
+  container.innerHTML = '';
+  const spacer1 = document.createElement('div');
+  spacer1.style.height = (ROW_H*PAD_ROWS)+'px';
+  container.appendChild(spacer1);
+  items.forEach(item=>{
+    const el = document.createElement('div');
+    el.className = 'wheel-item' + (isDisabled && isDisabled(item.value) ? ' disabled' : '');
+    el.textContent = item.label;
+    el.dataset.value = item.value;
+    container.appendChild(el);
+  });
+  const spacer2 = document.createElement('div');
+  spacer2.style.height = (ROW_H*PAD_ROWS)+'px';
+  container.appendChild(spacer2);
+}
+
+function scrollWheelTo(container, index, smooth){
+  container.scrollTo({ top: index*ROW_H, behavior: smooth ? 'smooth' : 'auto' });
+}
+
+function getSelectedIndex(container){
+  return Math.round(container.scrollTop / ROW_H);
+}
+
+function highlightPicked(container){
+  const idx = getSelectedIndex(container);
+  container.querySelectorAll('.wheel-item').forEach((el,i)=>{
+    el.classList.toggle('picked', i===idx);
+  });
+  return idx;
+}
+
+function clampFutureAndRefresh(){
+  // if a month/year past "now" (2026-08) was picked — softly clamp back to the max
+  if(pickedYear > PICKER_MAX_YEAR || (pickedYear===PICKER_MAX_YEAR && pickedMonth>PICKER_MAX_MONTH_IN_MAX_YEAR)){
+    dateSheetHint.textContent = 'Can\'t pick the future — snapped to the latest available month';
+    pickedYear = PICKER_MAX_YEAR;
+    pickedMonth = PICKER_MAX_MONTH_IN_MAX_YEAR;
+    return true;
+  }
+  dateSheetHint.textContent = '';
+  return false;
+}
+
+function initWheels(){
+  const monthItems = MONTH_NAMES.map((name,i)=>({label:name, value:i+1}));
+  const years = [];
+  for(let y=PICKER_MIN_YEAR; y<=PICKER_MAX_YEAR; y++) years.push({label:String(y), value:y});
+
+  buildWheel(monthWheel, monthItems, (v)=> pickedYear===PICKER_MAX_YEAR && v>PICKER_MAX_MONTH_IN_MAX_YEAR);
+  buildWheel(yearWheel, years);
+
+  attachWheelScroll(monthWheel, (idx)=>{ pickedMonth = monthItems[idx] ? monthItems[idx].value : pickedMonth; });
+  attachWheelScroll(yearWheel, (idx)=>{ pickedYear = years[idx] ? years[idx].value : pickedYear; });
+}
+
+function attachWheelScroll(container, onPick){
+  let scrollTimer = null;
+  container.addEventListener('scroll', ()=>{
+    highlightPicked(container); // instant visual feedback while scrolling
+    clearTimeout(scrollTimer);
+    scrollTimer = setTimeout(()=>{
+      const idx = getSelectedIndex(container);
+      // snap precisely to a row (native snap sometimes lands imperfectly on a fast flick)
+      scrollWheelTo(container, idx, true);
+      onPick(idx);
+      highlightPicked(container);
+      if(container===monthWheel || container===yearWheel){
+        // if the year hit the max — redraw months reflecting the disabled state
+        if(container===yearWheel) refreshMonthDisabledState();
+      }
+    }, 120);
+  }, { passive:true });
+}
+
+function refreshMonthDisabledState(){
+  const items = Array.from(monthWheel.querySelectorAll('.wheel-item'));
+  items.forEach(el=>{
+    const v = parseInt(el.dataset.value, 10);
+    el.classList.toggle('disabled', pickedYear===PICKER_MAX_YEAR && v>PICKER_MAX_MONTH_IN_MAX_YEAR);
+  });
+}
+
+function openDateSheet(){
+  dateSheetOverlay.classList.add('open');
+  // set the wheels to the current value without animation
+  const monthIdx = pickedMonth - 1;
+  const yearIdx = pickedYear - PICKER_MIN_YEAR;
+  requestAnimationFrame(()=>{
+    scrollWheelTo(monthWheel, monthIdx, false);
+    scrollWheelTo(yearWheel, yearIdx, false);
+    highlightPicked(monthWheel);
+    highlightPicked(yearWheel);
+    refreshMonthDisabledState();
+  });
+  dateSheetHint.textContent = '';
+}
+
+function closeDateSheet(){
+  dateSheetOverlay.classList.remove('open');
+}
+
+function updateDateTriggerLabel(){
+  dateTrigger.textContent = `${MONTH_NAMES[pickedMonth-1]} ${pickedYear}`;
+  currentDateStr = `${pickedYear}-${String(pickedMonth).padStart(2,'0')}`;
+}
+
+initWheels();
+updateDateTriggerLabel();
+
+dateTrigger.addEventListener('click', openDateSheet);
+document.getElementById('dateCancel').addEventListener('click', closeDateSheet);
+dateSheetOverlay.addEventListener('click', (e)=>{ if(e.target===dateSheetOverlay) closeDateSheet(); });
+document.getElementById('dateDone').addEventListener('click', ()=>{
+  const wasClamped = clampFutureAndRefresh();
+  if(wasClamped){
+    // user scrolled into the future — don't close the sheet silently, instead
+    // snap the wheels to the latest available date and let them see the hint.
+    // It will close on the next "Done" tap (which will already be valid).
+    scrollWheelTo(monthWheel, pickedMonth-1, true);
+    scrollWheelTo(yearWheel, pickedYear-PICKER_MIN_YEAR, true);
+    highlightPicked(monthWheel);
+    highlightPicked(yearWheel);
+    refreshMonthDisabledState();
+    return;
+  }
+  updateDateTriggerLabel();
+  closeDateSheet();
+});
+
+// CoinGecko coin ids for live lookups
+const GECKO_ID = {
+  BTC:'bitcoin', ETH:'ethereum', SOL:'solana', DOGE:'dogecoin',
+  ADA:'cardano', XRP:'ripple', BNB:'binancecoin'
+};
+
+// ---- Simple in-session cache to avoid hammering CoinGecko on repeat lookups ----
+// (in production this belongs server-side — see note at bottom of file)
+const priceCache = new Map();
+function cacheKey(id, kind, date){ return `${id}:${kind}:${date||'now'}`; }
+
+async function fetchHistoricalPrice(geckoId, dateStr){
+  const key = cacheKey(geckoId, 'hist', dateStr);
+  if(priceCache.has(key)) return priceCache.get(key);
+
+  let price;
+  try{
+    // prefer our own proxy (netlify/functions/price.js) — it caches
+    // on the CDN and stops every user hammering CoinGecko directly at once
+    const res = await fetch(`/api/price?type=history&coin=${geckoId}&date=${dateStr}`);
+    if(!res.ok) throw new Error('proxy history failed');
+    const json = await res.json();
+    if(!json.price) throw new Error('no price from proxy');
+    price = json.price;
+  }catch(proxyErr){
+    // no proxy available (e.g. the file was opened locally without deploying) — go direct
+    const [y,m] = dateStr.split('-');
+    const apiDate = `01-${m}-${y}`;
+    const res = await fetch(`https://api.coingecko.com/api/v3/coins/${geckoId}/history?date=${apiDate}&localization=false`);
+    if(!res.ok) throw new Error('history fetch failed');
+    const json = await res.json();
+    price = json?.market_data?.current_price?.usd;
+    if(!price) throw new Error('no price in response');
+  }
+  priceCache.set(key, price);
+  return price;
+}
+
+async function fetchCurrentPrice(geckoId){
+  const key = cacheKey(geckoId, 'now');
+  if(priceCache.has(key)){
+    const cached = priceCache.get(key);
+    if(Date.now() - cached.ts < 60000) return cached.price; // 60s TTL for "current" price
+  }
+
+  let price;
+  try{
+    const res = await fetch(`/api/price?type=current&coin=${geckoId}`);
+    if(!res.ok) throw new Error('proxy current failed');
+    const json = await res.json();
+    if(!json.price) throw new Error('no price from proxy');
+    price = json.price;
+  }catch(proxyErr){
+    const res = await fetch(`https://api.coingecko.com/api/v3/simple/price?ids=${geckoId}&vs_currencies=usd`);
+    if(!res.ok) throw new Error('current price fetch failed');
+    const json = await res.json();
+    price = json?.[geckoId]?.usd;
+    if(!price) throw new Error('no price in response');
+  }
+  priceCache.set(key, { price, ts: Date.now() });
+  return price;
+}
+
+// Static offline index of popular coins — used when live search
+// via CoinGecko is unavailable (no network, CORS on file://, proxy not deployed, etc.)
+// Without this, search would be completely broken offline, unlike the price calc,
+// which has a demo fallback. Only id/symbol/name here, no images —
+// we render a colored letter-avatar instead of an <img> in the result row.
+const STATIC_COIN_INDEX = [
+  {id:'bitcoin', symbol:'btc', name:'Bitcoin'},
+  {id:'ethereum', symbol:'eth', name:'Ethereum'},
+  {id:'solana', symbol:'sol', name:'Solana'},
+  {id:'dogecoin', symbol:'doge', name:'Dogecoin'},
+  {id:'cardano', symbol:'ada', name:'Cardano'},
+  {id:'ripple', symbol:'xrp', name:'XRP'},
+  {id:'binancecoin', symbol:'bnb', name:'BNB'},
+  {id:'tron', symbol:'trx', name:'TRON'},
+  {id:'toncoin', symbol:'ton', name:'Toncoin'},
+  {id:'the-open-network', symbol:'ton', name:'Toncoin (TON)'},
+  {id:'polkadot', symbol:'dot', name:'Polkadot'},
+  {id:'chainlink', symbol:'link', name:'Chainlink'},
+  {id:'avalanche-2', symbol:'avax', name:'Avalanche'},
+  {id:'litecoin', symbol:'ltc', name:'Litecoin'},
+  {id:'shiba-inu', symbol:'shib', name:'Shiba Inu'},
+  {id:'pepe', symbol:'pepe', name:'Pepe'},
+  {id:'uniswap', symbol:'uni', name:'Uniswap'},
+  {id:'polygon-ecosystem-token', symbol:'pol', name:'Polygon'},
+  {id:'near', symbol:'near', name:'NEAR Protocol'},
+  {id:'internet-computer', symbol:'icp', name:'Internet Computer'},
+  {id:'aptos', symbol:'apt', name:'Aptos'},
+  {id:'arbitrum', symbol:'arb', name:'Arbitrum'},
+  {id:'optimism', symbol:'op', name:'Optimism'},
+  {id:'sui', symbol:'sui', name:'Sui'},
+  {id:'stellar', symbol:'xlm', name:'Stellar'},
+  {id:'monero', symbol:'xmr', name:'Monero'},
+  {id:'cosmos', symbol:'atom', name:'Cosmos'},
+  {id:'filecoin', symbol:'fil', name:'Filecoin'},
+  {id:'render-token', symbol:'render', name:'Render'},
+  {id:'injective-protocol', symbol:'inj', name:'Injective'},
+  {id:'the-graph', symbol:'grt', name:'The Graph'},
+  {id:'fantom', symbol:'ftm', name:'Fantom'},
+  {id:'vechain', symbol:'vet', name:'VeChain'},
+  {id:'hedera-hashgraph', symbol:'hbar', name:'Hedera'},
+  {id:'algorand', symbol:'algo', name:'Algorand'},
+  {id:'okb', symbol:'okb', name:'OKB'},
+  {id:'notcoin', symbol:'not', name:'Notcoin'},
+  {id:'worldcoin-wld', symbol:'wld', name:'Worldcoin'},
+  {id:'bonk', symbol:'bonk', name:'Bonk'},
+  {id:'dogwifcoin', symbol:'wif', name:'dogwifhat'},
+  {id:'ondo-finance', symbol:'ondo', name:'Ondo'},
+];
+
+function searchOffline(q){
+  const query = q.trim().toLowerCase();
+  return STATIC_COIN_INDEX.filter(c =>
+    c.symbol.toLowerCase().includes(query) || c.name.toLowerCase().includes(query)
+  ).slice(0, 8);
+}
+
+let currentCoin = { symbol:'BTC', name:'Bitcoin', geckoId:'bitcoin' };
+
+const grid=document.getElementById('coinGrid');
+const selectedLabel = document.getElementById('selectedCoinLabel');
+
+// Public CDN for coin icons (by symbol). If a specific coin's icon
+// isn't available (e.g. a new memecoin) — <img onerror> quietly swaps it for
+// a colored letter-avatar, so the UI never breaks.
+function iconUrl(symbol){
+  return `https://cdn.jsdelivr.net/gh/spothq/cryptocurrency-icons@master/128/color/${symbol.toLowerCase()}.png`;
+}
+function makeIconEl(symbol, name, sizeClass, extraClass){
+  const img = document.createElement('img');
+  img.src = iconUrl(symbol);
+  img.alt = '';
+  img.className = sizeClass + (extraClass ? ' '+extraClass : '');
+  img.onerror = ()=>{
+    const fallback = document.createElement('div');
+    fallback.className = sizeClass + ' avatar-fallback' + (extraClass ? ' '+extraClass : '');
+    fallback.textContent = (symbol||name||'?').charAt(0).toUpperCase();
+    img.replaceWith(fallback);
+  };
+  return img;
+}
+
+function renderQuickPicks(){
+  grid.innerHTML = '';
+  Object.keys(DATA).forEach(sym=>{
+    const btn=document.createElement('button');
+    btn.className='coin-btn'+(sym===currentCoin.symbol && currentCoin.geckoId===GECKO_ID[sym] ?' active':'');
+    btn.appendChild(makeIconEl(sym, DATA[sym].name, 'coin-btn-icon'));
+    const label = document.createElement('span');
+    label.textContent = sym;
+    btn.appendChild(label);
+    btn.onclick=()=>{
+      currentCoin = { symbol:sym, name:DATA[sym].name, geckoId:GECKO_ID[sym] };
+      updateSelectedUI();
+    };
+    grid.appendChild(btn);
+  });
+}
+function updateSelectedUI(){
+  renderQuickPicks();
+  selectedLabel.innerHTML = '';
+  selectedLabel.appendChild(makeIconEl(currentCoin.symbol, currentCoin.name, 'selected-coin-icon'));
+  const text = document.createElement('span');
+  text.innerHTML = `Selected: <b>${currentCoin.symbol}</b> · ${currentCoin.name}`;
+  selectedLabel.appendChild(text);
+}
+renderQuickPicks();
+updateSelectedUI();
+
+// ---- Free-text coin search via CoinGecko /search ----
+const searchInput = document.getElementById('coinSearch');
+const dropdown = document.getElementById('coinDropdown');
+let searchDebounce = null;
+
+searchInput.addEventListener('input', ()=>{
+  const q = searchInput.value.trim();
+  clearTimeout(searchDebounce);
+  if(q.length < 2){ dropdown.classList.remove('open'); return; }
+  dropdown.innerHTML = '<div class="loading">searching…</div>';
+  dropdown.classList.add('open');
+  searchDebounce = setTimeout(()=>runCoinSearch(q), 350);
+});
+
+document.addEventListener('click', (e)=>{
+  if(!e.target.closest('.coin-search-wrap')) dropdown.classList.remove('open');
+});
+
+async function runCoinSearch(q){
+  let coins = [];
+  let offline = false;
+  try{
+    try{
+      // proxy first — a short edge-cache absorbs bursts from fast typing
+      const res = await fetch(`/api/search?query=${encodeURIComponent(q)}`);
+      if(!res.ok) throw new Error('proxy search failed');
+      const json = await res.json();
+      coins = json.coins || [];
+    }catch(proxyErr){
+      const res = await fetch(`https://api.coingecko.com/api/v3/search?query=${encodeURIComponent(q)}`);
+      if(!res.ok) throw new Error('search failed');
+      const json = await res.json();
+      coins = (json.coins || []).slice(0, 8);
+    }
+  }catch(err){
+    // neither the proxy nor direct CoinGecko is reachable (no network, CORS on file://, etc.) —
+    // don't leave search completely dead, fall back to the local offline index
+    coins = searchOffline(q);
+    offline = true;
+  }
+
+  if(coins.length === 0){
+    dropdown.innerHTML = offline
+      ? '<div class="empty">No offline matches — try a quick pick below, or wait for network for full search</div>'
+      : '<div class="empty">No results found</div>';
+    return;
+  }
+  dropdown.innerHTML = '';
+  if(offline){
+    const note = document.createElement('div');
+    note.className = 'coin-dropdown-note';
+    note.textContent = 'offline search (no network) · limited list';
+    dropdown.appendChild(note);
+  }
+  coins.forEach(c=>{
+    const opt = document.createElement('div');
+    opt.className = 'coin-opt';
+    if(c.thumb){
+      // a live CoinGecko result already has a ready-made image
+      const img = document.createElement('img');
+      img.src = c.thumb; img.alt = '';
+      img.onerror = ()=>{
+        const fb = document.createElement('div');
+        fb.className = 'co-avatar';
+        fb.textContent = c.symbol.charAt(0).toUpperCase();
+        img.replaceWith(fb);
+      };
+      opt.appendChild(img);
+    } else {
+      // offline entry — try the public CDN by symbol, fall back to a letter
+      opt.appendChild(makeIconEl(c.symbol, c.name, 'co-avatar-sized'));
+    }
+    const info = document.createElement('div');
+    info.innerHTML = `<div class="co-sym">${c.symbol.toUpperCase()}</div><div class="co-name">${c.name}</div>`;
+    opt.appendChild(info);
+    opt.onclick = ()=>{
+      currentCoin = { symbol:c.symbol.toUpperCase(), name:c.name, geckoId:c.id };
+      updateSelectedUI();
+      searchInput.value = '';
+      dropdown.classList.remove('open');
+    };
+    dropdown.appendChild(opt);
+  });
+}
+
+function animateCount(el, target, prefix, duration=900){
+  const start=performance.now();
+  function step(now){
+    const p=Math.min(1,(now-start)/duration);
+    const eased=1-Math.pow(1-p,3);
+    const val=target*eased;
+    el.textContent = prefix + fmtBig(val).replace('$','');
+    if(p<1) requestAnimationFrame(step);
+    else el.textContent = prefix + fmtBig(target).replace('$','');
+  }
+  requestAnimationFrame(step);
+}
+
+const calcBtn = document.getElementById('calcBtn');
+const calcBtnLabel = calcBtn.textContent;
+
+async function getPrices(coin, dateStr){
+  const demoPoints = DATA[coin.symbol]?.points;
+  try{
+    const [buyPrice, nowPrice] = await Promise.all([
+      fetchHistoricalPrice(coin.geckoId, dateStr),
+      fetchCurrentPrice(coin.geckoId)
+    ]);
+    return { buyPrice, nowPrice, source:'live' };
+  }catch(err){
+    // fallback to approximate demo dataset — only available for the 7 preset coins
+    if(demoPoints){
+      return {
+        buyPrice: interpPrice(demoPoints, dateStr),
+        nowPrice: interpPrice(demoPoints, '2026-08'),
+        source:'demo'
+      };
+    }
+    return { error:true };
+  }
+}
+
+calcBtn.addEventListener('click', async ()=>{
+  const amount = parseFloat(document.getElementById('amount').value) || 0;
+  const dateStr = currentDateStr;
+  const coin = currentCoin;
+
+  calcBtn.disabled = true;
+  calcBtn.innerHTML = '<span class="spin"></span>Crunching market data…';
+
+  const priceData = await getPrices(coin, dateStr);
+
+  if(priceData.error){
+    calcBtn.disabled = false;
+    calcBtn.textContent = calcBtnLabel;
+    alert(`Couldn't get prices for ${coin.symbol} — the API is unavailable and there's no demo data for this coin. Try BTC/ETH/SOL/DOGE/ADA/XRP/BNB, or try again.`);
+    return;
+  }
+  const { buyPrice, nowPrice, source } = priceData;
+
+  const coins = amount / buyPrice;
+  const result = coins * nowPrice;
+  const mult = result/amount;
+
+  const spBuy = interpPrice(SP500, dateStr);
+  const spNow = interpPrice(SP500, '2026-08');
+  const spResult = amount * (spNow/spBuy);
+
+  document.getElementById('rSub').textContent = `${coin.name} · bought ${dateStr}`;
+  document.getElementById('rSource').textContent = source==='live' ? '● live data from coingecko' : '● offline demo data (api unavailable)';
+  document.getElementById('rSource').className = 'r-source '+source;
+  document.getElementById('rInvested').textContent = fmt(amount);
+  document.getElementById('rBuyPrice').textContent = fmt(buyPrice);
+  document.getElementById('rCoinsQty').textContent = fmtCoinsQty(coins, coin.symbol);
+  document.getElementById('rNowPrice').textContent = fmt(nowPrice);
+  document.getElementById('rMult').textContent = 'x'+mult.toFixed(1);
+  document.getElementById('rMult').className = 'r-mult '+(mult>=1?'pos':'neg');
+  document.getElementById('rResult').className = 'num '+(mult>=1?'pos':'neg');
+  document.getElementById('rCompare').textContent =
+    `For comparison: the same amount in the S&P 500 would be worth ${fmtBig(spResult)} today.`;
+  document.getElementById('rStamp').textContent = new Date().toISOString().slice(0,19).replace('T',' ');
+
+  document.getElementById('receipt-holder').style.display='block';
+  animateCount(document.getElementById('rResult'), result, '$');
+  document.getElementById('receipt-holder').scrollIntoView({behavior:'smooth', block:'nearest'});
+
+  lastResult = {
+    coinName: coin.name,
+    dateStr,
+    investedFmt: fmt(amount),
+    buyPriceFmt: fmt(buyPrice),
+    coinsQtyFmt: fmtCoinsQty(coins, coin.symbol),
+    nowPriceFmt: fmt(nowPrice),
+    resultFmt: fmtBig(result),
+    spResultFmt: fmtBig(spResult),
+    mult
+  };
+  // reset any previously generated share card since the numbers changed
+  document.getElementById('shareCardWrap').style.display = 'none';
+
+  calcBtn.disabled = false;
+  calcBtn.textContent = calcBtnLabel;
+});
+
+// keep the last computed result around so the share card can use it
+let lastResult = null;
+
+function roundedZigzagPath(ctx, x, y, w, h, teeth, amp, r){
+  // paper card with a torn/zigzag top and bottom edge, straight sides
+  const toothW = w / teeth;
+  ctx.beginPath();
+  ctx.moveTo(x, y + amp);
+  for(let i=0;i<=teeth;i++){
+    const px = x + i*toothW;
+    ctx.lineTo(px, y + (i%2===0 ? 0 : amp));
+  }
+  ctx.lineTo(x+w, y+h-amp);
+  for(let i=teeth;i>=0;i--){
+    const px = x + i*toothW;
+    ctx.lineTo(px, y+h + (i%2===0 ? 0 : -amp));
+  }
+  ctx.closePath();
+}
+
+async function drawShareCard(){
+  const canvas = document.getElementById('shareCanvas');
+  canvas.width = 640;
+  canvas.height = 696; // +36px for the new "Coins bought" row
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+
+  // ensure custom fonts are actually loaded before canvas text uses them
+  await Promise.all([
+    document.fonts.load('700 46px "IBM Plex Mono"'),
+    document.fonts.load('600 20px "IBM Plex Mono"'),
+    document.fonts.load('400 16px "IBM Plex Mono"'),
+    document.fonts.load('800 26px "Manrope"'),
+  ]);
+
+  // dark backdrop (so the paper card "pops" like a receipt on a desk)
+  const bg = ctx.createRadialGradient(W/2,60,40, W/2,60,W);
+  bg.addColorStop(0,'#171C24'); bg.addColorStop(1,'#0D1117');
+  ctx.fillStyle = bg; ctx.fillRect(0,0,W,H);
+
+  // paper card
+  const pad=30, cardTop=60, cardH=H-120;
+  roundedZigzagPath(ctx, pad, cardTop, W-pad*2, cardH, 26, 7);
+  ctx.fillStyle = '#F7F1E3';
+  ctx.shadowColor = 'rgba(0,0,0,0.5)'; ctx.shadowBlur = 40; ctx.shadowOffsetY = 20;
+  ctx.fill();
+  ctx.shadowColor = 'transparent';
+
+  const ink = '#2A2418';
+  const cx = W/2;
+  let y = 140;
+
+  ctx.textAlign='center';
+  ctx.fillStyle = 'rgba(42,36,24,0.55)';
+  ctx.font = '600 12px "IBM Plex Mono"';
+  ctx.save(); ctx.letterSpacing='3px';
+  ctx.fillText('— RECEIPT OF REGRET —', cx, y);
+  ctx.restore();
+
+  y += 26;
+  ctx.fillStyle = 'rgba(42,36,24,0.45)';
+  ctx.font = '400 13px "IBM Plex Mono"';
+  ctx.fillText(`${lastResult.coinName} · bought ${lastResult.dateStr}`, cx, y);
+
+  y += 30;
+  ctx.strokeStyle = 'rgba(42,36,24,0.3)';
+  ctx.setLineDash([5,5]);
+  ctx.beginPath(); ctx.moveTo(pad+30,y); ctx.lineTo(W-pad-30,y); ctx.stroke();
+
+  function priceRow(label, value){
+    y += 36;
+    ctx.setLineDash([]);
+    ctx.textAlign='left'; ctx.fillStyle=ink; ctx.font='400 14px "IBM Plex Mono"';
+    ctx.fillText(label, pad+30, y);
+    ctx.textAlign='right'; ctx.font='600 14px "IBM Plex Mono"';
+    ctx.fillText(value, W-pad-30, y);
+  }
+  priceRow('Invested', lastResult.investedFmt);
+  priceRow('Price at purchase', lastResult.buyPriceFmt);
+  priceRow('Coins bought', lastResult.coinsQtyFmt);
+  priceRow('Price now', lastResult.nowPriceFmt);
+
+  y += 30;
+  ctx.setLineDash([5,5]);
+  ctx.beginPath(); ctx.moveTo(pad+30,y); ctx.lineTo(W-pad-30,y); ctx.stroke();
+  ctx.setLineDash([]);
+
+  y += 38;
+  ctx.textAlign='center';
+  ctx.fillStyle = 'rgba(42,36,24,0.5)';
+  ctx.font = '600 12px "IBM Plex Mono"';
+  ctx.save(); ctx.letterSpacing='2px';
+  ctx.fillText('WOULD BE WORTH NOW', cx, y);
+  ctx.restore();
+
+  y += 60;
+  ctx.fillStyle = lastResult.mult >= 1 ? '#0F7A50' : '#A82A30';
+  ctx.font = '700 54px "IBM Plex Mono"';
+  ctx.fillText(lastResult.resultFmt, cx, y);
+
+  y += 42;
+  const badgeText = 'x'+lastResult.mult.toFixed(1);
+  ctx.font = '700 16px "IBM Plex Mono"';
+  const badgeW = ctx.measureText(badgeText).width + 34;
+  ctx.fillStyle = lastResult.mult>=1 ? 'rgba(15,122,80,0.14)' : 'rgba(168,42,48,0.14)';
+  ctx.beginPath();
+  if(ctx.roundRect) ctx.roundRect(cx-badgeW/2, y-24, badgeW, 34, 17); else ctx.rect(cx-badgeW/2, y-24, badgeW, 34);
+  ctx.fill();
+  ctx.fillStyle = lastResult.mult>=1 ? '#0F7A50' : '#A82A30';
+  ctx.fillText(badgeText, cx, y);
+
+  y += 44;
+  ctx.font = '400 13px "IBM Plex Mono"';
+  ctx.fillStyle = 'rgba(42,36,24,0.6)';
+  wrapText(ctx, `Same amount in the S&P 500 would be worth ${lastResult.spResultFmt}`, cx, y, W-pad*2-80, 18);
+
+  // footer / branding — pinned near card bottom, not floating in empty space
+  ctx.font = '600 12px "IBM Plex Mono"';
+  ctx.fillStyle = 'rgba(42,36,24,0.4)';
+  ctx.save(); ctx.letterSpacing='2px';
+  ctx.fillText('CRYPTOFUMBLE.COM · MAKE YOUR OWN', cx, cardTop+cardH-24);
+  ctx.restore();
+
+  return canvas.toDataURL('image/png');
+}
+
+function wrapText(ctx, text, x, y, maxWidth, lineHeight){
+  const words = text.split(' ');
+  let line = '';
+  const lines = [];
+  words.forEach(w=>{
+    const test = line + w + ' ';
+    if(ctx.measureText(test).width > maxWidth && line !== ''){
+      lines.push(line); line = w + ' ';
+    } else { line = test; }
+  });
+  lines.push(line);
+  const startY = y - (lines.length-1)*lineHeight/2;
+  lines.forEach((l,i)=> ctx.fillText(l.trim(), x, startY + i*lineHeight));
+}
+
+document.getElementById('shareBtn').addEventListener('click', async ()=>{
+  if(!lastResult){
+    alert('First hit "Show me what I missed" to calculate a result.');
+    return;
+  }
+  const shareBtn = document.getElementById('shareBtn');
+  const origLabel = shareBtn.textContent;
+  shareBtn.textContent = 'Drawing card…';
+  shareBtn.disabled = true;
+
+  const dataUrl = await drawShareCard();
+  const img = document.getElementById('shareCardImg');
+  const dl = document.getElementById('shareDownload');
+  img.src = dataUrl;
+  dl.href = dataUrl;
+  document.getElementById('shareCardWrap').style.display = 'block';
+  document.getElementById('shareCardWrap').scrollIntoView({behavior:'smooth', block:'nearest'});
+
+  shareBtn.textContent = origLabel;
+  shareBtn.disabled = false;
+});
+</script>
+</body>
+</html>

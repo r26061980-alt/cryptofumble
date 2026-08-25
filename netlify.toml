@@ -1,0 +1,18 @@
+[build]
+  functions = "netlify/functions"
+  publish = "."
+
+[functions]
+  node_bundler = "esbuild"
+
+# Красивые пути: фронт зовёт /api/price и /api/search,
+# Netlify тихо проксирует на реальные функции.
+[[redirects]]
+  from = "/api/price"
+  to = "/.netlify/functions/price"
+  status = 200
+
+[[redirects]]
+  from = "/api/search"
+  to = "/.netlify/functions/search"
+  status = 200
