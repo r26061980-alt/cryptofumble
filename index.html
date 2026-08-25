@@ -14,7 +14,6 @@
 <title>CryptoFumble — What Could You Have Made?</title>
 <meta name="description" content="See exactly what your money would be worth today if you'd bought any crypto, any amount, on any date. Free calculator with live prices — brutally honest, oddly satisfying.">
 <link rel="canonical" href="https://cryptofumble.com/">
-
 <!-- Open Graph (Twitter, Product Hunt, Slack, Facebook, etc.) -->
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://cryptofumble.com/">
@@ -23,7 +22,6 @@
 <meta property="og:image" content="https://cryptofumble.com/og-image.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
-
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="CryptoFumble — What Could You Have Made?">
 <meta name="twitter:description" content="See exactly what your money would be worth today if you'd bought any crypto, any amount, on any date.">
@@ -56,7 +54,6 @@
     min-height:100vh;
   }
   .wrap{max-width:640px; margin:0 auto;}
-
   .eyebrow{
     font-family:var(--mono);
     font-size:12px;
@@ -70,7 +67,6 @@
   }
   .eyebrow::before{content:"●"; color:var(--green); font-size:9px; animation:pulse 1.6s infinite;}
   @keyframes pulse{0%,100%{opacity:1;} 50%{opacity:0.25;}}
-
   h1{
     font-family:var(--sans);
     font-weight:800;
@@ -87,7 +83,6 @@
     margin-bottom:28px;
     max-width:50ch;
   }
-
   .live-feed{
     max-width:480px;
     margin:32px auto 0;
@@ -290,7 +285,6 @@
   .coin-btn.active .coin-btn-icon.avatar-fallback{
     background:rgba(240,185,11,0.2); color:var(--gold);
   }
-
   .row{display:flex; gap:12px;}
   .row > .field{flex:1;}
   input[type=number], input[type=month]{
@@ -306,7 +300,6 @@
     transition:border-color .15s ease;
   }
   input[type=number]:focus, input[type=month]:focus{border-color:var(--gold);}
-
   /* --- Date trigger button (opens wheel picker) --- */
   .date-trigger{
     width:100%;
@@ -328,7 +321,6 @@
     right:14px; top:50%; transform:translateY(-50%);
     font-size:14px; opacity:0.6;
   }
-
   /* --- Wheel picker bottom sheet --- */
   .date-sheet-overlay{
     display:none;
@@ -372,7 +364,6 @@
   }
   #dateCancel{color:var(--muted); font-weight:500;}
   #dateDone{color:var(--gold); font-weight:800;}
-
   .wheel-wrap{
     position:relative;
     display:flex;
@@ -446,7 +437,6 @@
     pointer-events:none;
   }
   .amount-wrap input{padding-left:26px;}
-
   .mode-toggle{
     display:flex;
     gap:8px;
@@ -504,7 +494,6 @@
   }
   .r-source.live{color:#0F7A50; opacity:0.8;}
   .r-source.demo{color:#A87A2A; opacity:0.8;}
-
   /* --- RECEIPT REVEAL --- */
   #receipt-holder{
     display:none;
@@ -587,6 +576,12 @@
   }
   .r-mult.pos{background:rgba(15,122,80,0.12); color:#0F7A50;}
   .r-mult.neg{background:rgba(168,42,48,0.12); color:#A82A30;}
+  .r-chart-wrap{margin:14px 0 4px; display:none;}
+  .r-chart-wrap svg{width:100%; height:64px; display:block;}
+  .r-chart-caption{
+    font-size:10px; letter-spacing:0.06em; text-transform:uppercase;
+    color:rgba(42,36,24,0.45); text-align:center; margin-top:4px;
+  }
   .r-compare{
     font-size:12px;
     opacity:0.6;
@@ -601,7 +596,6 @@
     margin-top:16px;
     letter-spacing:0.05em;
   }
-
   .share-cta{
     width:100%;
     background:#0D1117;
@@ -633,7 +627,6 @@
     transition:transform .1s ease, box-shadow .15s ease;
   }
   .cta-invest:hover{box-shadow:0 6px 20px rgba(22,199,132,0.3); transform:translateY(-1px);}
-
   .disclaimer{
     font-size:11px;
     color:var(--muted);
@@ -642,21 +635,24 @@
     line-height:1.6;
     opacity:0.6;
   }
+  .r-chart-wrap{margin:14px 0 4px; display:none;}
+  .r-chart-wrap svg{width:100%; height:64px; display:block;}
+  .r-chart-caption{
+    font-size:10px; letter-spacing:0.06em; text-transform:uppercase;
+    color:rgba(42,36,24,0.45); text-align:center; margin-top:4px;
+  }
 </style>
 </head>
 <body>
 <div class="wrap">
-
   <div class="eyebrow">live prices · coingecko</div>
   <h1>How much would you have <span>made</span> if you'd bought back then?</h1>
   <p class="sub">Pick a coin, an amount, and a date — find out what your money would be worth today. Painful, but useful.</p>
-
   <div class="daily-regret" id="dailyRegret" style="display:none;">
     <div class="daily-regret-label">📅 TODAY'S REGRET</div>
     <div class="daily-regret-text" id="dailyRegretText">Loading…</div>
     <button type="button" class="daily-regret-cta" id="dailyRegretCta">Try it yourself →</button>
   </div>
-
   <div class="panel">
     <div class="field">
       <label>Coin</label>
@@ -688,7 +684,6 @@
       <button class="cta" id="calcBtn">Show me what I missed →</button>
     </div>
   </div>
-
   <!-- Custom date wheel-picker (native mobile-app style) -->
   <div class="date-sheet-overlay" id="dateSheetOverlay">
     <div class="date-sheet">
@@ -707,7 +702,6 @@
       <div class="date-sheet-hint" id="dateSheetHint"></div>
     </div>
   </div>
-
   <div id="receipt-holder">
     <div class="receipt">
       <div class="r-title" id="rTitle">— receipt of regret —</div>
@@ -725,6 +719,10 @@
       </div>
       <div class="r-tier" id="rTier"></div>
       <div class="r-mult-wrap"><span class="r-mult" id="rMult">x1.0</span></div>
+      <div class="r-chart-wrap" id="rChartWrap">
+        <svg id="rChartSvg" viewBox="0 0 280 70" preserveAspectRatio="none"></svg>
+        <div class="r-chart-caption" id="rChartCaption"></div>
+      </div>
       <div class="r-compare" id="rCompare"></div>
       <div class="r-footer">RECEIPT OF REGRET · TIMESTAMP <span id="rStamp"></span></div>
     </div>
@@ -740,15 +738,12 @@
       <a id="shareDownload" class="share-cta" style="display:block; text-decoration:none; margin-top:10px; box-sizing:border-box;" download="crypto-regret-card.png">⬇️ Download PNG</a>
     </div>
   </div>
-
   <p class="disclaimer">Prices flow through our own caching proxy (Netlify function → CoinGecko), with a fallback to a direct call and then to demo data if everything else is unavailable. The source is always shown on the receipt.</p>
-
   <div class="live-feed" id="liveFeed" style="display:none;">
     <div class="live-feed-title">🌍 RECENT REGRETS FROM AROUND THE WORLD</div>
     <div class="live-feed-list" id="liveFeedList"></div>
   </div>
 </div>
-
 <script>
 // ---- Approximate historical price anchors (log-interpolated between points) ----
 // Format: [YYYY-MM, price]. Illustrative demo data, not exact market data.
@@ -831,9 +826,7 @@ const SP500 = [
   ['2020-12',3760],['2021-11',4700],['2022-12',3850],['2023-12',4770],['2024-12',6000],
   ['2025-06',6300],['2026-08',6850]
 ];
-
 function monthToTs(m){ const [y,mo]=m.split('-').map(Number); return y*12+mo; }
-
 function interpPrice(points, dateStr){
   const t = monthToTs(dateStr);
   const pts = points.map(p=>[monthToTs(p[0]), p[1]]);
@@ -849,7 +842,6 @@ function interpPrice(points, dateStr){
   }
   return pts[pts.length-1][1];
 }
-
 function fmt(n){
   if(n>=1000) return '$'+Math.round(n).toLocaleString('en-US');
   if(n>=1) return '$'+n.toFixed(2);
@@ -872,7 +864,6 @@ function fmtCoinsQty(qty, symbol){
   }
   return `${numStr} ${symbol}`;
 }
-
 // ---- Mobile-style wheel picker for the purchase date ----
 const MONTH_NAMES = ['January','February','March','April','May','June','July','August','September','October','November','December'];
 const PICKER_MIN_YEAR = 2013;
@@ -882,11 +873,9 @@ const PICKER_MIN_YEAR = 2013;
 const _now = new Date();
 const PICKER_MAX_YEAR = _now.getFullYear();
 const PICKER_MAX_MONTH_IN_MAX_YEAR = _now.getMonth() + 1; // getMonth() is 0-indexed, so +1
-
 let pickedMonth = 3;   // 1-12, starting value = March
 let pickedYear = 2020;
 let currentDateStr = '2020-03'; // source of truth for calculation, synced on "Done"
-
 const dateTrigger = document.getElementById('dateTrigger');
 const dateSheetOverlay = document.getElementById('dateSheetOverlay');
 const monthWheel = document.getElementById('monthWheel');
@@ -894,7 +883,6 @@ const yearWheel = document.getElementById('yearWheel');
 const dateSheetHint = document.getElementById('dateSheetHint');
 const ROW_H = 44;
 const PAD_ROWS = 2; // (visible area height 220px = 5 rows) -> 2 padding rows top/bottom
-
 function buildWheel(container, items, isDisabled){
   container.innerHTML = '';
   const spacer1 = document.createElement('div');
@@ -911,15 +899,12 @@ function buildWheel(container, items, isDisabled){
   spacer2.style.height = (ROW_H*PAD_ROWS)+'px';
   container.appendChild(spacer2);
 }
-
 function scrollWheelTo(container, index, smooth){
   container.scrollTo({ top: index*ROW_H, behavior: smooth ? 'smooth' : 'auto' });
 }
-
 function getSelectedIndex(container){
   return Math.round(container.scrollTop / ROW_H);
 }
-
 function highlightPicked(container){
   const idx = getSelectedIndex(container);
   container.querySelectorAll('.wheel-item').forEach((el,i)=>{
@@ -927,7 +912,6 @@ function highlightPicked(container){
   });
   return idx;
 }
-
 function clampFutureAndRefresh(){
   // if a month/year past "now" (2026-08) was picked — softly clamp back to the max
   if(pickedYear > PICKER_MAX_YEAR || (pickedYear===PICKER_MAX_YEAR && pickedMonth>PICKER_MAX_MONTH_IN_MAX_YEAR)){
@@ -939,19 +923,15 @@ function clampFutureAndRefresh(){
   dateSheetHint.textContent = '';
   return false;
 }
-
 function initWheels(){
   const monthItems = MONTH_NAMES.map((name,i)=>({label:name, value:i+1}));
   const years = [];
   for(let y=PICKER_MIN_YEAR; y<=PICKER_MAX_YEAR; y++) years.push({label:String(y), value:y});
-
   buildWheel(monthWheel, monthItems, (v)=> pickedYear===PICKER_MAX_YEAR && v>PICKER_MAX_MONTH_IN_MAX_YEAR);
   buildWheel(yearWheel, years);
-
   attachWheelScroll(monthWheel, (idx)=>{ pickedMonth = monthItems[idx] ? monthItems[idx].value : pickedMonth; });
   attachWheelScroll(yearWheel, (idx)=>{ pickedYear = years[idx] ? years[idx].value : pickedYear; });
 }
-
 function attachWheelScroll(container, onPick){
   let scrollTimer = null;
   container.addEventListener('scroll', ()=>{
@@ -969,7 +949,6 @@ function attachWheelScroll(container, onPick){
       }
     }, 120);
   }, { passive:true });
-
   // Mouse wheel on desktop scrolls by "lines" (often 2-3 rows per notch), which
   // makes it near-impossible to land on a precise month/year with a mouse.
   // We take over wheel input entirely and step exactly one row per notch,
@@ -987,7 +966,6 @@ function attachWheelScroll(container, onPick){
     setTimeout(()=>{ wheelLocked = false; }, 110);
   }, { passive:false });
 }
-
 function refreshMonthDisabledState(){
   const items = Array.from(monthWheel.querySelectorAll('.wheel-item'));
   items.forEach(el=>{
@@ -995,7 +973,6 @@ function refreshMonthDisabledState(){
     el.classList.toggle('disabled', pickedYear===PICKER_MAX_YEAR && v>PICKER_MAX_MONTH_IN_MAX_YEAR);
   });
 }
-
 function openDateSheet(){
   dateSheetOverlay.classList.add('open');
   // set the wheels to the current value without animation
@@ -1010,19 +987,15 @@ function openDateSheet(){
   });
   dateSheetHint.textContent = '';
 }
-
 function closeDateSheet(){
   dateSheetOverlay.classList.remove('open');
 }
-
 function updateDateTriggerLabel(){
   dateTrigger.textContent = `${MONTH_NAMES[pickedMonth-1]} ${pickedYear}`;
   currentDateStr = `${pickedYear}-${String(pickedMonth).padStart(2,'0')}`;
 }
-
 initWheels();
 updateDateTriggerLabel();
-
 dateTrigger.addEventListener('click', openDateSheet);
 document.getElementById('dateCancel').addEventListener('click', closeDateSheet);
 dateSheetOverlay.addEventListener('click', (e)=>{ if(e.target===dateSheetOverlay) closeDateSheet(); });
@@ -1042,22 +1015,18 @@ document.getElementById('dateDone').addEventListener('click', ()=>{
   updateDateTriggerLabel();
   closeDateSheet();
 });
-
 // CoinGecko coin ids for live lookups
 const GECKO_ID = {
   BTC:'bitcoin', ETH:'ethereum', SOL:'solana', DOGE:'dogecoin',
   ADA:'cardano', XRP:'ripple', BNB:'binancecoin'
 };
-
 // ---- Simple in-session cache to avoid hammering CoinGecko on repeat lookups ----
 // (in production this belongs server-side — see note at bottom of file)
 const priceCache = new Map();
 function cacheKey(id, kind, date){ return `${id}:${kind}:${date||'now'}`; }
-
 async function fetchHistoricalPrice(geckoId, dateStr){
   const key = cacheKey(geckoId, 'hist', dateStr);
   if(priceCache.has(key)) return priceCache.get(key);
-
   let price;
   try{
     // prefer our own proxy (netlify/functions/price.js) — it caches
@@ -1080,14 +1049,12 @@ async function fetchHistoricalPrice(geckoId, dateStr){
   priceCache.set(key, price);
   return price;
 }
-
 async function fetchCurrentPrice(geckoId){
   const key = cacheKey(geckoId, 'now');
   if(priceCache.has(key)){
     const cached = priceCache.get(key);
     if(Date.now() - cached.ts < 60000) return cached.price; // 60s TTL for "current" price
   }
-
   let price;
   try{
     const res = await fetch(`/.netlify/functions/price?type=current&coin=${geckoId}`);
@@ -1105,7 +1072,6 @@ async function fetchCurrentPrice(geckoId){
   priceCache.set(key, { price, ts: Date.now() });
   return price;
 }
-
 // Static offline index of popular coins — used when live search
 // via CoinGecko is unavailable (no network, CORS on file://, proxy not deployed, etc.)
 // Without this, search would be completely broken offline, unlike the price calc,
@@ -1154,19 +1120,15 @@ const STATIC_COIN_INDEX = [
   {id:'dogwifcoin', symbol:'wif', name:'dogwifhat'},
   {id:'ondo-finance', symbol:'ondo', name:'Ondo'},
 ];
-
 function searchOffline(q){
   const query = q.trim().toLowerCase();
   return STATIC_COIN_INDEX.filter(c =>
     c.symbol.toLowerCase().includes(query) || c.name.toLowerCase().includes(query)
   ).slice(0, 8);
 }
-
 let currentCoin = { symbol:'BTC', name:'Bitcoin', geckoId:'bitcoin' };
-
 const grid=document.getElementById('coinGrid');
 const selectedLabel = document.getElementById('selectedCoinLabel');
-
 // Public CDN for coin icons (by symbol). If a specific coin's icon
 // isn't available (e.g. a new memecoin) — <img onerror> quietly swaps it for
 // a colored letter-avatar, so the UI never breaks.
@@ -1186,7 +1148,6 @@ function makeIconEl(symbol, name, sizeClass, extraClass){
   };
   return img;
 }
-
 function renderQuickPicks(){
   grid.innerHTML = '';
   Object.keys(DATA).forEach(sym=>{
@@ -1213,7 +1174,6 @@ function updateSelectedUI(){
 }
 renderQuickPicks();
 updateSelectedUI();
-
 // ---- Daily Regret — same scenario for everyone on a given calendar day ----
 // Picked from real historical crashes/peaks (not fully random dates) so the
 // result is always dramatic enough to be worth sharing, never a boring x1.05.
@@ -1230,13 +1190,11 @@ const DAILY_SCENARIOS = [
   { symbol:'XRP',  date:'2017-12' }, // 2017 mania peak
   { symbol:'BNB',  date:'2021-05' }, // cycle peak
 ];
-
 async function loadDailyRegret(){
   const dayOfYear = Math.floor((Date.now() - new Date(new Date().getFullYear(),0,0)) / 86400000);
   const scenario = DAILY_SCENARIOS[dayOfYear % DAILY_SCENARIOS.length];
   const amount = 1000;
   const coin = { symbol: scenario.symbol, name: DATA[scenario.symbol].name, geckoId: GECKO_ID[scenario.symbol] };
-
   try{
     const priceData = await getPrices(coin, scenario.date);
     if(priceData.error) throw new Error('no price data');
@@ -1247,11 +1205,9 @@ async function loadDailyRegret(){
     const tier = getTier(mult);
     const [y, m] = scenario.date.split('-');
     const monthLabel = MONTH_NAMES[parseInt(m,10)-1];
-
     document.getElementById('dailyRegretText').innerHTML =
       `If you'd bought $1,000 of <b>${coin.name}</b> in ${monthLabel} ${y}, you'd have <b>${fmtBig(result)}</b> today. ${tier.emoji} ${tier.label}`;
     document.getElementById('dailyRegret').style.display = 'block';
-
     document.getElementById('dailyRegretCta').addEventListener('click', ()=>{
       currentCoin = coin;
       updateSelectedUI();
@@ -1268,7 +1224,6 @@ async function loadDailyRegret(){
   }
 }
 loadDailyRegret();
-
 // ---- Live feed of anonymous receipts from other visitors ----
 function timeAgo(ts){
   const sec = Math.floor((Date.now()-ts)/1000);
@@ -1285,7 +1240,6 @@ async function loadLiveFeed(){
     if(!res.ok) return; // лента не настроена или временно недоступна — просто не показываем блок
     const { entries } = await res.json();
     if(!entries || entries.length === 0) return;
-
     const list = document.getElementById('liveFeedList');
     list.innerHTML = '';
     entries.forEach(e=>{
@@ -1302,12 +1256,10 @@ async function loadLiveFeed(){
   }
 }
 loadLiveFeed();
-
 // ---- Free-text coin search via CoinGecko /search ----
 const searchInput = document.getElementById('coinSearch');
 const dropdown = document.getElementById('coinDropdown');
 let searchDebounce = null;
-
 searchInput.addEventListener('input', ()=>{
   const q = searchInput.value.trim();
   clearTimeout(searchDebounce);
@@ -1316,11 +1268,9 @@ searchInput.addEventListener('input', ()=>{
   dropdown.classList.add('open');
   searchDebounce = setTimeout(()=>runCoinSearch(q), 350);
 });
-
 document.addEventListener('click', (e)=>{
   if(!e.target.closest('.coin-search-wrap')) dropdown.classList.remove('open');
 });
-
 async function runCoinSearch(q){
   let coins = [];
   let offline = false;
@@ -1343,7 +1293,6 @@ async function runCoinSearch(q){
     coins = searchOffline(q);
     offline = true;
   }
-
   if(coins.length === 0){
     dropdown.innerHTML = offline
       ? '<div class="empty">No offline matches — try a quick pick below, or wait for network for full search</div>'
@@ -1387,7 +1336,6 @@ async function runCoinSearch(q){
     dropdown.appendChild(opt);
   });
 }
-
 function animateCount(el, target, prefix, duration=900){
   const start=performance.now();
   function step(now){
@@ -1400,12 +1348,10 @@ function animateCount(el, target, prefix, duration=900){
   }
   requestAnimationFrame(step);
 }
-
 const calcBtn = document.getElementById('calcBtn');
 function calcBtnLabelForMode(){
   return currentMode === 'sold' ? 'Show me what I lost →' : 'Show me what I missed →';
 }
-
 // ---- Bought vs "Sold too early" mode ----
 // The underlying math is identical either way (amount / priceThen * priceNow) —
 // only the labels and framing change. "Sold" reframes the same number as
@@ -1415,7 +1361,6 @@ let currentMode = 'bought';
 const modeToggle = document.getElementById('modeToggle');
 const amountLabel = document.getElementById('amountLabel');
 const dateLabel = document.getElementById('dateLabel');
-
 modeToggle.addEventListener('click', (e)=>{
   const btn = e.target.closest('.mode-btn');
   if(!btn) return;
@@ -1431,7 +1376,6 @@ modeToggle.addEventListener('click', (e)=>{
     calcBtn.textContent = 'Show me what I missed →';
   }
 });
-
 // ---- Regret tiers — turns the bare multiplier into a shareable status ----
 function getTier(mult){
   if(mult < 0.3)  return { label: 'TOTAL REKT', emoji: '💀' };
@@ -1442,7 +1386,58 @@ function getTier(mult){
   if(mult < 50)   return { label: 'LEGENDARY TIMING', emoji: '🏆' };
   return { label: 'DIAMOND HANDS VINDICATED', emoji: '💎' };
 }
-
+// ---- Кривая стоимости позиции для графика на чеке ----
+async function fetchValueCurve(coin, dateStr, buyPrice, nowPrice, amount){
+  try{
+    const res = await fetch(`/.netlify/functions/range?coin=${coin.geckoId}&from=${dateStr}`);
+    if(!res.ok) throw new Error('range proxy failed');
+    const { points } = await res.json();
+    if(!points || points.length < 2) throw new Error('not enough points');
+    // первую и последнюю точку жёстко фиксируем на уже посчитанных
+    // buyPrice/nowPrice, чтобы график не расходился с цифрами в чеке
+    return points.map((p,i)=>{
+      let price = p.price;
+      if(i===0) price = buyPrice;
+      if(i===points.length-1) price = nowPrice;
+      return amount * (price/buyPrice);
+    });
+  }catch(err){
+    return null; // график опциональный — тихо скрываем при любой ошибке
+  }
+}
+function renderValueCurveSvg(values){
+  const svg = document.getElementById('rChartSvg');
+  const W=280, H=70, PAD=4;
+  const min=Math.min(...values), max=Math.max(...values);
+  const range=(max-min)||1;
+  const stepX=(W-PAD*2)/(values.length-1);
+  const pts=values.map((v,i)=>[PAD+i*stepX, H-PAD-((v-min)/range)*(H-PAD*2)]);
+  const path=pts.map((p,i)=>(i===0?'M':'L')+p[0].toFixed(1)+','+p[1].toFixed(1)).join(' ');
+  const last=pts[pts.length-1];
+  const rising=values[values.length-1]>=values[0];
+  const color=rising?'#0F7A50':'#A82A30';
+  const areaPath=path+` L${last[0].toFixed(1)},${H-PAD} L${pts[0][0].toFixed(1)},${H-PAD} Z`;
+  svg.innerHTML=`<path d="${areaPath}" fill="${color}" opacity="0.08"></path>
+    <path d="${path}" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
+    <circle cx="${last[0].toFixed(1)}" cy="${last[1].toFixed(1)}" r="3" fill="${color}"></circle>`;
+}
+function drawShareChart(ctx, values, centerX, topY, width, height){
+  const left=centerX-width/2;
+  const min=Math.min(...values), max=Math.max(...values);
+  const range=(max-min)||1;
+  const stepX=width/(values.length-1);
+  const rising=values[values.length-1]>=values[0];
+  const color=rising?'#0F7A50':'#A82A30';
+  const pts=values.map((v,i)=>[left+i*stepX, topY+height-((v-min)/range)*height]);
+  ctx.beginPath();
+  pts.forEach((p,i)=> i===0? ctx.moveTo(p[0],p[1]) : ctx.lineTo(p[0],p[1]));
+  ctx.strokeStyle=color; ctx.lineWidth=2.5; ctx.lineJoin='round'; ctx.lineCap='round';
+  ctx.stroke();
+  ctx.lineTo(pts[pts.length-1][0], topY+height);
+  ctx.lineTo(pts[0][0], topY+height);
+  ctx.closePath();
+  ctx.fillStyle=color; ctx.globalAlpha=0.08; ctx.fill(); ctx.globalAlpha=1;
+}
 async function getPrices(coin, dateStr){
   const demoPoints = DATA[coin.symbol]?.points;
   try{
@@ -1463,17 +1458,13 @@ async function getPrices(coin, dateStr){
     return { error:true };
   }
 }
-
 calcBtn.addEventListener('click', async ()=>{
   const amount = parseFloat(document.getElementById('amount').value) || 0;
   const dateStr = currentDateStr;
   const coin = currentCoin;
-
   calcBtn.disabled = true;
   calcBtn.innerHTML = '<span class="spin"></span>Crunching market data…';
-
   const priceData = await getPrices(coin, dateStr);
-
   if(priceData.error){
     calcBtn.disabled = false;
     calcBtn.textContent = calcBtnLabelForMode();
@@ -1481,16 +1472,13 @@ calcBtn.addEventListener('click', async ()=>{
     return;
   }
   const { buyPrice, nowPrice, source } = priceData;
-
   const coins = amount / buyPrice;
   const result = coins * nowPrice;
   const mult = result/amount;
-
   const spBuy = interpPrice(SP500, dateStr);
   const spNow = interpPrice(SP500, '2026-08');
   const spResult = amount * (spNow/spBuy);
   const tier = getTier(mult);
-
   const verb = currentMode === 'sold' ? 'sold' : 'bought';
   document.getElementById('rSub').textContent = `${coin.name} · ${verb} ${dateStr}`;
   document.getElementById('rInvestedLabel').textContent = currentMode === 'sold' ? 'Sold for' : 'Invested';
@@ -1508,8 +1496,15 @@ calcBtn.addEventListener('click', async ()=>{
   document.getElementById('rTier').textContent = `${tier.emoji} ${tier.label}`;
   document.getElementById('rCompare').textContent =
     `For comparison: the same amount in the S&P 500 would be worth ${fmtBig(spResult)} today.`;
+  let chartValues = await fetchValueCurve(coin, dateStr, buyPrice, nowPrice, amount);
+  if(chartValues){
+    renderValueCurveSvg(chartValues);
+    document.getElementById('rChartCaption').textContent = `Position value · ${dateStr} → today`;
+    document.getElementById('rChartWrap').style.display = 'block';
+  } else {
+    document.getElementById('rChartWrap').style.display = 'none';
+  }
   document.getElementById('rStamp').textContent = new Date().toISOString().slice(0,19).replace('T',' ');
-
   // показываем инвест-CTA только после первого расчёта, текст зависит от исхода —
   // на выигрыше бьём в "не упусти следующий раз", на проигрыше — в "начни сейчас"
   const ctaInvest = document.getElementById('ctaInvest');
@@ -1520,11 +1515,9 @@ calcBtn.addEventListener('click', async ()=>{
   ctaInvest.dataset.outcome = mult >= 1 ? 'win' : 'loss';
   ctaInvest.dataset.coin = coin.symbol;
   ctaInvest.dataset.mult = mult.toFixed(1);
-
   document.getElementById('receipt-holder').style.display='block';
   animateCount(document.getElementById('rResult'), result, '$');
   document.getElementById('receipt-holder').scrollIntoView({behavior:'smooth', block:'nearest'});
-
   lastResult = {
     coinName: coin.name,
     dateStr,
@@ -1536,11 +1529,11 @@ calcBtn.addEventListener('click', async ()=>{
     nowPriceFmt: fmt(nowPrice),
     resultFmt: fmtBig(result),
     spResultFmt: fmtBig(spResult),
-    mult
+    mult,
+    chartValues
   };
   // reset any previously generated share card since the numbers changed
   document.getElementById('shareCardWrap').style.display = 'none';
-
   // делимся анонимной записью в живой ленте — не блокируем интерфейс,
   // если это не сработает (ошибка сети / лента не настроена), тихо игнорируем
   fetch('/.netlify/functions/feed', {
@@ -1555,14 +1548,11 @@ calcBtn.addEventListener('click', async ()=>{
       resultFmt: fmtBig(result),
     }),
   }).catch(()=>{});
-
   calcBtn.disabled = false;
   calcBtn.textContent = calcBtnLabelForMode();
 });
-
 // keep the last computed result around so the share card can use it
 let lastResult = null;
-
 function roundedZigzagPath(ctx, x, y, w, h, teeth, amp, r){
   // paper card with a torn/zigzag top and bottom edge, straight sides
   const toothW = w / teeth;
@@ -1579,14 +1569,12 @@ function roundedZigzagPath(ctx, x, y, w, h, teeth, amp, r){
   }
   ctx.closePath();
 }
-
 async function drawShareCard(){
   const canvas = document.getElementById('shareCanvas');
   canvas.width = 640;
-  canvas.height = 728; // +32px more for the tier line under the multiplier badge
+  canvas.height = 818; // + место под график динамики позиции
   const ctx = canvas.getContext('2d');
   const W = canvas.width, H = canvas.height;
-
   // ensure custom fonts are actually loaded before canvas text uses them
   await Promise.all([
     document.fonts.load('700 46px "IBM Plex Mono"'),
@@ -1594,12 +1582,10 @@ async function drawShareCard(){
     document.fonts.load('400 16px "IBM Plex Mono"'),
     document.fonts.load('800 26px "Manrope"'),
   ]);
-
   // dark backdrop (so the paper card "pops" like a receipt on a desk)
   const bg = ctx.createRadialGradient(W/2,60,40, W/2,60,W);
   bg.addColorStop(0,'#171C24'); bg.addColorStop(1,'#0D1117');
   ctx.fillStyle = bg; ctx.fillRect(0,0,W,H);
-
   // paper card
   const pad=30, cardTop=60, cardH=H-120;
   roundedZigzagPath(ctx, pad, cardTop, W-pad*2, cardH, 26, 7);
@@ -1607,28 +1593,23 @@ async function drawShareCard(){
   ctx.shadowColor = 'rgba(0,0,0,0.5)'; ctx.shadowBlur = 40; ctx.shadowOffsetY = 20;
   ctx.fill();
   ctx.shadowColor = 'transparent';
-
   const ink = '#2A2418';
   const cx = W/2;
   let y = 140;
-
   ctx.textAlign='center';
   ctx.fillStyle = 'rgba(42,36,24,0.55)';
   ctx.font = '600 12px "IBM Plex Mono"';
   ctx.save(); ctx.letterSpacing='3px';
   ctx.fillText('— RECEIPT OF REGRET —', cx, y);
   ctx.restore();
-
   y += 26;
   ctx.fillStyle = 'rgba(42,36,24,0.45)';
   ctx.font = '400 13px "IBM Plex Mono"';
   ctx.fillText(`${lastResult.coinName} · ${lastResult.mode === 'sold' ? 'sold' : 'bought'} ${lastResult.dateStr}`, cx, y);
-
   y += 30;
   ctx.strokeStyle = 'rgba(42,36,24,0.3)';
   ctx.setLineDash([5,5]);
   ctx.beginPath(); ctx.moveTo(pad+30,y); ctx.lineTo(W-pad-30,y); ctx.stroke();
-
   function priceRow(label, value){
     y += 36;
     ctx.setLineDash([]);
@@ -1641,12 +1622,10 @@ async function drawShareCard(){
   priceRow(lastResult.mode === 'sold' ? 'Price when sold' : 'Price at purchase', lastResult.buyPriceFmt);
   priceRow(lastResult.mode === 'sold' ? 'Coins sold' : 'Coins bought', lastResult.coinsQtyFmt);
   priceRow('Price now', lastResult.nowPriceFmt);
-
   y += 30;
   ctx.setLineDash([5,5]);
   ctx.beginPath(); ctx.moveTo(pad+30,y); ctx.lineTo(W-pad-30,y); ctx.stroke();
   ctx.setLineDash([]);
-
   y += 38;
   ctx.textAlign='center';
   ctx.fillStyle = 'rgba(42,36,24,0.5)';
@@ -1654,12 +1633,10 @@ async function drawShareCard(){
   ctx.save(); ctx.letterSpacing='2px';
   ctx.fillText('WOULD BE WORTH NOW', cx, y);
   ctx.restore();
-
   y += 60;
   ctx.fillStyle = lastResult.mult >= 1 ? '#0F7A50' : '#A82A30';
   ctx.font = '700 54px "IBM Plex Mono"';
   ctx.fillText(lastResult.resultFmt, cx, y);
-
   y += 42;
   const badgeText = 'x'+lastResult.mult.toFixed(1);
   ctx.font = '700 16px "IBM Plex Mono"';
@@ -1670,29 +1647,28 @@ async function drawShareCard(){
   ctx.fill();
   ctx.fillStyle = lastResult.mult>=1 ? '#0F7A50' : '#A82A30';
   ctx.fillText(badgeText, cx, y);
-
   y += 36;
   ctx.font = '700 15px "IBM Plex Mono"';
   ctx.fillStyle = '#B8860B';
   ctx.save(); ctx.letterSpacing='1px';
   ctx.fillText(`${lastResult.tier.emoji} ${lastResult.tier.label}`, cx, y);
   ctx.restore();
-
   y += 40;
   ctx.font = '400 13px "IBM Plex Mono"';
   ctx.fillStyle = 'rgba(42,36,24,0.6)';
   wrapText(ctx, `Same amount in the S&P 500 would be worth ${lastResult.spResultFmt}`, cx, y, W-pad*2-80, 18);
-
+  y += 55;
+  if(lastResult.chartValues && lastResult.chartValues.length > 1){
+    drawShareChart(ctx, lastResult.chartValues, cx, y, W-pad*2-80, 70);
+  }
   // footer / branding — pinned near card bottom, not floating in empty space
   ctx.font = '600 12px "IBM Plex Mono"';
   ctx.fillStyle = 'rgba(42,36,24,0.4)';
   ctx.save(); ctx.letterSpacing='2px';
   ctx.fillText('CRYPTOFUMBLE.COM · MAKE YOUR OWN', cx, cardTop+cardH-24);
   ctx.restore();
-
   return canvas.toDataURL('image/png');
 }
-
 function wrapText(ctx, text, x, y, maxWidth, lineHeight){
   const words = text.split(' ');
   let line = '';
@@ -1707,7 +1683,6 @@ function wrapText(ctx, text, x, y, maxWidth, lineHeight){
   const startY = y - (lines.length-1)*lineHeight/2;
   lines.forEach((l,i)=> ctx.fillText(l.trim(), x, startY + i*lineHeight));
 }
-
 document.getElementById('shareBtn').addEventListener('click', async ()=>{
   if(!lastResult){
     alert('First hit "Show me what I missed" to calculate a result.');
@@ -1717,7 +1692,6 @@ document.getElementById('shareBtn').addEventListener('click', async ()=>{
   const origLabel = shareBtn.textContent;
   shareBtn.textContent = 'Drawing card…';
   shareBtn.disabled = true;
-
   const dataUrl = await drawShareCard();
   const img = document.getElementById('shareCardImg');
   const dl = document.getElementById('shareDownload');
@@ -1725,11 +1699,9 @@ document.getElementById('shareBtn').addEventListener('click', async ()=>{
   dl.href = dataUrl;
   document.getElementById('shareCardWrap').style.display = 'block';
   document.getElementById('shareCardWrap').scrollIntoView({behavior:'smooth', block:'nearest'});
-
   shareBtn.textContent = origLabel;
   shareBtn.disabled = false;
 });
-
 // трекинг клика по инвест-CTA — не мешает переходу по ссылке (открывается в новой
 // вкладке), просто параллельно шлёт событие в GA, если аналитика подключена и не
 // заблокирована адблоком (typeof-проверка защищает от ошибки в этом случае)
