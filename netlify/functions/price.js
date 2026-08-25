@@ -16,6 +16,15 @@
 
 const inflight = new Map(); // request coalescing на тёплом инстансе
 
+// CoinGecko теперь требует Demo API Key даже для бесплатного тарифа на
+// часть эндпоинтов (например /coins/{id}/history возвращает 401 без ключа).
+// Ключ хранится в переменной окружения Netlify (Site settings → Environment
+// variables → COINGECKO_API_KEY), а не в коде — так он не светится в репозитории.
+function apiKeyHeaders() {
+  const key = process.env.COINGECKO_API_KEY;
+  return key ? { 'x-cg-demo-api-key': key } : {};
+}
+
 function cacheKey(type, coin, date) {
   return `${type}:${coin}:${date || ''}`;
 }
@@ -50,7 +59,8 @@ exports.handler = async (event) => {
 
       price = await dedupedFetch(key, async () => {
         const res = await fetch(
-          `https://api.coingecko.com/api/v3/coins/${coin}/history?date=${apiDate}&localization=false`
+          `https://api.coingecko.com/api/v3/coins/${coin}/history?date=${apiDate}&localization=false`,
+          { headers: apiKeyHeaders() }
         );
         if (!res.ok) throw new Error(`coingecko history ${res.status}`);
         const json = await res.json();
@@ -66,7 +76,8 @@ exports.handler = async (event) => {
 
       price = await dedupedFetch(key, async () => {
         const res = await fetch(
-          `https://api.coingecko.com/api/v3/simple/price?ids=${coin}&vs_currencies=usd`
+          `https://api.coingecko.com/api/v3/simple/price?ids=${coin}&vs_currencies=usd`,
+          { headers: apiKeyHeaders() }
         );
         if (!res.ok) throw new Error(`coingecko simple/price ${res.status}`);
         const json = await res.json();
