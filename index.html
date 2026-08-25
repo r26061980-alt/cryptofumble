@@ -88,6 +88,41 @@
     max-width:50ch;
   }
 
+  .live-feed{
+    max-width:480px;
+    margin:32px auto 0;
+    padding-top:24px;
+    border-top:1px solid var(--panel-border);
+  }
+  .live-feed-title{
+    font-family:var(--mono);
+    font-size:10px;
+    letter-spacing:0.1em;
+    color:var(--muted);
+    text-align:center;
+    margin-bottom:14px;
+  }
+  .live-feed-row{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    padding:9px 0;
+    border-bottom:1px solid rgba(139,147,161,0.08);
+    font-size:13px;
+    color:var(--muted);
+    animation:feedIn .4s ease;
+  }
+  .live-feed-row:last-child{border-bottom:none;}
+  .live-feed-row b{color:var(--text);}
+  .live-feed-row .fr-mult{
+    margin-left:auto;
+    font-family:var(--mono);
+    font-weight:700;
+    flex-shrink:0;
+  }
+  .live-feed-row .fr-mult.pos{color:#16C784;}
+  .live-feed-row .fr-mult.neg{color:#EA3943;}
+  @keyframes feedIn{ from{opacity:0; transform:translateY(-4px);} to{opacity:1; transform:translateY(0);} }
   .daily-regret{
     background:linear-gradient(135deg, rgba(240,185,11,0.08), rgba(240,185,11,0.02));
     border:1px solid rgba(240,185,11,0.25);
@@ -707,6 +742,11 @@
   </div>
 
   <p class="disclaimer">Prices flow through our own caching proxy (Netlify function → CoinGecko), with a fallback to a direct call and then to demo data if everything else is unavailable. The source is always shown on the receipt.</p>
+
+  <div class="live-feed" id="liveFeed" style="display:none;">
+    <div class="live-feed-title">🌍 RECENT REGRETS FROM AROUND THE WORLD</div>
+    <div class="live-feed-list" id="liveFeedList"></div>
+  </div>
 </div>
 
 <script>
@@ -1229,6 +1269,40 @@ async function loadDailyRegret(){
 }
 loadDailyRegret();
 
+// ---- Live feed of anonymous receipts from other visitors ----
+function timeAgo(ts){
+  const sec = Math.floor((Date.now()-ts)/1000);
+  if(sec < 60) return 'just now';
+  const min = Math.floor(sec/60);
+  if(min < 60) return `${min}m ago`;
+  const hr = Math.floor(min/60);
+  if(hr < 24) return `${hr}h ago`;
+  return `${Math.floor(hr/24)}d ago`;
+}
+async function loadLiveFeed(){
+  try{
+    const res = await fetch('/.netlify/functions/feed');
+    if(!res.ok) return; // лента не настроена или временно недоступна — просто не показываем блок
+    const { entries } = await res.json();
+    if(!entries || entries.length === 0) return;
+
+    const list = document.getElementById('liveFeedList');
+    list.innerHTML = '';
+    entries.forEach(e=>{
+      const row = document.createElement('div');
+      row.className = 'live-feed-row';
+      const verb = e.mode === 'sold' ? 'sold' : 'bought';
+      row.innerHTML = `<span>${e.tierEmoji} Someone ${verb} <b>${e.coin}</b> · ${timeAgo(e.ts)}</span>
+        <span class="fr-mult ${e.mult>=1?'pos':'neg'}">x${e.mult.toFixed(1)}</span>`;
+      list.appendChild(row);
+    });
+    document.getElementById('liveFeed').style.display = 'block';
+  }catch(err){
+    // тихо ничего не показываем — лента опциональная фича, не должна ничего ломать
+  }
+}
+loadLiveFeed();
+
 // ---- Free-text coin search via CoinGecko /search ----
 const searchInput = document.getElementById('coinSearch');
 const dropdown = document.getElementById('coinDropdown');
@@ -1466,6 +1540,21 @@ calcBtn.addEventListener('click', async ()=>{
   };
   // reset any previously generated share card since the numbers changed
   document.getElementById('shareCardWrap').style.display = 'none';
+
+  // делимся анонимной записью в живой ленте — не блокируем интерфейс,
+  // если это не сработает (ошибка сети / лента не настроена), тихо игнорируем
+  fetch('/.netlify/functions/feed', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      coin: coin.symbol,
+      mode: currentMode,
+      mult,
+      tierEmoji: tier.emoji,
+      tierLabel: tier.label,
+      resultFmt: fmtBig(result),
+    }),
+  }).catch(()=>{});
 
   calcBtn.disabled = false;
   calcBtn.textContent = calcBtnLabelForMode();
