@@ -756,8 +756,12 @@ function fmtCoinsQty(qty, symbol){
 // ---- Mobile-style wheel picker for the purchase date ----
 const MONTH_NAMES = ['January','February','March','April','May','June','July','August','September','October','November','December'];
 const PICKER_MIN_YEAR = 2013;
-const PICKER_MAX_YEAR = 2026;
-const PICKER_MAX_MONTH_IN_MAX_YEAR = 8; // August 2026 = current month, anything later is the future
+// "Максимум" считается от реальной даты браузера в момент загрузки страницы,
+// а не от жёстко прописанного числа — иначе 1 сентября сайт продолжил бы
+// думать, что "сейчас" — это ещё август, и не пускал бы дальше.
+const _now = new Date();
+const PICKER_MAX_YEAR = _now.getFullYear();
+const PICKER_MAX_MONTH_IN_MAX_YEAR = _now.getMonth() + 1; // getMonth() is 0-indexed, so +1
 
 let pickedMonth = 3;   // 1-12, starting value = March
 let pickedYear = 2020;
