@@ -1225,6 +1225,10 @@ calcBtn.addEventListener('click', async ()=>{
   ctaInvest.style.display = 'block';
   document.getElementById('ctaInvestText').textContent =
     mult >= 1 ? "Don't miss the next one — start on Bybit →" : 'Start now, thank yourself later →';
+  // контекст для трекинга клика (см. обработчик ниже) — не влияет на сам расчёт
+  ctaInvest.dataset.outcome = mult >= 1 ? 'win' : 'loss';
+  ctaInvest.dataset.coin = coin.symbol;
+  ctaInvest.dataset.mult = mult.toFixed(1);
 
   document.getElementById('receipt-holder').style.display='block';
   animateCount(document.getElementById('rResult'), result, '$');
@@ -1409,6 +1413,20 @@ document.getElementById('shareBtn').addEventListener('click', async ()=>{
 
   shareBtn.textContent = origLabel;
   shareBtn.disabled = false;
+});
+
+// трекинг клика по инвест-CTA — не мешает переходу по ссылке (открывается в новой
+// вкладке), просто параллельно шлёт событие в GA, если аналитика подключена и не
+// заблокирована адблоком (typeof-проверка защищает от ошибки в этом случае)
+document.getElementById('ctaInvest').addEventListener('click', function(){
+  if(typeof gtag === 'function'){
+    gtag('event', 'click_invest_cta', {
+      outcome: this.dataset.outcome,
+      coin: this.dataset.coin,
+      multiplier: this.dataset.mult,
+      exchange: 'bybit'
+    });
+  }
 });
 </script>
 </body>
