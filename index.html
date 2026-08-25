@@ -496,6 +496,23 @@
     margin-top:14px;
   }
   .share-cta:hover{background:rgba(240,185,11,0.08);}
+  .cta-invest{
+    display:block;
+    width:100%;
+    background:linear-gradient(135deg, #16C784, #0F9D68);
+    color:#06251A;
+    font-family:var(--sans);
+    font-weight:800;
+    font-size:15px;
+    text-align:center;
+    padding:14px;
+    border-radius:9px;
+    text-decoration:none;
+    margin-top:14px;
+    box-sizing:border-box;
+    transition:transform .1s ease, box-shadow .15s ease;
+  }
+  .cta-invest:hover{box-shadow:0 6px 20px rgba(22,199,132,0.3); transform:translateY(-1px);}
 
   .disclaimer{
     font-size:11px;
@@ -580,6 +597,11 @@
       <div class="r-compare" id="rCompare"></div>
       <div class="r-footer">RECEIPT OF REGRET · TIMESTAMP <span id="rStamp"></span></div>
     </div>
+    <a href="https://www.bybit.com/invite?ref=PK8RA3&medium=referral&utm_campaign=evergreen&share_to=post"
+       target="_blank" rel="noopener noreferrer sponsored"
+       class="cta-invest" id="ctaInvest" style="display:none;">
+      <span id="ctaInvestText">Start investing now →</span>
+    </a>
     <button class="share-cta" id="shareBtn">📸 Generate share card</button>
     <div id="shareCardWrap" style="display:none; margin-top:14px; text-align:center;">
       <canvas id="shareCanvas" width="640" height="800" style="display:none;"></canvas>
@@ -1196,6 +1218,13 @@ calcBtn.addEventListener('click', async ()=>{
   document.getElementById('rCompare').textContent =
     `For comparison: the same amount in the S&P 500 would be worth ${fmtBig(spResult)} today.`;
   document.getElementById('rStamp').textContent = new Date().toISOString().slice(0,19).replace('T',' ');
+
+  // показываем инвест-CTA только после первого расчёта, текст зависит от исхода —
+  // на выигрыше бьём в "не упусти следующий раз", на проигрыше — в "начни сейчас"
+  const ctaInvest = document.getElementById('ctaInvest');
+  ctaInvest.style.display = 'block';
+  document.getElementById('ctaInvestText').textContent =
+    mult >= 1 ? "Don't miss the next one — start on Bybit →" : 'Start now, thank yourself later →';
 
   document.getElementById('receipt-holder').style.display='block';
   animateCount(document.getElementById('rResult'), result, '$');
