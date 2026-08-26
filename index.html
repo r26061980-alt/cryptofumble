@@ -738,6 +738,7 @@
       <span id="ctaInvestText">Start investing now →</span>
     </a>
     <button class="share-cta" id="shareBtn">📸 Generate share card</button>
+    <button class="share-cta" id="shareXBtn">𝕏 Share on X</button>
     <div id="shareCardWrap" style="display:none; margin-top:14px; text-align:center;">
       <canvas id="shareCanvas" width="640" height="800" style="display:none;"></canvas>
       <img id="shareCardImg" style="width:100%; border-radius:14px; box-shadow:0 12px 40px rgba(0,0,0,0.5);">
@@ -872,6 +873,10 @@ function fmtCoinsQty(qty, symbol){
 }
 // ---- Mobile-style wheel picker for the purchase date ----
 const MONTH_NAMES = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+function humanDate(dateStr){
+  const [y,m] = dateStr.split('-');
+  return `${MONTH_NAMES[parseInt(m,10)-1]} ${y}`;
+}
 const PICKER_MIN_YEAR = 2013;
 // "Максимум" считается от реальной даты браузера в момент загрузки страницы,
 // а не от жёстко прописанного числа — иначе 1 сентября сайт продолжил бы
@@ -1784,6 +1789,24 @@ document.getElementById('shareBtn').addEventListener('click', async ()=>{
   document.getElementById('shareCardWrap').scrollIntoView({behavior:'smooth', block:'nearest'});
   shareBtn.textContent = origLabel;
   shareBtn.disabled = false;
+});
+// быстрый текстовый шеринг в X — не требует предварительной генерации PNG-карточки,
+// текст твита собирается прямо из lastResult
+document.getElementById('shareXBtn').addEventListener('click', ()=>{
+  if(!lastResult){
+    alert('First hit "Show me what I missed" to calculate a result.');
+    return;
+  }
+  const dateHuman = humanDate(lastResult.dateStr);
+  const verb = lastResult.mode === 'sold' ? 'sold' : 'bought';
+  const text = lastResult.mult >= 1
+    ? `${lastResult.tier.emoji} I would've had ${lastResult.resultFmt} if I'd ${verb} ${lastResult.coinName} in ${dateHuman}.\n\nCheck what you missed →`
+    : `${lastResult.tier.emoji} ${lastResult.tier.label}: I would've had ${lastResult.resultFmt} if I'd ${verb} ${lastResult.coinName} in ${dateHuman}.\n\nCheck yours →`;
+  const intentUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent('https://cryptofumble.com')}`;
+  window.open(intentUrl, '_blank', 'noopener,noreferrer');
+  if(typeof gtag === 'function'){
+    gtag('event', 'share_x_click', { outcome: lastResult.mult>=1?'win':'loss', coin: lastResult.coinSymbol });
+  }
 });
 // трекинг клика по инвест-CTA — не мешает переходу по ссылке (открывается в новой
 // вкладке), просто параллельно шлёт событие в GA, если аналитика подключена и не
