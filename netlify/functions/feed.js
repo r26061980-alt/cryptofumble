@@ -4,7 +4,7 @@
 // (бесплатный тариф, доступ по обычному REST API через fetch — без npm,
 // без package.json, без шага сборки, тот же паттерн, что price.js/search.js).
 //
-// GET  -> вернуть последние ~20 записей + счётчик расчётов за сегодня
+// GET  -> вернуть последние 5 записей + счётчик расчётов за сегодня
 // POST -> добавить новую запись (вызывается после каждого успешного расчёта)
 //
 // Переменные окружения (задаются в Netlify так же, как COINGECKO_API_KEY):
@@ -50,7 +50,7 @@ exports.handler = async (event) => {
 
   if (event.httpMethod === 'GET') {
     try {
-      const res = await fetch(`${REST_URL}/lrange/${FEED_KEY}/0/19`, { headers });
+      const res = await fetch(`${REST_URL}/lrange/${FEED_KEY}/0/4`, { headers });
       if (!res.ok) throw new Error(`upstash lrange ${res.status}`);
       const json = await res.json();
       const entries = (json.result || [])
