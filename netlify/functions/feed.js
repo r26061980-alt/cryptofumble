@@ -4,7 +4,7 @@
 // (бесплатный тариф, доступ по обычному REST API через fetch — без npm,
 // без package.json, без шага сборки, тот же паттерн, что price.js/search.js).
 //
-// GET  -> вернуть последние ~20 записей
+// GET  -> вернуть последние ~20 записей + счётчик расчётов за сегодня
 // POST -> добавить новую запись (вызывается после каждого успешного расчёта)
 //
 // Переменные окружения (задаются в Netlify так же, как COINGECKO_API_KEY):
@@ -18,9 +18,20 @@
 
 const FEED_KEY = 'feed';
 const MAX_ENTRIES = 50; // сколько храним всего (лента показывает меньше)
+const COUNTER_TTL_SECONDS = 172800; // 2 дня — с запасом, чтобы не копить ключи вечно
 
 function upstashHeaders(token) {
   return { Authorization: `Bearer ${token}` };
+}
+
+// Ключ дневного счётчика "сколько расчётов сделано сегодня" — один ключ
+// на календарный день по UTC, дальше живёт COUNTER_TTL_SECONDS и сам исчезает.
+function todayCounterKey() {
+  const d = new Date();
+  const y = d.getUTCFullYear();
+  const m = String(d.getUTCMonth() + 1).padStart(2, '0');
+  const day = String(d.getUTCDate()).padStart(2, '0');
+  return `count:${y}-${m}-${day}`;
 }
 
 exports.handler = async (event) => {
@@ -48,6 +59,19 @@ exports.handler = async (event) => {
         })
         .filter(Boolean);
 
+      // счётчик — best effort: если Upstash недоступен именно на этот запрос,
+      // просто отдаём count:0 и не роняем всю ленту из-за этого
+      let count = 0;
+      try {
+        const countRes = await fetch(`${REST_URL}/get/${todayCounterKey()}`, { headers });
+        if (countRes.ok) {
+          const countJson = await countRes.json();
+          count = parseInt(countJson.result, 10) || 0;
+        }
+      } catch {
+        // не критично — просто не покажем счётчик на этот раз
+      }
+
       return {
         statusCode: 200,
         headers: {
@@ -56,7 +80,7 @@ exports.handler = async (event) => {
           'Cache-Control': 'public, max-age=10, s-maxage=15, stale-while-revalidate=60',
           'Access-Control-Allow-Origin': '*',
         },
-        body: JSON.stringify({ entries }),
+        body: JSON.stringify({ entries, count }),
       };
     } catch (err) {
       return {
@@ -90,6 +114,16 @@ exports.handler = async (event) => {
       });
       // не даём списку расти бесконечно
       await fetch(`${REST_URL}/ltrim/${FEED_KEY}/0/${MAX_ENTRIES - 1}`, { headers });
+
+      // дневной счётчик "сколько расчётов сегодня" — не блокируем ответ,
+      // если это не получится, основная запись в ленту уже сохранена
+      try {
+        const counterKey = todayCounterKey();
+        await fetch(`${REST_URL}/incr/${counterKey}`, { headers });
+        await fetch(`${REST_URL}/expire/${counterKey}/${COUNTER_TTL_SECONDS}`, { headers });
+      } catch {
+        // не критично — просто счётчик на сайте не подрастёт от этого расчёта
+      }
 
       return {
         statusCode: 200,
