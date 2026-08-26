@@ -1362,9 +1362,12 @@ async function loadLiveFeed(){
     entries.forEach(e=>{
       const row = document.createElement('div');
       row.className = 'live-feed-row';
-      const verb = e.mode === 'sold' ? 'продал' : 'купил';
+      // "проверил покупку/продажу" вместо прямого "купил/продал" — на самом
+      // деле никто ничего не покупал и не продавал, просто прогнали калькулятор
+      const verb = e.mode === 'sold' ? 'проверил продажу' : 'проверил покупку';
+      const entryIsGood = e.mode === 'sold' ? e.mult <= 1 : e.mult >= 1;
       row.innerHTML = `<span>${e.tierEmoji} Кто-то ${verb} <b>${e.coin}</b> · ${timeAgo(e.ts)}</span>
-        <span class="fr-mult ${e.mult>=1?'pos':'neg'}">x${e.mult.toFixed(1)}</span>`;
+        <span class="fr-mult ${entryIsGood?'pos':'neg'}">x${e.mult.toFixed(1)}</span>`;
       list.appendChild(row);
     });
     document.getElementById('liveFeed').style.display = 'block';
@@ -1608,7 +1611,12 @@ calcBtn.addEventListener('click', async ()=>{
   const spBuy = interpPrice(SP500, dateStr);
   const spNow = interpPrice(SP500, '2026-08');
   const spResult = baseValue * (spNow/spBuy);
-  const tier = getTier(mult);
+  // В режиме "продал" эмоциональный знак переворачивается: если монета
+  // выросла ПОСЛЕ продажи — это и есть регрет (плохо), а если упала —
+  // значит вышел вовремя (хорошо). Обратная логика по сравнению с режимом
+  // "купил", где чем больше множитель, тем лучше.
+  const isGood = currentMode === 'sold' ? mult <= 1 : mult >= 1;
+  const tier = getTier(currentMode === 'sold' ? (1/mult) : mult);
   const verb = currentMode === 'sold' ? 'продано' : 'куплено';
   const rSub = document.getElementById('rSub');
   rSub.innerHTML = '';
@@ -1624,8 +1632,8 @@ calcBtn.addEventListener('click', async ()=>{
   document.getElementById('rCoinsQty').textContent = fmtCoinsQty(coins, coin.symbol);
   document.getElementById('rNowPrice').textContent = fmt(nowPrice);
   document.getElementById('rMult').textContent = 'x'+mult.toFixed(1);
-  document.getElementById('rMult').className = 'r-mult '+(mult>=1?'pos':'neg');
-  document.getElementById('rResult').className = 'num '+(mult>=1?'pos':'neg');
+  document.getElementById('rMult').className = 'r-mult '+(isGood?'pos':'neg');
+  document.getElementById('rResult').className = 'num '+(isGood?'pos':'neg');
   document.getElementById('rTier').textContent = `${tier.emoji} ${tier.label}`;
   document.getElementById('rCompare').textContent =
     `Для сравнения: та же сумма в S&P 500 сейчас стоила бы ${fmtBig(spResult)}.`;
@@ -1647,9 +1655,9 @@ calcBtn.addEventListener('click', async ()=>{
   ctaInvest.href = exchange.url;
   ctaInvest.style.display = 'block';
   document.getElementById('ctaInvestText').textContent =
-    mult >= 1 ? `Не упусти следующий раз — начни на ${exchange.name} →` : `Начни сейчас на ${exchange.name}, потом сам себя поблагодаришь →`;
+    isGood ? `Не упусти следующий раз — начни на ${exchange.name} →` : `Начни сейчас на ${exchange.name}, потом сам себя поблагодаришь →`;
   // контекст для трекинга клика (см. обработчик ниже) — не влияет на сам расчёт
-  ctaInvest.dataset.outcome = mult >= 1 ? 'win' : 'loss';
+  ctaInvest.dataset.outcome = isGood ? 'win' : 'loss';
   ctaInvest.dataset.coin = coin.symbol;
   ctaInvest.dataset.mult = mult.toFixed(1);
   ctaInvest.dataset.exchange = exchange.name.toLowerCase();
@@ -1669,6 +1677,7 @@ calcBtn.addEventListener('click', async ()=>{
     resultFmt: fmtBig(result),
     spResultFmt: fmtBig(spResult),
     mult,
+    isGood,
     chartValues
   };
   // reset any previously generated share card since the numbers changed
@@ -1800,18 +1809,18 @@ async function drawShareCard(includeLogo){
   ctx.fillText('СТОИЛО БЫ СЕЙЧАС', cx, y);
   ctx.restore();
   y += 60;
-  ctx.fillStyle = lastResult.mult >= 1 ? '#0F7A50' : '#A82A30';
+  ctx.fillStyle = lastResult.isGood ? '#0F7A50' : '#A82A30';
   ctx.font = '700 54px "IBM Plex Mono"';
   ctx.fillText(lastResult.resultFmt, cx, y);
   y += 42;
   const badgeText = 'x'+lastResult.mult.toFixed(1);
   ctx.font = '700 16px "IBM Plex Mono"';
   const badgeW = ctx.measureText(badgeText).width + 34;
-  ctx.fillStyle = lastResult.mult>=1 ? 'rgba(15,122,80,0.14)' : 'rgba(168,42,48,0.14)';
+  ctx.fillStyle = lastResult.isGood ? 'rgba(15,122,80,0.14)' : 'rgba(168,42,48,0.14)';
   ctx.beginPath();
   if(ctx.roundRect) ctx.roundRect(cx-badgeW/2, y-24, badgeW, 34, 17); else ctx.rect(cx-badgeW/2, y-24, badgeW, 34);
   ctx.fill();
-  ctx.fillStyle = lastResult.mult>=1 ? '#0F7A50' : '#A82A30';
+  ctx.fillStyle = lastResult.isGood ? '#0F7A50' : '#A82A30';
   ctx.fillText(badgeText, cx, y);
   y += 36;
   ctx.font = '700 15px "IBM Plex Mono"';
@@ -1884,14 +1893,14 @@ document.getElementById('shareTgBtn').addEventListener('click', ()=>{
   }
   const dateHuman = humanDate(lastResult.dateStr);
   const verb = lastResult.mode === 'sold' ? 'продал' : 'купил';
-  const text = lastResult.mult >= 1
+  const text = lastResult.isGood
     ? `${lastResult.tier.emoji} У меня было бы ${lastResult.resultFmt}, если бы я ${verb} ${lastResult.coinName} в ${dateHuman}.\n\nПроверь, что упустил ты →`
     : `${lastResult.tier.emoji} ${lastResult.tier.label}: у меня было бы ${lastResult.resultFmt}, если бы я ${verb} ${lastResult.coinName} в ${dateHuman}.\n\nПроверь свой →`;
   const shareUrl = 'https://cryptofumble.com/ru';
   const intentUrl = `https://t.me/share/url?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(text)}`;
   window.open(intentUrl, '_blank', 'noopener,noreferrer');
   if(typeof gtag === 'function'){
-    gtag('event', 'share_tg_click', { outcome: lastResult.mult>=1?'win':'loss', coin: lastResult.coinSymbol });
+    gtag('event', 'share_tg_click', { outcome: lastResult.isGood?'win':'loss', coin: lastResult.coinSymbol });
   }
 });
 // трекинг клика по инвест-CTA — не мешает переходу по ссылке (открывается в новой
