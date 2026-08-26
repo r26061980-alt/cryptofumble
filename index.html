@@ -537,6 +537,16 @@
     opacity:0.45;
     margin-bottom:18px;
   }
+  .r-sub-icon{
+    width:14px; height:14px; border-radius:50%;
+    vertical-align:-2px; margin-right:5px;
+  }
+  .r-sub-icon.avatar-fallback{
+    background:rgba(42,36,24,0.12); color:rgba(42,36,24,0.65);
+    display:inline-flex; align-items:center; justify-content:center;
+    font-family:var(--mono); font-weight:700; font-size:8px;
+    vertical-align:-3px;
+  }
   .dashed{border-top:1.5px dashed rgba(42,36,24,0.35); margin:14px 0;}
   .r-line{
     display:flex;
@@ -1016,15 +1026,16 @@ const GECKO_ID = {
   BTC:'bitcoin', ETH:'ethereum', SOL:'solana', DOGE:'dogecoin',
   ADA:'cardano', XRP:'ripple', BNB:'binancecoin'
 };
-// ---- Ротация партнёрских ссылок между тремя биржами ----
+// ---- Ротация партнёрских ссылок между биржами ----
 // Каждый показ CTA выбирает следующую биржу по кругу, чтобы трафик более-менее
-// равномерно распределялся между тремя партнёрками, а не весь уходил в одну.
+// равномерно распределялся между партнёрками, а не весь уходил в одну.
 // Стартовая позиция в каждом браузере случайная — иначе у всех первый чек
 // всегда указывал бы на Bybit.
 const EXCHANGES = [
   { name:'Bybit',  url:'https://www.bybit.com/invite?ref=PK8RA3&medium=referral&utm_campaign=evergreen&share_to=post' },
   { name:'MEXC',   url:'https://s.mexc.com/referral/CM545FtMvs' },
-  { name:'Bitget', url:'https://www.krbitget.com/ru/referral/register?clacCode=T0NB6A61&from=%2Fru%2Fevents%2Freferral-all-program&source=events&utmSource=PremierInviter' }
+  { name:'Bitget', url:'https://www.krbitget.com/ru/referral/register?clacCode=T0NB6A61&from=%2Fru%2Fevents%2Freferral-all-program&source=events&utmSource=PremierInviter' },
+  { name:'BingX',  url:'https://bingxdao.com/invite/RIBWB2/' }
 ];
 function nextExchange(){
   let idx = parseInt(localStorage.getItem('cf_exchange_idx'), 10);
@@ -1509,7 +1520,10 @@ calcBtn.addEventListener('click', async ()=>{
   const spResult = baseValue * (spNow/spBuy);
   const tier = getTier(mult);
   const verb = currentMode === 'sold' ? 'sold' : 'bought';
-  document.getElementById('rSub').textContent = `${coin.name} · ${verb} ${dateStr}`;
+  const rSub = document.getElementById('rSub');
+  rSub.innerHTML = '';
+  rSub.appendChild(makeIconEl(coin.symbol, coin.name, 'r-sub-icon'));
+  rSub.appendChild(document.createTextNode(`${coin.name} · ${verb} ${dateStr}`));
   document.getElementById('rInvestedLabel').textContent = currentMode === 'sold' ? 'Value when sold' : 'Invested';
   document.getElementById('rBuyPriceLabel').textContent = currentMode === 'sold' ? 'Price when sold' : 'Price at purchase';
   document.getElementById('rCoinsQtyLabel').textContent = currentMode === 'sold' ? 'Coins sold' : 'Coins bought';
@@ -1554,6 +1568,7 @@ calcBtn.addEventListener('click', async ()=>{
   document.getElementById('receipt-holder').scrollIntoView({behavior:'smooth', block:'nearest'});
   lastResult = {
     coinName: coin.name,
+    coinSymbol: coin.symbol,
     dateStr,
     mode: currentMode,
     tier,
@@ -1603,7 +1618,19 @@ function roundedZigzagPath(ctx, x, y, w, h, teeth, amp, r){
   }
   ctx.closePath();
 }
-async function drawShareCard(){
+// Грузит картинку для canvas с CORS-заголовком; никогда не бросает ошибку —
+// при любой проблеме (сеть, 404, отсутствие CORS у CDN) просто резолвится в null,
+// и вызывающий код рисует карточку без логотипа вместо падения с ошибкой.
+function loadImageSafe(src){
+  return new Promise((resolve)=>{
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = ()=> resolve(img);
+    img.onerror = ()=> resolve(null);
+    img.src = src;
+  });
+}
+async function drawShareCard(includeLogo){
   const canvas = document.getElementById('shareCanvas');
   canvas.width = 640;
   canvas.height = 818; // + место под график динамики позиции
@@ -1636,7 +1663,22 @@ async function drawShareCard(){
   ctx.save(); ctx.letterSpacing='3px';
   ctx.fillText('— RECEIPT OF REGRET —', cx, y);
   ctx.restore();
-  y += 26;
+  y += 34;
+  // логотип монеты — best effort, при неудаче (сеть/CORS) просто пропускаем
+  if(includeLogo){
+    const logoImg = await loadImageSafe(iconUrl(lastResult.coinSymbol));
+    if(logoImg){
+      const r = 15;
+      ctx.save();
+      ctx.beginPath();
+      ctx.arc(cx, y, r, 0, Math.PI*2);
+      ctx.closePath();
+      ctx.clip();
+      ctx.drawImage(logoImg, cx-r, y-r, r*2, r*2);
+      ctx.restore();
+      y += 30;
+    }
+  }
   ctx.fillStyle = 'rgba(42,36,24,0.45)';
   ctx.font = '400 13px "IBM Plex Mono"';
   ctx.fillText(`${lastResult.coinName} · ${lastResult.mode === 'sold' ? 'sold' : 'bought'} ${lastResult.dateStr}`, cx, y);
@@ -1726,7 +1768,14 @@ document.getElementById('shareBtn').addEventListener('click', async ()=>{
   const origLabel = shareBtn.textContent;
   shareBtn.textContent = 'Drawing card…';
   shareBtn.disabled = true;
-  const dataUrl = await drawShareCard();
+  let dataUrl;
+  try{
+    dataUrl = await drawShareCard(true);
+  }catch(err){
+    // canvas.toDataURL() мог упасть из-за "tainted canvas" (иконка монеты
+    // подгрузилась без нужных CORS-заголовков) — тихо перерисовываем без логотипа
+    dataUrl = await drawShareCard(false);
+  }
   const img = document.getElementById('shareCardImg');
   const dl = document.getElementById('shareDownload');
   img.src = dataUrl;
