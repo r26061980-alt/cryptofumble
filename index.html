@@ -118,6 +118,58 @@
   .live-feed-row .fr-mult.pos{color:#16C784;}
   .live-feed-row .fr-mult.neg{color:#EA3943;}
   @keyframes feedIn{ from{opacity:0; transform:translateY(-4px);} to{opacity:1; transform:translateY(0);} }
+  .regret-counter{
+    font-family:var(--mono);
+    font-size:12px;
+    color:var(--muted);
+    margin-bottom:20px;
+  }
+  .regret-counter b{color:var(--gold); font-weight:700;}
+  .faq{
+    max-width:480px;
+    margin:32px auto 0;
+    padding-top:24px;
+    border-top:1px solid var(--panel-border);
+  }
+  .faq-title{
+    font-family:var(--mono);
+    font-size:10px;
+    letter-spacing:0.1em;
+    color:var(--muted);
+    text-align:center;
+    margin-bottom:14px;
+    text-transform:uppercase;
+  }
+  .faq details{
+    border-bottom:1px solid rgba(139,147,161,0.08);
+    padding:10px 0;
+  }
+  .faq details:last-child{border-bottom:none;}
+  .faq summary{
+    cursor:pointer;
+    font-weight:700;
+    font-size:14px;
+    color:var(--text);
+    list-style:none;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:10px;
+  }
+  .faq summary::-webkit-details-marker{display:none;}
+  .faq summary::after{
+    content:"+";
+    color:var(--gold);
+    font-size:18px;
+    flex-shrink:0;
+  }
+  .faq details[open] summary::after{content:"−";}
+  .faq p{
+    font-size:13px;
+    color:var(--muted);
+    line-height:1.5;
+    margin-top:8px;
+  }
   .daily-regret{
     background:linear-gradient(135deg, rgba(240,185,11,0.08), rgba(240,185,11,0.02));
     border:1px solid rgba(240,185,11,0.25);
@@ -654,6 +706,7 @@
   <div class="eyebrow">live prices · coingecko</div>
   <h1>How much would you have <span>made</span> if you'd bought back then?</h1>
   <p class="sub">Pick a coin, an amount, and a date — find out what your money would be worth today. Painful, but useful.</p>
+  <div class="regret-counter" id="regretCounter" style="display:none;"></div>
   <div class="daily-regret" id="dailyRegret" style="display:none;">
     <div class="daily-regret-label">📅 TODAY'S REGRET</div>
     <div class="daily-regret-text" id="dailyRegretText">Loading…</div>
@@ -749,6 +802,21 @@
   <div class="live-feed" id="liveFeed" style="display:none;">
     <div class="live-feed-title">🌍 RECENT REGRETS FROM AROUND THE WORLD</div>
     <div class="live-feed-list" id="liveFeedList"></div>
+  </div>
+  <div class="faq">
+    <div class="faq-title">❓ FAQ</div>
+    <details>
+      <summary>Where does the price data come from?</summary>
+      <p>Live prices come from CoinGecko, through our own caching proxy. If the live API is briefly unavailable, the calculator falls back to an approximate historical dataset for a handful of major coins — clearly marked "OFFLINE DEMO DATA" right on the receipt, so you always know which one you're looking at.</p>
+    </details>
+    <details>
+      <summary>Is this financial advice?</summary>
+      <p>No. CryptoFumble is for fun and reflection, not investment advice. It shows a hypothetical outcome based on historical prices — not a prediction or a recommendation. Crypto is volatile and you can lose money. Always do your own research before investing.</p>
+    </details>
+    <details>
+      <summary>Why does it sometimes say "offline demo data"?</summary>
+      <p>That means the live CoinGecko API was temporarily unreachable (rate limits, a network hiccup), so the receipt used an approximate backup dataset instead of exact historical prices. It only covers BTC, ETH, SOL, DOGE, ADA, XRP and BNB — for any other coin, if live data fails you'll see an error instead of a wrong number.</p>
+    </details>
   </div>
 </div>
 <script>
@@ -1270,7 +1338,12 @@ async function loadLiveFeed(){
   try{
     const res = await fetch('/.netlify/functions/feed');
     if(!res.ok) return; // лента не настроена или временно недоступна — просто не показываем блок
-    const { entries } = await res.json();
+    const { entries, count } = await res.json();
+    if(typeof count === 'number' && count > 0){
+      const counterEl = document.getElementById('regretCounter');
+      counterEl.innerHTML = `🔥 <b>${count.toLocaleString('en-US')}</b> ${count === 1 ? 'person has' : 'people have'} checked their regret today`;
+      counterEl.style.display = 'block';
+    }
     if(!entries || entries.length === 0) return;
     const list = document.getElementById('liveFeedList');
     list.innerHTML = '';
