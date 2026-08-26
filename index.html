@@ -1016,6 +1016,26 @@ const GECKO_ID = {
   BTC:'bitcoin', ETH:'ethereum', SOL:'solana', DOGE:'dogecoin',
   ADA:'cardano', XRP:'ripple', BNB:'binancecoin'
 };
+// ---- Ротация партнёрских ссылок между тремя биржами ----
+// Каждый показ CTA выбирает следующую биржу по кругу, чтобы трафик более-менее
+// равномерно распределялся между тремя партнёрками, а не весь уходил в одну.
+// Стартовая позиция в каждом браузере случайная — иначе у всех первый чек
+// всегда указывал бы на Bybit.
+const EXCHANGES = [
+  { name:'Bybit',  url:'https://www.bybit.com/invite?ref=PK8RA3&medium=referral&utm_campaign=evergreen&share_to=post' },
+  { name:'MEXC',   url:'https://s.mexc.com/referral/CM545FtMvs' },
+  { name:'Bitget', url:'https://www.krbitget.com/ru/referral/register?clacCode=T0NB6A61&from=%2Fru%2Fevents%2Freferral-all-program&source=events&utmSource=PremierInviter' }
+];
+function nextExchange(){
+  let idx = parseInt(localStorage.getItem('cf_exchange_idx'), 10);
+  if(isNaN(idx)) idx = Math.floor(Math.random()*EXCHANGES.length);
+  const exchange = EXCHANGES[idx % EXCHANGES.length];
+  try{ localStorage.setItem('cf_exchange_idx', String((idx+1) % EXCHANGES.length)); }catch(err){
+    // localStorage может быть недоступен в некоторых приватных режимах — не критично,
+    // просто в этом браузере ротация не будет "запоминаться" между визитами
+  }
+  return exchange;
+}
 // ---- Simple in-session cache to avoid hammering CoinGecko on repeat lookups ----
 // (in production this belongs server-side — see note at bottom of file)
 const priceCache = new Map();
@@ -1515,15 +1535,20 @@ calcBtn.addEventListener('click', async ()=>{
   }
   document.getElementById('rStamp').textContent = new Date().toISOString().slice(0,19).replace('T',' ');
   // показываем инвест-CTA только после первого расчёта, текст зависит от исхода —
-  // на выигрыше бьём в "не упусти следующий раз", на проигрыше — в "начни сейчас"
+  // на выигрыше бьём в "не упусти следующий раз", на проигрыше — в "начни сейчас".
+  // Биржа для ссылки берётся по кругу из EXCHANGES (Bybit/MEXC/Bitget), чтобы
+  // трафик распределялся между всеми тремя партнёрками.
   const ctaInvest = document.getElementById('ctaInvest');
+  const exchange = nextExchange();
+  ctaInvest.href = exchange.url;
   ctaInvest.style.display = 'block';
   document.getElementById('ctaInvestText').textContent =
-    mult >= 1 ? "Don't miss the next one — start on Bybit →" : 'Start now, thank yourself later →';
+    mult >= 1 ? `Don't miss the next one — start on ${exchange.name} →` : `Start now on ${exchange.name}, thank yourself later →`;
   // контекст для трекинга клика (см. обработчик ниже) — не влияет на сам расчёт
   ctaInvest.dataset.outcome = mult >= 1 ? 'win' : 'loss';
   ctaInvest.dataset.coin = coin.symbol;
   ctaInvest.dataset.mult = mult.toFixed(1);
+  ctaInvest.dataset.exchange = exchange.name.toLowerCase();
   document.getElementById('receipt-holder').style.display='block';
   animateCount(document.getElementById('rResult'), result, '$');
   document.getElementById('receipt-holder').scrollIntoView({behavior:'smooth', block:'nearest'});
@@ -1720,7 +1745,7 @@ document.getElementById('ctaInvest').addEventListener('click', function(){
       outcome: this.dataset.outcome,
       coin: this.dataset.coin,
       multiplier: this.dataset.mult,
-      exchange: 'bybit'
+      exchange: this.dataset.exchange
     });
   }
 });
