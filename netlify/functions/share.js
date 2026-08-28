@@ -16,6 +16,10 @@
 //
 // Query params: same as og-image.js, plus:
 //   lang  "ru" to link back to /ru instead of the English homepage
+//   id    a short id from shorten.js — resolved via Redis into the full set
+//         of fields above (see resolveParams below); when present, the
+//         image/canonical links below stay short too instead of growing
+//         back into a long query string
 
 function esc(str) {
   return String(str == null ? '' : str).replace(/[&<>"']/g, (c) => ({
@@ -23,13 +27,36 @@ function esc(str) {
   }[c]));
 }
 
+const REDIS_URL = process.env.UPSTASH_REDIS_REST_URL;
+const REDIS_TOKEN = process.env.UPSTASH_REDIS_REST_TOKEN;
+async function resolveParams(q) {
+  if (!q.id || !REDIS_URL || !REDIS_TOKEN) return q;
+  try {
+    const res = await fetch(REDIS_URL, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${REDIS_TOKEN}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify(['GET', `share:${q.id}`]),
+    });
+    const data = await res.json();
+    if (data && data.result) return JSON.parse(data.result);
+  } catch (err) { /* fall through — worst case: generic title/description */ }
+  return q;
+}
+
 exports.handler = async (event) => {
-  const q = event.queryStringParameters || {};
+  const rawQ = event.queryStringParameters || {};
+  const q = await resolveParams(rawQ);
   const isRu = q.lang === 'ru';
   const siteUrl = isRu ? 'https://cryptofumble.com/ru' : 'https://cryptofumble.com';
-  const params = new URLSearchParams(q);
+  // imageUrl/shareUrl are built from the ORIGINAL request params (rawQ), not
+  // the resolved ones — that way a short "?id=" link stays short all the way
+  // through (og-image.js resolves the id itself too), while an old-style
+  // full-query-string link keeps working exactly as before.
+  const params = new URLSearchParams(rawQ);
   const imageUrl = `https://cryptofumble.com/.netlify/functions/og-image?${params.toString()}`;
-  const shareUrl = `https://cryptofumble.com/.netlify/functions/share?${params.toString()}`;
+  const shareUrl = rawQ.id
+    ? `https://cryptofumble.com/r/${rawQ.id}`
+    : `https://cryptofumble.com/.netlify/functions/share?${params.toString()}`;
 
   const title = q.r
     ? (isRu
