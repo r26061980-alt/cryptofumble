@@ -1728,10 +1728,6 @@ modeToggle.addEventListener('click', (e)=>{
     calcBtn.textContent = 'Show me what I missed →';
     amountWrap.classList.remove('no-prefix');
   }
-  // sharing isn't wired up for DCA results yet (share text/card assume a single
-  // purchase) — hide those two buttons in DCA mode rather than show wrong wording
-  document.getElementById('shareBtn').style.display = currentMode === 'dca' ? 'none' : '';
-  document.getElementById('shareXBtn').style.display = currentMode === 'dca' ? 'none' : '';
 });
 // ---- Quick period-select shortcuts (1M/6M/1Y/5Y/MAX) ----
 document.querySelectorAll('.period-btn').forEach(btn=>{
@@ -2073,6 +2069,25 @@ async function runDcaCalculation(coin){
     document.getElementById('receipt-holder').style.display = 'block';
     animateCount(document.getElementById('rResult'), result, '$');
     document.getElementById('receipt-holder').scrollIntoView({behavior:'smooth', block:'nearest'});
+    // share card/tweet text read from lastResult — DCA has no single "position
+    // value curve" the way a one-time purchase does, so chartValues stays null
+    // and the share-card drawing code's existing chart check skips it cleanly
+    lastResult = {
+      coinName: coin.name,
+      coinSymbol: coin.symbol,
+      dateStr,
+      mode: currentMode,
+      tier,
+      investedFmt: fmt(totalInvested),
+      buyPriceFmt: fmt(avgPrice),
+      coinsQtyFmt: fmtCoinsQty(totalCoins, coin.symbol),
+      nowPriceFmt: fmt(nowPrice),
+      resultFmt: fmtBig(result),
+      spResultFmt: fmtBig(spResult),
+      mult,
+      isGood,
+      chartValues: null,
+    };
     document.getElementById('shareCardWrap').style.display = 'none';
     fetch('/.netlify/functions/feed', {
       method: 'POST',
@@ -2174,7 +2189,10 @@ async function drawShareCard(includeLogo){
   }
   ctx.fillStyle = 'rgba(42,36,24,0.45)';
   ctx.font = '400 13px "IBM Plex Mono"';
-  ctx.fillText(`${lastResult.coinName} · ${lastResult.mode === 'sold' ? 'sold' : 'bought'} ${lastResult.dateStr}`, cx, y);
+  const cardSubtitle = lastResult.mode === 'dca'
+    ? `${lastResult.coinName} · monthly since ${lastResult.dateStr}`
+    : `${lastResult.coinName} · ${lastResult.mode === 'sold' ? 'sold' : 'bought'} ${lastResult.dateStr}`;
+  ctx.fillText(cardSubtitle, cx, y);
   y += 30;
   ctx.strokeStyle = 'rgba(42,36,24,0.3)';
   ctx.setLineDash([5,5]);
@@ -2187,9 +2205,14 @@ async function drawShareCard(includeLogo){
     ctx.textAlign='right'; ctx.font='600 14px "IBM Plex Mono"';
     ctx.fillText(value, W-pad-30, y);
   }
-  priceRow(lastResult.mode === 'sold' ? 'Value when sold' : 'Invested', lastResult.investedFmt);
-  priceRow(lastResult.mode === 'sold' ? 'Price when sold' : 'Price at purchase', lastResult.buyPriceFmt);
-  priceRow(lastResult.mode === 'sold' ? 'Coins sold' : 'Coins bought', lastResult.coinsQtyFmt);
+  const rowLabels = lastResult.mode === 'dca'
+    ? { invested:'Total invested', price:'Avg. price paid', coins:'Coins bought' }
+    : lastResult.mode === 'sold'
+      ? { invested:'Value when sold', price:'Price when sold', coins:'Coins sold' }
+      : { invested:'Invested', price:'Price at purchase', coins:'Coins bought' };
+  priceRow(rowLabels.invested, lastResult.investedFmt);
+  priceRow(rowLabels.price, lastResult.buyPriceFmt);
+  priceRow(rowLabels.coins, lastResult.coinsQtyFmt);
   priceRow('Price now', lastResult.nowPriceFmt);
   y += 30;
   ctx.setLineDash([5,5]);
@@ -2287,9 +2310,13 @@ document.getElementById('shareXBtn').addEventListener('click', ()=>{
   }
   const dateHuman = humanDate(lastResult.dateStr);
   const verb = lastResult.mode === 'sold' ? 'sold' : 'bought';
-  const text = lastResult.isGood
-    ? `${lastResult.tier.emoji} I would've had ${lastResult.resultFmt} if I'd ${verb} ${lastResult.coinName} in ${dateHuman}.\n\nCheck what you missed →`
-    : `${lastResult.tier.emoji} ${lastResult.tier.label}: I would've had ${lastResult.resultFmt} if I'd ${verb} ${lastResult.coinName} in ${dateHuman}.\n\nCheck yours →`;
+  const text = lastResult.mode === 'dca'
+    ? (lastResult.isGood
+        ? `${lastResult.tier.emoji} I would've had ${lastResult.resultFmt} if I'd invested monthly in ${lastResult.coinName} since ${dateHuman}.\n\nCheck what your DCA would be worth →`
+        : `${lastResult.tier.emoji} ${lastResult.tier.label}: I would've had ${lastResult.resultFmt} if I'd invested monthly in ${lastResult.coinName} since ${dateHuman}.\n\nCheck yours →`)
+    : lastResult.isGood
+      ? `${lastResult.tier.emoji} I would've had ${lastResult.resultFmt} if I'd ${verb} ${lastResult.coinName} in ${dateHuman}.\n\nCheck what you missed →`
+      : `${lastResult.tier.emoji} ${lastResult.tier.label}: I would've had ${lastResult.resultFmt} if I'd ${verb} ${lastResult.coinName} in ${dateHuman}.\n\nCheck yours →`;
   const intentUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent('https://cryptofumble.com')}`;
   window.open(intentUrl, '_blank', 'noopener,noreferrer');
   if(typeof gtag === 'function'){
