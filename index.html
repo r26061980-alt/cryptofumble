@@ -2265,6 +2265,27 @@ function showShareToast(msg){
   clearTimeout(toast._hideTimer);
   toast._hideTimer = setTimeout(()=> toast.classList.remove('visible'), 6000);
 }
+// builds the link to netlify/functions/share.js for the CURRENT lastResult —
+// that page carries og:image/twitter:image tags pointing at og-image.js with
+// the same params, so link-preview crawlers show a picture of this exact
+// result instead of a generic screenshot; a real visitor clicking it gets
+// redirected straight to the calculator.
+function buildShareUrl(lang){
+  if(!lastResult) return 'https://cryptofumble.com';
+  const params = new URLSearchParams({
+    s: lastResult.coinSymbol,
+    n: lastResult.coinName,
+    m: lastResult.mode,
+    d: lastResult.dateStr,
+    r: lastResult.resultFmt,
+    mu: lastResult.mult.toFixed(1),
+    tl: lastResult.tier.label,
+    g: lastResult.isGood ? '1' : '0',
+  });
+  if(lastResult.spResultFmt) params.set('sp', lastResult.spResultFmt);
+  if(lang === 'ru') params.set('lang', 'ru');
+  return `https://cryptofumble.com/.netlify/functions/share?${params.toString()}`;
+}
 async function downloadShareCardAndNotify(msg){
   let dataUrl = cachedShareCardDataUrl;
   if(!dataUrl){
@@ -2484,24 +2505,24 @@ document.getElementById('shareXBtn').addEventListener('click', ()=>{
   const verb = lastResult.mode === 'sold' ? 'sold' : 'bought';
   const text = lastResult.mode === 'dca'
     ? (lastResult.isGood
-        ? `${lastResult.tier.emoji} I would've had ${lastResult.resultFmt} if I'd invested monthly in ${lastResult.coinName} since ${dateHuman}.\n\nTry it yourself — link in the next reply 👇`
-        : `${lastResult.tier.emoji} ${lastResult.tier.label}: I would've had ${lastResult.resultFmt} if I'd invested monthly in ${lastResult.coinName} since ${dateHuman}.\n\nCheck yours — link in the next reply 👇`)
+        ? `${lastResult.tier.emoji} I would've had ${lastResult.resultFmt} if I'd invested monthly in ${lastResult.coinName} since ${dateHuman}.\n\nCheck what your DCA would be worth →`
+        : `${lastResult.tier.emoji} ${lastResult.tier.label}: I would've had ${lastResult.resultFmt} if I'd invested monthly in ${lastResult.coinName} since ${dateHuman}.\n\nCheck yours →`)
     : lastResult.isGood
-      ? `${lastResult.tier.emoji} I would've had ${lastResult.resultFmt} if I'd ${verb} ${lastResult.coinName} in ${dateHuman}.\n\nTry it yourself — link in the next reply 👇`
-      : `${lastResult.tier.emoji} ${lastResult.tier.label}: I would've had ${lastResult.resultFmt} if I'd ${verb} ${lastResult.coinName} in ${dateHuman}.\n\nCheck yours — link in the next reply 👇`;
-  // Намеренно без &url= — иначе X сам подставляет карточку-превью с общей,
-  // одинаковой для всех картинкой (не результатом конкретного человека).
-  // Вместо этого прикладываем персональную PNG-карточку вручную (см. ниже),
-  // а ссылку на сайт предлагаем добавить отдельным ответом на свой же пост.
-  const intentUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`;
+      ? `${lastResult.tier.emoji} I would've had ${lastResult.resultFmt} if I'd ${verb} ${lastResult.coinName} in ${dateHuman}.\n\nCheck what you missed →`
+      : `${lastResult.tier.emoji} ${lastResult.tier.label}: I would've had ${lastResult.resultFmt} if I'd ${verb} ${lastResult.coinName} in ${dateHuman}.\n\nCheck yours →`;
+  // Ссылка ведёт на netlify/functions/share.js — отдельную страницу с персональной
+  // og:image-картинкой именно ЭТОГО результата (see share.js + og-image.js),
+  // а не на главную страницу с одной и той же статичной картинкой для всех.
+  const shareLink = buildShareUrl();
+  const intentUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(shareLink)}`;
   window.open(intentUrl, '_blank', 'noopener,noreferrer');
   if(typeof gtag === 'function'){
     gtag('event', 'share_x_click', { outcome: lastResult.isGood?'win':'loss', coin: lastResult.coinSymbol });
   }
-  // картинка почти наверняка уже готова (см. precacheShareCard выше), так что
-  // скачивание происходит сразу — без блокирующего alert(), которым пришлось бы
-  // закрывать на этой же вкладке, отвлекаясь от только что открывшегося поста
-  downloadShareCardAndNotify('📸 Saved crypto-regret-card.png — attach it to the post that just opened, then drop the cryptofumble.com link in a reply.');
+  // на случай, если превью-картинка ещё не подхватилась (первый деплой, кэш
+  // краулера и т.п.) — параллельно скачиваем PNG про запас, чтобы было чем
+  // прикрепить вручную, если автоматическая карточка почему-то не покажется
+  downloadShareCardAndNotify("📸 Also saved crypto-regret-card.png as a backup — attach it manually if the link preview doesn't show your picture yet.");
 });
 // ---- "Compare with another coin" — same amount/date, a different coin (bought mode only) ----
 const compareToggle = document.getElementById('compareToggle');
