@@ -13,6 +13,12 @@
 // между пачками — 12 параллельных вызовов к одному и тому же demo-ключу
 // рискуют упереться в рейт-лимит CoinGecko, особенно если в этот же момент
 // идёт вызов price.js для того же расчёта.
+//
+// granularity=annual — отдельный режим сэмплирования для таблицы "по годам"
+// на чеке: вместо N точек, равномерно раскиданных по всему периоду, берём
+// по одной точке на каждый календарный год (месяц покупки), от года покупки
+// до текущего года. Используется тот же кэш и тот же батчинг — просто другой
+// набор дат на входе. Дефолтное поведение (без этого параметра) не менялось.
 
 const inflight = new Map();
 const BATCH_SIZE = 3;
@@ -74,6 +80,26 @@ function sampleMonths(fromStr, toStr, maxPoints) {
   return [...new Set(months)];
 }
 
+// строит одну дату (YYYY-MM) на каждый календарный год от from до to,
+// используя месяц покупки как "годовщину"; если лет больше maxPoints —
+// равномерно прореживает список лет (не месяцев), чтобы получить не более
+// maxPoints точек, но всегда включая первый и последний год
+function sampleAnniversaryMonths(fromStr, toStr, maxPoints) {
+  const [fy, fm] = fromStr.split('-').map(Number);
+  const [ty] = toStr.split('-').map(Number);
+  const years = [];
+  for (let y = fy; y <= ty; y++) years.push(`${y}-${String(fm).padStart(2, '0')}`);
+  if (years.length <= 1) return years;
+  if (years.length <= maxPoints) return years;
+  const step = (years.length - 1) / (maxPoints - 1);
+  const picked = [];
+  for (let i = 0; i < maxPoints; i++) {
+    const idx = Math.round(i * step);
+    picked.push(years[idx]);
+  }
+  return [...new Set(picked)];
+}
+
 // вместо Promise.all по всем месяцам сразу — пачками по BATCH_SIZE,
 // с паузой между пачками, чтобы не долбить CoinGecko одним залпом
 async function fetchPointsThrottled(coin, months) {
@@ -90,7 +116,7 @@ async function fetchPointsThrottled(coin, months) {
 }
 
 exports.handler = async (event) => {
-  const { coin, from } = event.queryStringParameters || {};
+  const { coin, from, granularity } = event.queryStringParameters || {};
 
   if (!coin || !from) {
     return {
@@ -103,7 +129,9 @@ exports.handler = async (event) => {
   const to = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
 
   try {
-    const months = sampleMonths(from, to, 10);
+    const months = granularity === 'annual'
+      ? sampleAnniversaryMonths(from, to, 12)
+      : sampleMonths(from, to, 10);
     const points = await fetchPointsThrottled(coin, months);
 
     return {
@@ -113,7 +141,7 @@ exports.handler = async (event) => {
         'Cache-Control': 'public, max-age=3600, s-maxage=86400, stale-while-revalidate=604800',
         'Access-Control-Allow-Origin': '*',
       },
-      body: JSON.stringify({ coin, from, to, points }),
+      body: JSON.stringify({ coin, from, to, granularity: granularity || 'even', points }),
     };
   } catch (err) {
     return {
