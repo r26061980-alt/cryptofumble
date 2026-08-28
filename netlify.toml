@@ -17,3 +17,9 @@
   from = "/api/search"
   to = "/.netlify/functions/search"
   status = 200
+
+# Короткая ссылка для шеринга результата: /r/AbC123 -> share.js?id=AbC123
+[[redirects]]
+  from = "/r/*"
+  to = "/.netlify/functions/share?id=:splat"
+  status = 200
