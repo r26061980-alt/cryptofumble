@@ -76,6 +76,33 @@
   }
   :focus-visible{outline:2px solid rgba(240,185,11,0.6); outline-offset:2px; border-radius:4px;}
   .wrap{max-width:640px; margin:0 auto;}
+  .layout-grid{display:block;}
+  .main-col{min-width:0;}
+  .side-col{min-width:0;}
+  @media (min-width:980px){
+    .wrap{max-width:1040px;}
+    .layout-grid{
+      display:grid;
+      grid-template-columns:640px minmax(280px, 1fr);
+      gap:32px;
+      align-items:start;
+    }
+    .side-col{
+      position:sticky;
+      top:32px;
+    }
+    .side-col .live-feed{
+      max-width:none;
+      margin:0;
+      padding:24px;
+      border-top:none;
+      background:linear-gradient(180deg, rgba(255,255,255,0.035), rgba(255,255,255,0) 42%), var(--panel);
+      border:1px solid var(--panel-border);
+      border-radius:var(--r-xl);
+      box-shadow:var(--shadow-2);
+    }
+    .side-col .live-feed-title{text-align:left;}
+  }
   @keyframes fadeUp{ from{opacity:0; transform:translateY(10px);} to{opacity:1; transform:translateY(0);} }
   .eyebrow{
     font-family:var(--mono);
@@ -843,6 +870,8 @@
 </script>
 
 <div class="wrap">
+  <div class="layout-grid">
+  <div class="main-col">
   <div class="eyebrow">живые цены · coingecko</div>
   <h1>Сколько бы ты <span>заработал</span>, если бы купил тогда?</h1>
   <p class="sub">Выбери монету, сумму и дату — узнай, во что превратились бы твои деньги. Больно, но полезно.</p>
@@ -956,9 +985,13 @@
     </div>
   </div>
   <p class="disclaimer">Цены идут через собственный кэширующий прокси (Netlify function → CoinGecko), с fallback на прямой запрос и на демо-данные, если всё недоступно. Источник виден на чеке.</p>
+  </div>
+  <div class="side-col">
   <div class="live-feed" id="liveFeed" style="display:none;">
     <div class="live-feed-title">🌍 ПОСЛЕДНИЕ РЕГРЕТЫ СО ВСЕГО МИРА</div>
     <div class="live-feed-list" id="liveFeedList"></div>
+  </div>
+  </div>
   </div>
   <div class="faq">
     <div class="faq-title">❓ Частые вопросы</div>
