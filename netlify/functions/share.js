@@ -51,6 +51,18 @@ async function resolveParams(q) {
 
 exports.handler = async (event) => {
   const rawQ = event.queryStringParameters || {};
+  // When reached through the "/r/<id>" short-link redirect, Netlify does NOT
+  // actually inject the ":id"/":splat" placeholder into this function's query
+  // string in production — that's a confirmed, documented Netlify platform
+  // limitation for rewrites to functions, not a bug in our config (see
+  // https://answers.netlify.com/t/redirect-rewrite-to-function-seems-broken/18595).
+  // This is the real reason the picture always came out blank: the id never
+  // arrived here at all. The fix is to read it straight off the untouched
+  // incoming request path instead, which Netlify does preserve as event.path.
+  if (!rawQ.id) {
+    const m = (event.path || '').match(/\/r\/([^/?]+)/);
+    if (m) rawQ.id = m[1];
+  }
   const q = await resolveParams(rawQ);
   const isRu = q.lang === 'ru';
   const siteUrl = isRu ? 'https://cryptofumble.com/ru' : 'https://cryptofumble.com';
