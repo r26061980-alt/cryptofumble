@@ -786,6 +786,37 @@
     margin-top:10px;
     line-height:1.5;
   }
+  .compare-block{margin-top:18px; text-align:center;}
+  .compare-toggle{
+    background:none;
+    border:1px dashed var(--panel-border);
+    color:var(--muted);
+    font-family:var(--mono);
+    font-size:11px;
+    letter-spacing:0.04em;
+    padding:10px 16px;
+    border-radius:999px;
+    cursor:pointer;
+    transition:border-color .2s var(--ease), color .2s var(--ease);
+  }
+  .compare-toggle:hover{border-color:var(--gold); color:var(--gold);}
+  .compare-picker{margin-top:14px; animation:fadeUp .3s var(--ease) both;}
+  .compare-picker-label{font-size:11px; color:var(--muted); margin-bottom:8px;}
+  .compare-coin-grid{display:flex; flex-wrap:wrap; gap:8px; justify-content:center;}
+  .compare-result{
+    margin-top:14px;
+    padding:16px;
+    border-radius:14px;
+    background:rgba(255,255,255,0.03);
+    border:1px solid var(--panel-border-soft);
+    font-size:13.5px;
+    line-height:1.65;
+    text-align:left;
+    animation:fadeUp .3s var(--ease) both;
+  }
+  .compare-result b{color:var(--text);}
+  .compare-result .cr-win{color:#16C784; font-weight:700;}
+  .compare-result .cr-lose{color:#EA3943; font-weight:700;}
   .disclaimer{
     font-size:11px;
     color:var(--muted);
@@ -982,6 +1013,14 @@
       <canvas id="shareCanvas" width="640" height="800" style="display:none;"></canvas>
       <img id="shareCardImg" style="width:100%; border-radius:14px; box-shadow:0 12px 40px rgba(0,0,0,0.5);">
       <a id="shareDownload" class="share-cta" style="display:block; text-decoration:none; margin-top:10px; box-sizing:border-box;" download="crypto-regret-card.png">⬇️ Скачать PNG</a>
+    </div>
+    <div class="compare-block" id="compareBlock" style="display:none;">
+      <button type="button" class="compare-toggle" id="compareToggle">⚖️ Сравнить с другой монетой</button>
+      <div class="compare-picker" id="comparePicker" style="display:none;">
+        <div class="compare-picker-label">Та же сумма, та же дата — но в:</div>
+        <div class="compare-coin-grid" id="compareCoinGrid"></div>
+      </div>
+      <div class="compare-result" id="compareResult" style="display:none;"></div>
     </div>
   </div>
   <p class="disclaimer">Цены идут через собственный кэширующий прокси (Netlify function → CoinGecko), с fallback на прямой запрос и на демо-данные, если всё недоступно. Источник виден на чеке.</p>
@@ -2008,10 +2047,18 @@ async function runLumpSumCalculation(coin){
     spResultFmt: fmtBig(spResult),
     mult,
     isGood,
-    chartValues
+    chartValues,
+    investedRaw: baseValue,
+    resultRaw: result
   };
   // reset any previously generated share card since the numbers changed
   document.getElementById('shareCardWrap').style.display = 'none';
+  // "сравнить с другой монетой" имеет смысл только для обычной разовой покупки —
+  // сбрасываем на каждом новом расчёте, показываем переключатель только в режиме "купил"
+  document.getElementById('comparePicker').style.display = 'none';
+  document.getElementById('compareResult').style.display = 'none';
+  document.getElementById('compareResult').innerHTML = '';
+  document.getElementById('compareBlock').style.display = currentMode === 'bought' ? 'block' : 'none';
   // делимся анонимной записью в живой ленте — не блокируем интерфейс,
   // если это не сработает (ошибка сети / лента не настроена), тихо игнорируем
   fetch('/.netlify/functions/feed', {
@@ -2131,6 +2178,11 @@ async function runDcaCalculation(coin){
       chartValues: null,
     };
     document.getElementById('shareCardWrap').style.display = 'none';
+    // сравнение с другой монетой применимо только к разовой покупке, не к DCA
+    document.getElementById('comparePicker').style.display = 'none';
+    document.getElementById('compareResult').style.display = 'none';
+    document.getElementById('compareResult').innerHTML = '';
+    document.getElementById('compareBlock').style.display = 'none';
     fetch('/.netlify/functions/feed', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -2366,6 +2418,61 @@ document.getElementById('shareTgBtn').addEventListener('click', ()=>{
     gtag('event', 'share_tg_click', { outcome: lastResult.isGood?'win':'loss', coin: lastResult.coinSymbol });
   }
 });
+// ---- "Сравнить с другой монетой" — та же сумма/дата, другая монета (только режим "купил") ----
+const compareToggle = document.getElementById('compareToggle');
+const comparePicker = document.getElementById('comparePicker');
+const compareCoinGrid = document.getElementById('compareCoinGrid');
+const compareResult = document.getElementById('compareResult');
+compareToggle.addEventListener('click', ()=>{
+  const isOpen = comparePicker.style.display !== 'none';
+  if(isOpen){
+    comparePicker.style.display = 'none';
+    return;
+  }
+  renderCompareGrid();
+  comparePicker.style.display = 'block';
+  if(typeof gtag === 'function'){ gtag('event', 'compare_open', { coin: lastResult?.coinSymbol }); }
+});
+function renderCompareGrid(){
+  compareCoinGrid.innerHTML = '';
+  Object.keys(DATA).forEach(sym=>{
+    if(!lastResult || sym === lastResult.coinSymbol) return; // не сравнивать монету саму с собой
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'coin-btn';
+    btn.appendChild(makeIconEl(sym, DATA[sym].name, 'coin-btn-icon'));
+    const label = document.createElement('span');
+    label.textContent = sym;
+    btn.appendChild(label);
+    btn.onclick = ()=> runCompare({ symbol:sym, name:DATA[sym].name, geckoId:GECKO_ID[sym] });
+    compareCoinGrid.appendChild(btn);
+  });
+}
+async function runCompare(coinB){
+  if(!lastResult || lastResult.mode !== 'bought') return;
+  compareResult.style.display = 'block';
+  compareResult.innerHTML = '<span class="spin"></span> Сравниваем…';
+  const dateStr = lastResult.dateStr;
+  const priceData = await getPrices(coinB, dateStr);
+  if(priceData.error){
+    compareResult.textContent = `Не удалось получить данные по ${coinB.symbol} — попробуй другую монету.`;
+    return;
+  }
+  const { buyPrice, nowPrice } = priceData;
+  const coinsB = lastResult.investedRaw / buyPrice;
+  const resultB = coinsB * nowPrice;
+  const multB = resultB / lastResult.investedRaw;
+  const bIsBetter = resultB > lastResult.resultRaw;
+  const diff = Math.abs(resultB - lastResult.resultRaw);
+  compareResult.innerHTML =
+    `Та же сумма <b>${fmt(lastResult.investedRaw)}</b> в <b>${coinB.symbol}</b> ${lastResult.dateStr} сегодня стоила бы <b>${fmtBig(resultB)}</b> (x${multB.toFixed(1)}).<br><br>` +
+    (bIsBetter
+      ? `<span class="cr-win">${coinB.symbol} сработал бы лучше</span>, чем ${lastResult.coinSymbol} — на ${fmtBig(diff)}.`
+      : `<span class="cr-lose">${coinB.symbol} сработал бы хуже</span>, чем ${lastResult.coinSymbol} — на ${fmtBig(diff)}.`);
+  if(typeof gtag === 'function'){
+    gtag('event', 'compare_result', { coin_a: lastResult.coinSymbol, coin_b: coinB.symbol, b_better: bIsBetter });
+  }
+}
 // трекинг клика по инвест-CTA — не мешает переходу по ссылке (открывается в новой
 // вкладке), просто параллельно шлёт событие в GA, если аналитика подключена и не
 // заблокирована адблоком (typeof-проверка защищает от ошибки в этом случае)
