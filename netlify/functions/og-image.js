@@ -32,18 +32,27 @@ const sharp = require('sharp');
 // working unchanged — this only kicks in when an "id" param is present.
 const REDIS_URL = process.env.UPSTASH_REDIS_REST_URL;
 const REDIS_TOKEN = process.env.UPSTASH_REDIS_REST_TOKEN;
+// Returns null (not q) when an id was given but couldn't be resolved, even
+// after retries — the caller uses that to render the dark placeholder
+// instead of a "$0 / x1.0" card that looks like a real (wrong) result. Two
+// quick retries absorb the rare case where og-image.js's crawl-time read
+// races just behind shorten.js's write finishing on Upstash's side.
 async function resolveParams(q) {
-  if (!q.id || !REDIS_URL || !REDIS_TOKEN) return q;
-  try {
-    const res = await fetch(REDIS_URL, {
-      method: 'POST',
-      headers: { Authorization: `Bearer ${REDIS_TOKEN}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify(['GET', `share:${q.id}`]),
-    });
-    const data = await res.json();
-    if (data && data.result) return JSON.parse(data.result);
-  } catch (err) { /* fall through — worst case: image renders with no data */ }
-  return q;
+  if (!q.id) return q;
+  if (!REDIS_URL || !REDIS_TOKEN) return null;
+  for (let attempt = 0; attempt < 3; attempt++) {
+    try {
+      const res = await fetch(REDIS_URL, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${REDIS_TOKEN}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify(['GET', `share:${q.id}`]),
+      });
+      const data = await res.json();
+      if (data && data.result) return JSON.parse(data.result);
+    } catch (err) { /* retry below */ }
+    if (attempt < 2) await new Promise((r) => setTimeout(r, 200));
+  }
+  return null;
 }
 
 function esc(str) {
@@ -104,7 +113,9 @@ function buildSvg(q) {
 
 exports.handler = async (event) => {
   try {
-    const q = await resolveParams(event.queryStringParameters || {});
+    const rawQ = event.queryStringParameters || {};
+    const q = await resolveParams(rawQ);
+    if (!q) throw new Error(`could not resolve share id: ${rawQ.id}`);
     const svg = buildSvg(q);
     const png = await sharp(Buffer.from(svg)).png().toBuffer();
     return {
@@ -120,14 +131,18 @@ exports.handler = async (event) => {
       isBase64Encoded: true,
     };
   } catch (err) {
-    // fall back to a tiny transparent pixel rather than a broken image /
-    // Netlify error page, so a malformed share link never shows an ugly 500
+    // fall back to a solid placeholder rather than a broken image / Netlify
+    // error page, so a malformed or not-yet-resolvable share link never
+    // shows an ugly 500 — and NEVER a "$0 / x1.0" card that looks like a
+    // real (wrong) result. "no-store" is deliberate: if this was a transient
+    // read race, the very next crawl attempt gets a fresh, uncached try
+    // instead of being stuck on this placeholder for an hour.
     const fallback = await sharp({
       create: { width: 1200, height: 630, channels: 4, background: { r: 10, g: 11, b: 16, alpha: 1 } },
     }).png().toBuffer();
     return {
       statusCode: 200,
-      headers: { 'Content-Type': 'image/png' },
+      headers: { 'Content-Type': 'image/png', 'Cache-Control': 'no-store' },
       body: fallback.toString('base64'),
       isBase64Encoded: true,
     };
