@@ -19,7 +19,12 @@
   status = 200
 
 # Короткая ссылка для шеринга результата: /r/AbC123 -> share.js?id=AbC123
+# ВАЖНО: именно ":splat" (из "from = /r/*") Netlify НЕ подставляет надёжно
+# в query string у "to" — теряется полностью, и share.js получает пустой
+# id. Именованный плейсхолдер (:id, из "from = /r/:id") в query string
+# подставляется корректно. Это была настоящая причина "$0/x1.0" на картинке
+# все прошлые разы — сама ссылка /r/<id> никогда не передавала id дальше.
 [[redirects]]
-  from = "/r/*"
-  to = "/.netlify/functions/share?id=:splat"
+  from = "/r/:id"
+  to = "/.netlify/functions/share?id=:id"
   status = 200
