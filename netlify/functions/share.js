@@ -6,8 +6,13 @@
 // point at og-image.js with the same query params — so the preview card
 // shows the actual result the person calculated, not a generic screenshot.
 // A real visitor who clicks the link gets redirected straight to the
-// calculator (crawlers don't execute the meta-refresh/JS redirect, so this
-// is a safe, standard "OG-tags-for-bots / redirect-for-humans" split).
+// calculator via a JavaScript redirect (NOT a <meta http-equiv="refresh">
+// tag — Telegram's crawler, and some others, silently FOLLOW that kind of
+// redirect while parsing raw HTML, landing on the plain homepage and
+// reading ITS generic og:image/title instead of the personalized ones
+// below. A script tag is never executed by these crawlers, only by real
+// browsers, so this keeps the "OG-tags-for-bots / redirect-for-humans"
+// split actually safe.
 //
 // Query params: same as og-image.js, plus:
 //   lang  "ru" to link back to /ru instead of the English homepage
@@ -52,7 +57,6 @@ exports.handler = async (event) => {
 <meta name="twitter:title" content="${esc(title)}">
 <meta name="twitter:description" content="${esc(description)}">
 <meta name="twitter:image" content="${esc(imageUrl)}">
-<meta http-equiv="refresh" content="0; url=${esc(siteUrl)}">
 <style>
   body{background:#0A0B10; color:#F3F2EE; font-family:sans-serif; display:flex; align-items:center; justify-content:center; height:100vh; margin:0;}
   a{color:#F0B90B;}
@@ -60,6 +64,7 @@ exports.handler = async (event) => {
 </head>
 <body>
   <p>Redirecting to <a href="${esc(siteUrl)}">CryptoFumble</a>…</p>
+  <script>location.replace(${JSON.stringify(siteUrl)});</script>
 </body>
 </html>`;
 
