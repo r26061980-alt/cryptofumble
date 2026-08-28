@@ -2078,6 +2078,7 @@ async function runLumpSumCalculation(coin){
   // reset any previously generated share card since the numbers changed
   document.getElementById('shareCardWrap').style.display = 'none';
   precacheShareCard(); // draw the share-card PNG in the background now, ready before the user clicks Share
+  precacheShareId(); // also fetch the short share link in the background, same reasoning
   // "compare with another coin" only makes sense for a straight "I bought" purchase —
   // reset it on every fresh calculation, only surface the toggle in bought mode
   document.getElementById('comparePicker').style.display = 'none';
@@ -2208,6 +2209,7 @@ async function runDcaCalculation(coin){
     };
     document.getElementById('shareCardWrap').style.display = 'none';
     precacheShareCard(); // draw the share-card PNG in the background now, ready before the user clicks Share
+    precacheShareId(); // also fetch the short share link in the background, same reasoning
     // coin-comparison only applies to a single lump-sum purchase, not DCA
     document.getElementById('comparePicker').style.display = 'none';
     document.getElementById('compareResult').style.display = 'none';
@@ -2252,6 +2254,30 @@ async function precacheShareCard(){
     catch(err2){ /* still unavailable when the user clicks Share — falls back to drawing on demand */ }
   }
 }
+// short "/r/<id>" link for the CURRENT lastResult, pre-fetched in the
+// background right after each calculation (same reasoning as the PNG
+// precache above: no async wait inside the click handler). Falls back to
+// the old long-query-string share link if this hasn't resolved yet or the
+// request fails — see buildShareUrl().
+let cachedShareId = null;
+async function createShortLink(payload){
+  try{
+    const res = await fetch('/.netlify/functions/shorten', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify(payload),
+    });
+    if(!res.ok) return null;
+    const data = await res.json();
+    return (data && data.id) || null;
+  }catch(e){ return null; }
+}
+async function precacheShareId(){
+  cachedShareId = null;
+  const obj = shareParamsObject();
+  if(!obj) return;
+  cachedShareId = await createShortLink(obj);
+}
 function showShareToast(msg){
   let toast = document.getElementById('shareToast');
   if(!toast){
@@ -2270,9 +2296,9 @@ function showShareToast(msg){
 // the same params, so link-preview crawlers show a picture of this exact
 // result instead of a generic screenshot; a real visitor clicking it gets
 // redirected straight to the calculator.
-function buildShareUrl(lang){
-  if(!lastResult) return 'https://cryptofumble.com';
-  const params = new URLSearchParams({
+function shareParamsObject(lang){
+  if(!lastResult) return null;
+  const obj = {
     s: lastResult.coinSymbol,
     n: lastResult.coinName,
     m: lastResult.mode,
@@ -2281,9 +2307,19 @@ function buildShareUrl(lang){
     mu: lastResult.mult.toFixed(1),
     tl: lastResult.tier.label,
     g: lastResult.isGood ? '1' : '0',
-  });
-  if(lastResult.spResultFmt) params.set('sp', lastResult.spResultFmt);
-  if(lang === 'ru') params.set('lang', 'ru');
+  };
+  if(lastResult.spResultFmt) obj.sp = lastResult.spResultFmt;
+  if(lang === 'ru') obj.lang = 'ru';
+  return obj;
+}
+function buildShareUrl(lang){
+  const obj = shareParamsObject(lang);
+  if(!obj) return 'https://cryptofumble.com';
+  // short link (cryptofumble.com/r/<id>) when precacheShareId() finished in
+  // time; otherwise fall back to the old long, fully-self-contained link —
+  // still correct, just less pretty
+  if(cachedShareId) return `https://cryptofumble.com/r/${cachedShareId}`;
+  const params = new URLSearchParams(obj);
   return `https://cryptofumble.com/.netlify/functions/share?${params.toString()}`;
 }
 async function downloadShareCardAndNotify(msg){
