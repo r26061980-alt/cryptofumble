@@ -2563,10 +2563,6 @@ document.getElementById('shareTgBtn').addEventListener('click', ()=>{
   if(typeof gtag === 'function'){
     gtag('event', 'share_tg_click', { outcome: lastResult.isGood?'win':'loss', coin: lastResult.coinSymbol });
   }
-  // на случай, если превью-картинка ещё не подхватилась (первый деплой, кэш
-  // краулера и т.п.) — параллельно скачиваем PNG про запас, чтобы было чем
-  // прикрепить вручную, если автоматическая карточка почему-то не покажется
-  downloadShareCardAndNotify('📸 Также скачали crypto-regret-card.png про запас — прикрепи вручную, если превью в сообщении вдруг не покажет картинку.');
 });
 // ---- "Сравнить с другой монетой" — та же сумма/дата, другая монета (только режим "купил") ----
 const compareToggle = document.getElementById('compareToggle');
