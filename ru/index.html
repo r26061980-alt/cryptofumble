@@ -817,6 +817,9 @@
   .compare-result b{color:var(--text);}
   .compare-result .cr-win{color:#16C784; font-weight:700;}
   .compare-result .cr-lose{color:#EA3943; font-weight:700;}
+  .compare-result .r-line{padding-bottom:6px; border-bottom:1px dashed var(--panel-border-soft);}
+  .compare-result .r-line:last-of-type{border-bottom:none;}
+  .portfolio-calc-btn{margin-top:14px; font-size:13px; padding:12px; width:100%;}
   .disclaimer{
     font-size:11px;
     color:var(--muted);
@@ -1021,6 +1024,15 @@
         <div class="compare-coin-grid" id="compareCoinGrid"></div>
       </div>
       <div class="compare-result" id="compareResult" style="display:none;"></div>
+    </div>
+    <div class="compare-block" id="portfolioBlock" style="display:none;">
+      <button type="button" class="compare-toggle" id="portfolioToggle">🧺 Разбить на несколько монет</button>
+      <div class="compare-picker" id="portfolioPicker" style="display:none;">
+        <div class="compare-picker-label">Выбери 2–4 монеты, чтобы разбить ту же сумму между ними:</div>
+        <div class="compare-coin-grid" id="portfolioCoinGrid"></div>
+        <button type="button" class="cta portfolio-calc-btn" id="portfolioCalcBtn" style="display:none;">Посчитать разбивку →</button>
+      </div>
+      <div class="compare-result" id="portfolioResult" style="display:none;"></div>
     </div>
   </div>
   <p class="disclaimer">Цены идут через собственный кэширующий прокси (Netlify function → CoinGecko), с fallback на прямой запрос и на демо-данные, если всё недоступно. Источник виден на чеке.</p>
@@ -2059,6 +2071,11 @@ async function runLumpSumCalculation(coin){
   document.getElementById('compareResult').style.display = 'none';
   document.getElementById('compareResult').innerHTML = '';
   document.getElementById('compareBlock').style.display = currentMode === 'bought' ? 'block' : 'none';
+  document.getElementById('portfolioPicker').style.display = 'none';
+  document.getElementById('portfolioResult').style.display = 'none';
+  document.getElementById('portfolioResult').innerHTML = '';
+  document.getElementById('portfolioCalcBtn').style.display = 'none';
+  document.getElementById('portfolioBlock').style.display = currentMode === 'bought' ? 'block' : 'none';
   // делимся анонимной записью в живой ленте — не блокируем интерфейс,
   // если это не сработает (ошибка сети / лента не настроена), тихо игнорируем
   fetch('/.netlify/functions/feed', {
@@ -2183,6 +2200,11 @@ async function runDcaCalculation(coin){
     document.getElementById('compareResult').style.display = 'none';
     document.getElementById('compareResult').innerHTML = '';
     document.getElementById('compareBlock').style.display = 'none';
+    document.getElementById('portfolioPicker').style.display = 'none';
+    document.getElementById('portfolioResult').style.display = 'none';
+    document.getElementById('portfolioResult').innerHTML = '';
+    document.getElementById('portfolioCalcBtn').style.display = 'none';
+    document.getElementById('portfolioBlock').style.display = 'none';
     fetch('/.netlify/functions/feed', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -2473,6 +2495,91 @@ async function runCompare(coinB){
     gtag('event', 'compare_result', { coin_a: lastResult.coinSymbol, coin_b: coinB.symbol, b_better: bIsBetter });
   }
 }
+// ---- "Разбить на несколько монет" — мини-портфель (только режим "купил") ----
+const portfolioToggle = document.getElementById('portfolioToggle');
+const portfolioPicker = document.getElementById('portfolioPicker');
+const portfolioCoinGrid = document.getElementById('portfolioCoinGrid');
+const portfolioCalcBtn = document.getElementById('portfolioCalcBtn');
+const portfolioResult = document.getElementById('portfolioResult');
+let portfolioSelection = new Set();
+portfolioToggle.addEventListener('click', ()=>{
+  const isOpen = portfolioPicker.style.display !== 'none';
+  if(isOpen){
+    portfolioPicker.style.display = 'none';
+    return;
+  }
+  renderPortfolioGrid();
+  portfolioPicker.style.display = 'block';
+  if(typeof gtag === 'function'){ gtag('event', 'portfolio_open', {}); }
+});
+function renderPortfolioGrid(){
+  portfolioCoinGrid.innerHTML = '';
+  portfolioSelection = new Set();
+  portfolioResult.style.display = 'none';
+  portfolioResult.innerHTML = '';
+  portfolioCalcBtn.style.display = 'none';
+  Object.keys(DATA).forEach(sym=>{
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'coin-btn';
+    btn.appendChild(makeIconEl(sym, DATA[sym].name, 'coin-btn-icon'));
+    const label = document.createElement('span');
+    label.textContent = sym;
+    btn.appendChild(label);
+    btn.onclick = ()=>{
+      if(portfolioSelection.has(sym)){
+        portfolioSelection.delete(sym);
+        btn.classList.remove('active');
+      } else {
+        if(portfolioSelection.size >= 4) return; // ограничение в 4 монеты — не перегружаем UI и запросы
+        portfolioSelection.add(sym);
+        btn.classList.add('active');
+      }
+      portfolioCalcBtn.style.display = portfolioSelection.size >= 2 ? 'block' : 'none';
+      portfolioResult.style.display = 'none';
+      portfolioResult.innerHTML = '';
+    };
+    portfolioCoinGrid.appendChild(btn);
+  });
+}
+portfolioCalcBtn.addEventListener('click', async ()=>{
+  if(!lastResult || portfolioSelection.size < 2) return;
+  portfolioCalcBtn.disabled = true;
+  portfolioResult.style.display = 'block';
+  portfolioResult.innerHTML = '<span class="spin"></span> Считаем разбивку…';
+  const dateStr = lastResult.dateStr;
+  const legs = Array.from(portfolioSelection);
+  const perCoinInvested = lastResult.investedRaw / legs.length;
+  try{
+    const rows = await Promise.all(legs.map(async sym=>{
+      const coin = { symbol: sym, name: DATA[sym].name, geckoId: GECKO_ID[sym] };
+      const priceData = await getPrices(coin, dateStr);
+      if(priceData.error) throw new Error(sym);
+      const coins = perCoinInvested / priceData.buyPrice;
+      const value = coins * priceData.nowPrice;
+      return { sym, value };
+    }));
+    const total = rows.reduce((s,r)=>s+r.value, 0);
+    const mult = total / lastResult.investedRaw;
+    const rowsHtml = rows.map(r=>
+      `<div class="r-line"><span>${r.sym} (${fmt(perCoinInvested)})</span><span>${fmtBig(r.value)}</span></div>`
+    ).join('');
+    const splitBeatsSingle = total > lastResult.resultRaw;
+    const diff = Math.abs(total - lastResult.resultRaw);
+    portfolioResult.innerHTML =
+      `Если бы ты разбил <b>${fmt(lastResult.investedRaw)}</b> поровну между <b>${legs.join(' + ')}</b> ${dateStr}, сегодня это стоило бы <b>${fmtBig(total)}</b> (x${mult.toFixed(1)}).<br><br>` +
+      rowsHtml + `<br><br>` +
+      (splitBeatsSingle
+        ? `<span class="cr-win">Такая разбивка обошла бы</span> вложение всей суммы в один ${lastResult.coinSymbol} — на ${fmtBig(diff)}.`
+        : `<span class="cr-lose">Такая разбивка сработала бы хуже</span>, чем вложение всей суммы в один ${lastResult.coinSymbol} — на ${fmtBig(diff)}.`);
+    if(typeof gtag === 'function'){
+      gtag('event', 'portfolio_result', { legs: legs.join(','), better_than_single: splitBeatsSingle });
+    }
+  }catch(err){
+    portfolioResult.innerHTML = `Не удалось получить данные по одной из выбранных монет — попробуй другую комбинацию.`;
+  }
+  portfolioCalcBtn.disabled = false;
+});
 // трекинг клика по инвест-CTA — не мешает переходу по ссылке (открывается в новой
 // вкладке), просто параллельно шлёт событие в GA, если аналитика подключена и не
 // заблокирована адблоком (typeof-проверка защищает от ошибки в этом случае)
