@@ -26,6 +26,26 @@
 
 const sharp = require('sharp');
 
+// Resolves a short "?id=" link (created by shorten.js) back into the full
+// set of query params, by looking it up in the same Upstash Redis instance
+// feed.js already uses. Links using the old full-query-string format keep
+// working unchanged — this only kicks in when an "id" param is present.
+const REDIS_URL = process.env.UPSTASH_REDIS_REST_URL;
+const REDIS_TOKEN = process.env.UPSTASH_REDIS_REST_TOKEN;
+async function resolveParams(q) {
+  if (!q.id || !REDIS_URL || !REDIS_TOKEN) return q;
+  try {
+    const res = await fetch(REDIS_URL, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${REDIS_TOKEN}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify(['GET', `share:${q.id}`]),
+    });
+    const data = await res.json();
+    if (data && data.result) return JSON.parse(data.result);
+  } catch (err) { /* fall through — worst case: image renders with no data */ }
+  return q;
+}
+
 function esc(str) {
   return String(str == null ? '' : str).replace(/[&<>"']/g, (c) => ({
     '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&apos;',
@@ -84,7 +104,7 @@ function buildSvg(q) {
 
 exports.handler = async (event) => {
   try {
-    const q = (event.queryStringParameters || {});
+    const q = await resolveParams(event.queryStringParameters || {});
     const svg = buildSvg(q);
     const png = await sharp(Buffer.from(svg)).png().toBuffer();
     return {
