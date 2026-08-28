@@ -2555,10 +2555,6 @@ document.getElementById('shareXBtn').addEventListener('click', ()=>{
   if(typeof gtag === 'function'){
     gtag('event', 'share_x_click', { outcome: lastResult.isGood?'win':'loss', coin: lastResult.coinSymbol });
   }
-  // на случай, если превью-картинка ещё не подхватилась (первый деплой, кэш
-  // краулера и т.п.) — параллельно скачиваем PNG про запас, чтобы было чем
-  // прикрепить вручную, если автоматическая карточка почему-то не покажется
-  downloadShareCardAndNotify("📸 Also saved crypto-regret-card.png as a backup — attach it manually if the link preview doesn't show your picture yet.");
 });
 // ---- "Compare with another coin" — same amount/date, a different coin (bought mode only) ----
 const compareToggle = document.getElementById('compareToggle');
