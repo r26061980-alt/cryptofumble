@@ -752,6 +752,37 @@
     line-height:1.6;
     opacity:0.55;
   }
+
+  /* ═══ New: quick period-select shortcuts ═══ */
+  .period-quick{display:flex; gap:6px; margin-top:-6px;}
+  .period-btn{
+    flex:1;
+    background:var(--field-bg);
+    border:1px solid var(--panel-border);
+    color:var(--muted);
+    font-family:var(--mono);
+    font-weight:700;
+    font-size:11px;
+    padding:9px 4px;
+    border-radius:9px;
+    cursor:pointer;
+    transition:border-color .2s var(--ease), color .2s var(--ease), background .2s var(--ease);
+  }
+  .period-btn:hover{border-color:var(--gold); color:var(--text);}
+  .period-btn.active{background:rgba(240,185,11,0.13); border-color:var(--gold); color:var(--gold);}
+  /* ═══ New: value-by-year breakdown table on the receipt ═══ */
+  .r-year-table{margin:16px 0 4px;}
+  .r-year-table-title{
+    font-size:10px; letter-spacing:0.08em; text-transform:uppercase;
+    text-align:center; opacity:0.5; margin-bottom:8px;
+  }
+  .r-year-row{
+    display:flex; justify-content:space-between; font-size:12px;
+    padding:5px 0; border-bottom:1px dashed rgba(42,36,24,0.2);
+  }
+  .r-year-row:last-child{border-bottom:none;}
+  .r-year-row .ry-year{font-weight:700;}
+  .r-year-row .ry-val{font-weight:600;}
 </style>
 </head>
 <body>
@@ -821,6 +852,15 @@
         <button type="button" class="date-trigger" id="dateTrigger">Март 2020</button>
       </div>
     </div>
+    <div class="field">
+      <div class="period-quick" id="periodQuick">
+        <button type="button" class="period-btn" data-period="1">1М</button>
+        <button type="button" class="period-btn" data-period="6">6М</button>
+        <button type="button" class="period-btn" data-period="12">1Г</button>
+        <button type="button" class="period-btn" data-period="60">5Л</button>
+        <button type="button" class="period-btn" data-period="max">ВСЕ</button>
+      </div>
+    </div>
     <div class="field" style="margin-top:4px;">
       <button class="cta" id="calcBtn">Покажи, что я упустил →</button>
     </div>
@@ -864,6 +904,7 @@
         <svg id="rChartSvg" viewBox="0 0 280 70" preserveAspectRatio="none"></svg>
         <div class="r-chart-caption" id="rChartCaption"></div>
       </div>
+      <div class="r-year-table" id="rYearTable" style="display:none;"></div>
       <div class="r-compare" id="rCompare"></div>
       <div class="r-footer">ЧЕК УПУЩЕННОЙ ПРИБЫЛИ · ВРЕМЯ <span id="rStamp"></span></div>
     </div>
@@ -977,6 +1018,13 @@ const DATA = {
     ['2025-06',780],['2026-01',850],['2026-08',920]
   ]}
 };
+// Rough Apple (AAPL) split-adjusted price anchors — same "boring alternative"
+// comparison idea as SP500 below, same rough-anchor + log-interpolation approach
+const AAPL = [
+  ['2013-01',18],['2015-01',27],['2017-01',29],['2019-01',38],['2020-01',75],
+  ['2020-12',132],['2021-11',165],['2022-12',129],['2023-12',193],['2024-12',250],
+  ['2025-06',270],['2026-08',300]
+];
 // Rough S&P500 index anchors for "boring alternative" comparison
 const SP500 = [
   ['2013-01',1500],['2015-01',2050],['2017-01',2270],['2019-01',2600],['2020-01',3230],
@@ -1181,6 +1229,7 @@ document.getElementById('dateDone').addEventListener('click', ()=>{
     return;
   }
   updateDateTriggerLabel();
+  document.querySelectorAll('.period-btn').forEach(b=>b.classList.remove('active'));
   closeDateSheet();
 });
 // CoinGecko coin ids for live lookups
@@ -1584,6 +1633,27 @@ modeToggle.addEventListener('click', (e)=>{
     if(amountInputEl.value === '1') amountInputEl.value = '1000';
   }
 });
+// ---- Quick period-select shortcuts (1M/6M/1Y/5Y/MAX) ----
+document.querySelectorAll('.period-btn').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    const val = btn.dataset.period;
+    let y, m;
+    if(val === 'max'){
+      y = PICKER_MIN_YEAR; m = 1;
+    } else {
+      const monthsBack = parseInt(val, 10);
+      const nowIdx = PICKER_MAX_YEAR*12 + (PICKER_MAX_MONTH_IN_MAX_YEAR-1);
+      const idx = Math.max(PICKER_MIN_YEAR*12, nowIdx - monthsBack);
+      y = Math.floor(idx/12);
+      m = (idx % 12) + 1;
+    }
+    pickedYear = y;
+    pickedMonth = m;
+    updateDateTriggerLabel();
+    document.querySelectorAll('.period-btn').forEach(b=>b.classList.toggle('active', b===btn));
+    calcBtn.click();
+  });
+});
 // ---- Regret tiers — turns the bare multiplier into a shareable status ----
 function getTier(mult){
   if(mult < 0.3)  return { label: 'ПОЛНЫЙ РЕКТ', emoji: '💀' };
@@ -1612,6 +1682,33 @@ async function fetchValueCurve(coin, dateStr, buyPrice, nowPrice, baseValue){
   }catch(err){
     return null; // график опциональный — тихо скрываем при любой ошибке
   }
+}
+
+// ---- Value-by-year breakdown table (uses the same range.js proxy, annual mode) ----
+async function fetchYearlyBreakdown(coin, dateStr, buyPrice, nowPrice, baseValue){
+  const startYear = parseInt(dateStr.split('-')[0], 10);
+  const nowYear = new Date().getFullYear();
+  if(nowYear - startYear < 2) return null; // слишком короткий период — таблица не нужна
+  try{
+    const res = await fetch(`/.netlify/functions/range?coin=${coin.geckoId}&from=${dateStr}&granularity=annual`);
+    if(!res.ok) throw new Error('range proxy failed');
+    const { points } = await res.json();
+    if(!points || points.length < 2) throw new Error('not enough points');
+    return points.map((p,i)=>{
+      let price = p.price;
+      if(i===0) price = buyPrice;
+      if(i===points.length-1) price = nowPrice;
+      return { year: p.date.split('-')[0], value: baseValue * (price/buyPrice) };
+    });
+  }catch(err){
+    return null; // таблица опциональна — тихо скрываем при любой ошибке, как и график
+  }
+}
+function renderYearTable(rows){
+  const el = document.getElementById('rYearTable');
+  el.innerHTML = '<div class="r-year-table-title">Стоимость по годам</div>' +
+    rows.map(r => `<div class="r-year-row"><span class="ry-year">${r.year}</span><span class="ry-val">${fmt(r.value)}</span></div>`).join('');
+  el.style.display = 'block';
 }
 function renderValueCurveSvg(values){
   const svg = document.getElementById('rChartSvg');
@@ -1714,8 +1811,11 @@ calcBtn.addEventListener('click', async ()=>{
   document.getElementById('rMult').className = 'r-mult '+(isGood?'pos':'neg');
   document.getElementById('rResult').className = 'num '+(isGood?'pos':'neg');
   document.getElementById('rTier').textContent = `${tier.emoji} ${tier.label}`;
+  const aaplBuy = interpPrice(AAPL, dateStr);
+  const aaplNow = interpPrice(AAPL, '2026-08');
+  const aaplResult = baseValue * (aaplNow/aaplBuy);
   document.getElementById('rCompare').textContent =
-    `Для сравнения: та же сумма в S&P 500 сейчас стоила бы ${fmtBig(spResult)}.`;
+    `Для сравнения: та же сумма сейчас стоила бы ${fmtBig(spResult)} в S&P 500, или ${fmtBig(aaplResult)} в акциях Apple (AAPL).`;
   let chartValues = await fetchValueCurve(coin, dateStr, buyPrice, nowPrice, baseValue);
   if(chartValues){
     renderValueCurveSvg(chartValues);
@@ -1723,6 +1823,12 @@ calcBtn.addEventListener('click', async ()=>{
     document.getElementById('rChartWrap').style.display = 'block';
   } else {
     document.getElementById('rChartWrap').style.display = 'none';
+  }
+  const yearRows = await fetchYearlyBreakdown(coin, dateStr, buyPrice, nowPrice, baseValue);
+  if(yearRows){
+    renderYearTable(yearRows);
+  } else {
+    document.getElementById('rYearTable').style.display = 'none';
   }
   document.getElementById('rStamp').textContent = new Date().toISOString().slice(0,19).replace('T',' ');
   // показываем инвест-CTA только после первого расчёта, текст зависит от исхода —
