@@ -29,17 +29,23 @@ function esc(str) {
 
 const REDIS_URL = process.env.UPSTASH_REDIS_REST_URL;
 const REDIS_TOKEN = process.env.UPSTASH_REDIS_REST_TOKEN;
+// Two quick retries absorb the rare case where this read races just behind
+// shorten.js's write finishing on Upstash's side — worst case without them:
+// a generic title/description shows instead of the personalized one.
 async function resolveParams(q) {
   if (!q.id || !REDIS_URL || !REDIS_TOKEN) return q;
-  try {
-    const res = await fetch(REDIS_URL, {
-      method: 'POST',
-      headers: { Authorization: `Bearer ${REDIS_TOKEN}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify(['GET', `share:${q.id}`]),
-    });
-    const data = await res.json();
-    if (data && data.result) return JSON.parse(data.result);
-  } catch (err) { /* fall through — worst case: generic title/description */ }
+  for (let attempt = 0; attempt < 3; attempt++) {
+    try {
+      const res = await fetch(REDIS_URL, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${REDIS_TOKEN}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify(['GET', `share:${q.id}`]),
+      });
+      const data = await res.json();
+      if (data && data.result) return JSON.parse(data.result);
+    } catch (err) { /* retry below */ }
+    if (attempt < 2) await new Promise((r) => setTimeout(r, 200));
+  }
   return q;
 }
 
