@@ -820,6 +820,26 @@
   .compare-result .r-line{padding-bottom:6px; border-bottom:1px dashed var(--panel-border-soft);}
   .compare-result .r-line:last-of-type{border-bottom:none;}
   .portfolio-calc-btn{margin-top:14px; font-size:13px; padding:12px; width:100%;}
+  .share-toast{
+    position:fixed;
+    left:50%;
+    bottom:24px;
+    transform:translateX(-50%) translateY(20px);
+    max-width:min(92vw, 420px);
+    background:rgba(20,20,24,0.97);
+    color:var(--text);
+    border:1px solid var(--panel-border);
+    border-radius:14px;
+    padding:14px 18px;
+    font-size:13px;
+    line-height:1.5;
+    box-shadow:0 12px 40px rgba(0,0,0,0.5);
+    opacity:0;
+    pointer-events:none;
+    transition:opacity .25s var(--ease), transform .25s var(--ease);
+    z-index:9999;
+  }
+  .share-toast.visible{opacity:1; transform:translateX(-50%) translateY(0); pointer-events:auto;}
   .disclaimer{
     font-size:11px;
     color:var(--muted);
@@ -2065,6 +2085,7 @@ async function runLumpSumCalculation(coin){
   };
   // reset any previously generated share card since the numbers changed
   document.getElementById('shareCardWrap').style.display = 'none';
+  precacheShareCard(); // рисуем PNG-карточку в фоне заранее, чтобы она была готова к моменту клика на "Share"
   // "сравнить с другой монетой" имеет смысл только для обычной разовой покупки —
   // сбрасываем на каждом новом расчёте, показываем переключатель только в режиме "купил"
   document.getElementById('comparePicker').style.display = 'none';
@@ -2195,6 +2216,7 @@ async function runDcaCalculation(coin){
       chartValues: null,
     };
     document.getElementById('shareCardWrap').style.display = 'none';
+    precacheShareCard(); // рисуем PNG-карточку в фоне заранее, чтобы она была готова к моменту клика на "Share"
     // сравнение с другой монетой применимо только к разовой покупке, не к DCA
     document.getElementById('comparePicker').style.display = 'none';
     document.getElementById('compareResult').style.display = 'none';
@@ -2226,6 +2248,70 @@ async function runDcaCalculation(coin){
 }
 // keep the last computed result around so the share card can use it
 let lastResult = null;
+// заранее отрисованная PNG-карточка для текущего lastResult — рисуется в фоне
+// сразу после каждого расчёта, чтобы "Share" не приходилось её ждать (ожидание
+// прямо в обработчике клика рискует тем, что браузер заблокирует открытие
+// окна как не связанное напрямую с кликом)
+let cachedShareCardDataUrl = null;
+async function precacheShareCard(){
+  cachedShareCardDataUrl = null;
+  try{ cachedShareCardDataUrl = await drawShareCard(true); }
+  catch(err){
+    try{ cachedShareCardDataUrl = await drawShareCard(false); }
+    catch(err2){ /* к моменту клика на Share картинки ещё не будет — тогда дорисуем на лету */ }
+  }
+}
+function showShareToast(msg){
+  let toast = document.getElementById('shareToast');
+  if(!toast){
+    toast = document.createElement('div');
+    toast.id = 'shareToast';
+    toast.className = 'share-toast';
+    document.body.appendChild(toast);
+  }
+  toast.textContent = msg;
+  toast.classList.add('visible');
+  clearTimeout(toast._hideTimer);
+  toast._hideTimer = setTimeout(()=> toast.classList.remove('visible'), 6000);
+}
+// строит ссылку на netlify/functions/share.js для ТЕКУЩЕГО lastResult — эта
+// страница содержит og:image/twitter:image, указывающие на og-image.js с теми
+// же параметрами, так что превью в Telegram/X показывает картинку именно
+// этого результата, а не общий скриншот; реальный посетитель по клику
+// перенаправляется прямо на калькулятор.
+function buildShareUrl(lang){
+  if(!lastResult) return 'https://cryptofumble.com/ru';
+  const params = new URLSearchParams({
+    s: lastResult.coinSymbol,
+    n: lastResult.coinName,
+    m: lastResult.mode,
+    d: lastResult.dateStr,
+    r: lastResult.resultFmt,
+    mu: lastResult.mult.toFixed(1),
+    tl: lastResult.tier.label,
+    g: lastResult.isGood ? '1' : '0',
+  });
+  if(lastResult.spResultFmt) params.set('sp', lastResult.spResultFmt);
+  if(lang === 'ru') params.set('lang', 'ru');
+  return `https://cryptofumble.com/.netlify/functions/share?${params.toString()}`;
+}
+async function downloadShareCardAndNotify(msg){
+  let dataUrl = cachedShareCardDataUrl;
+  if(!dataUrl){
+    try{ dataUrl = await drawShareCard(true); }
+    catch(err){
+      try{ dataUrl = await drawShareCard(false); }
+      catch(err2){ return; }
+    }
+  }
+  const a = document.createElement('a');
+  a.href = dataUrl;
+  a.download = 'crypto-regret-card.png';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  showShareToast(msg);
+}
 function roundedZigzagPath(ctx, x, y, w, h, teeth, amp, r){
   // paper card with a torn/zigzag top and bottom edge, straight sides
   const toothW = w / teeth;
@@ -2433,12 +2519,20 @@ document.getElementById('shareTgBtn').addEventListener('click', ()=>{
     : lastResult.isGood
       ? `${lastResult.tier.emoji} У меня было бы ${lastResult.resultFmt}, если бы я ${verb} ${lastResult.coinName} в ${dateHuman}.\n\nПроверь, что упустил ты →`
       : `${lastResult.tier.emoji} ${lastResult.tier.label}: у меня было бы ${lastResult.resultFmt}, если бы я ${verb} ${lastResult.coinName} в ${dateHuman}.\n\nПроверь свой →`;
-  const shareUrl = 'https://cryptofumble.com/ru';
+  // Ссылка ведёт на netlify/functions/share.js с параметром lang=ru — там
+  // og:image указывает на og-image.js с картинкой именно этого результата
+  // (см. share.js/og-image.js), а не на страницу /ru с одной и той же
+  // статичной картинкой для всех.
+  const shareUrl = buildShareUrl('ru');
   const intentUrl = `https://t.me/share/url?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(text)}`;
   window.open(intentUrl, '_blank', 'noopener,noreferrer');
   if(typeof gtag === 'function'){
     gtag('event', 'share_tg_click', { outcome: lastResult.isGood?'win':'loss', coin: lastResult.coinSymbol });
   }
+  // на случай, если превью-картинка ещё не подхватилась (первый деплой, кэш
+  // краулера и т.п.) — параллельно скачиваем PNG про запас, чтобы было чем
+  // прикрепить вручную, если автоматическая карточка почему-то не покажется
+  downloadShareCardAndNotify('📸 Также скачали crypto-regret-card.png про запас — прикрепи вручную, если превью в сообщении вдруг не покажет картинку.');
 });
 // ---- "Сравнить с другой монетой" — та же сумма/дата, другая монета (только режим "купил") ----
 const compareToggle = document.getElementById('compareToggle');
