@@ -821,6 +821,26 @@
   .compare-result .r-line{padding-bottom:6px; border-bottom:1px dashed var(--panel-border-soft);}
   .compare-result .r-line:last-of-type{border-bottom:none;}
   .portfolio-calc-btn{margin-top:14px; font-size:13px; padding:12px; width:100%;}
+  .share-toast{
+    position:fixed;
+    left:50%;
+    bottom:24px;
+    transform:translateX(-50%) translateY(20px);
+    max-width:min(92vw, 420px);
+    background:rgba(20,20,24,0.97);
+    color:var(--text);
+    border:1px solid var(--panel-border);
+    border-radius:14px;
+    padding:14px 18px;
+    font-size:13px;
+    line-height:1.5;
+    box-shadow:0 12px 40px rgba(0,0,0,0.5);
+    opacity:0;
+    pointer-events:none;
+    transition:opacity .25s var(--ease), transform .25s var(--ease);
+    z-index:9999;
+  }
+  .share-toast.visible{opacity:1; transform:translateX(-50%) translateY(0); pointer-events:auto;}
   .disclaimer{
     font-size:11px;
     color:var(--muted);
@@ -2057,6 +2077,7 @@ async function runLumpSumCalculation(coin){
   };
   // reset any previously generated share card since the numbers changed
   document.getElementById('shareCardWrap').style.display = 'none';
+  precacheShareCard(); // draw the share-card PNG in the background now, ready before the user clicks Share
   // "compare with another coin" only makes sense for a straight "I bought" purchase —
   // reset it on every fresh calculation, only surface the toggle in bought mode
   document.getElementById('comparePicker').style.display = 'none';
@@ -2186,6 +2207,7 @@ async function runDcaCalculation(coin){
       chartValues: null,
     };
     document.getElementById('shareCardWrap').style.display = 'none';
+    precacheShareCard(); // draw the share-card PNG in the background now, ready before the user clicks Share
     // coin-comparison only applies to a single lump-sum purchase, not DCA
     document.getElementById('comparePicker').style.display = 'none';
     document.getElementById('compareResult').style.display = 'none';
@@ -2217,6 +2239,49 @@ async function runDcaCalculation(coin){
 }
 // keep the last computed result around so the share card can use it
 let lastResult = null;
+// pre-rendered share-card PNG for the current lastResult — drawn in the background
+// right after each calculation finishes, so "Share on X" doesn't need to wait on it
+// (an async wait there risks the browser blocking the popup window as not
+// directly tied to the click anymore)
+let cachedShareCardDataUrl = null;
+async function precacheShareCard(){
+  cachedShareCardDataUrl = null;
+  try{ cachedShareCardDataUrl = await drawShareCard(true); }
+  catch(err){
+    try{ cachedShareCardDataUrl = await drawShareCard(false); }
+    catch(err2){ /* still unavailable when the user clicks Share — falls back to drawing on demand */ }
+  }
+}
+function showShareToast(msg){
+  let toast = document.getElementById('shareToast');
+  if(!toast){
+    toast = document.createElement('div');
+    toast.id = 'shareToast';
+    toast.className = 'share-toast';
+    document.body.appendChild(toast);
+  }
+  toast.textContent = msg;
+  toast.classList.add('visible');
+  clearTimeout(toast._hideTimer);
+  toast._hideTimer = setTimeout(()=> toast.classList.remove('visible'), 6000);
+}
+async function downloadShareCardAndNotify(msg){
+  let dataUrl = cachedShareCardDataUrl;
+  if(!dataUrl){
+    try{ dataUrl = await drawShareCard(true); }
+    catch(err){
+      try{ dataUrl = await drawShareCard(false); }
+      catch(err2){ return; }
+    }
+  }
+  const a = document.createElement('a');
+  a.href = dataUrl;
+  a.download = 'crypto-regret-card.png';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  showShareToast(msg);
+}
 function roundedZigzagPath(ctx, x, y, w, h, teeth, amp, r){
   // paper card with a torn/zigzag top and bottom edge, straight sides
   const toothW = w / teeth;
@@ -2433,18 +2498,10 @@ document.getElementById('shareXBtn').addEventListener('click', ()=>{
   if(typeof gtag === 'function'){
     gtag('event', 'share_x_click', { outcome: lastResult.isGood?'win':'loss', coin: lastResult.coinSymbol });
   }
-  (async ()=>{
-    let dataUrl;
-    try{ dataUrl = await drawShareCard(true); }
-    catch(err){ dataUrl = await drawShareCard(false); }
-    const a = document.createElement('a');
-    a.href = dataUrl;
-    a.download = 'crypto-regret-card.png';
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    alert('📸 Saved a picture of your result (crypto-regret-card.png) — attach it to the post that just opened (the image icon in the compose box), then drop the cryptofumble.com link in a reply to your own post.');
-  })();
+  // картинка почти наверняка уже готова (см. precacheShareCard выше), так что
+  // скачивание происходит сразу — без блокирующего alert(), которым пришлось бы
+  // закрывать на этой же вкладке, отвлекаясь от только что открывшегося поста
+  downloadShareCardAndNotify('📸 Saved crypto-regret-card.png — attach it to the post that just opened, then drop the cryptofumble.com link in a reply.');
 });
 // ---- "Compare with another coin" — same amount/date, a different coin (bought mode only) ----
 const compareToggle = document.getElementById('compareToggle');
