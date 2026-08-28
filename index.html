@@ -706,6 +706,41 @@
     line-height:1.6;
     opacity:0.6;
   }
+
+  /* ═══ APPLE-STYLE POLISH — safe, additive, no layout/JS changes ═══ */
+  body{
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  h1{ letter-spacing:-0.03em; }
+  .panel{
+    border-radius:20px;
+    padding:24px;
+    background:linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0) 45%), var(--panel);
+    box-shadow:0 1px 0 rgba(255,255,255,0.04) inset, 0 24px 48px -28px rgba(0,0,0,0.6);
+  }
+  .daily-regret{ border-radius:18px; }
+  #coinSearch{
+    border-radius:12px;
+    transition:border-color .2s cubic-bezier(.16,1,.3,1), box-shadow .2s cubic-bezier(.16,1,.3,1);
+  }
+  #coinSearch:focus{ box-shadow:0 0 0 3px rgba(240,185,11,0.12); }
+  .coin-dropdown{
+    border-radius:16px;
+    box-shadow:0 1px 0 rgba(255,255,255,0.05) inset, 0 24px 60px -16px rgba(0,0,0,0.55);
+  }
+  .mode-toggle{ border-radius:12px; }
+  .mode-btn{ border-radius:9px; transition:all .2s cubic-bezier(.16,1,.3,1); }
+  .cta, .cta-invest{
+    border-radius:13px;
+    transition:transform .2s cubic-bezier(.16,1,.3,1), box-shadow .2s cubic-bezier(.16,1,.3,1);
+  }
+  .cta:active, .cta-invest:active{ transform:scale(0.97); }
+  .receipt{
+    box-shadow:0 1px 0 rgba(255,255,255,0.4) inset, 0 30px 70px -20px rgba(0,0,0,0.5);
+  }
+  .date-sheet{ border-radius:24px 24px 0 0; }
+
 </style>
 </head>
 <body>
