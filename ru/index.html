@@ -1736,10 +1736,6 @@ modeToggle.addEventListener('click', (e)=>{
     calcBtn.textContent = 'Покажи, что я упустил →';
     amountWrap.classList.remove('no-prefix');
   }
-  // шеринг пока не адаптирован под DCA (текст/карточка расчитаны на разовую
-  // покупку) — прячем эти две кнопки в режиме DCA, чтобы не показывать неверный текст
-  document.getElementById('shareBtn').style.display = currentMode === 'dca' ? 'none' : '';
-  document.getElementById('shareTgBtn').style.display = currentMode === 'dca' ? 'none' : '';
 });
 // ---- Quick period-select shortcuts (1M/6M/1Y/5Y/MAX) ----
 document.querySelectorAll('.period-btn').forEach(btn=>{
@@ -2082,6 +2078,25 @@ async function runDcaCalculation(coin){
     document.getElementById('receipt-holder').style.display = 'block';
     animateCount(document.getElementById('rResult'), result, '$');
     document.getElementById('receipt-holder').scrollIntoView({behavior:'smooth', block:'nearest'});
+    // текст/карточка для шеринга берутся из lastResult — у DCA нет единой "кривой
+    // стоимости позиции", как у разовой покупки, поэтому chartValues остаётся null,
+    // и существующая проверка в коде отрисовки карточки просто пропускает график
+    lastResult = {
+      coinName: coin.name,
+      coinSymbol: coin.symbol,
+      dateStr,
+      mode: currentMode,
+      tier,
+      investedFmt: fmt(totalInvested),
+      buyPriceFmt: fmt(avgPrice),
+      coinsQtyFmt: fmtCoinsQty(totalCoins, coin.symbol),
+      nowPriceFmt: fmt(nowPrice),
+      resultFmt: fmtBig(result),
+      spResultFmt: fmtBig(spResult),
+      mult,
+      isGood,
+      chartValues: null,
+    };
     document.getElementById('shareCardWrap').style.display = 'none';
     fetch('/.netlify/functions/feed', {
       method: 'POST',
@@ -2183,7 +2198,10 @@ async function drawShareCard(includeLogo){
   }
   ctx.fillStyle = 'rgba(42,36,24,0.45)';
   ctx.font = '400 13px "IBM Plex Mono"';
-  ctx.fillText(`${lastResult.coinName} · ${lastResult.mode === 'sold' ? 'продано' : 'куплено'} в ${lastResult.dateStr}`, cx, y);
+  const cardSubtitle = lastResult.mode === 'dca'
+    ? `${lastResult.coinName} · помесячно с ${lastResult.dateStr}`
+    : `${lastResult.coinName} · ${lastResult.mode === 'sold' ? 'продано' : 'куплено'} в ${lastResult.dateStr}`;
+  ctx.fillText(cardSubtitle, cx, y);
   y += 30;
   ctx.strokeStyle = 'rgba(42,36,24,0.3)';
   ctx.setLineDash([5,5]);
@@ -2196,9 +2214,14 @@ async function drawShareCard(includeLogo){
     ctx.textAlign='right'; ctx.font='600 14px "IBM Plex Mono"';
     ctx.fillText(value, W-pad-30, y);
   }
-  priceRow(lastResult.mode === 'sold' ? 'Стоимость на момент продажи' : 'Вложено', lastResult.investedFmt);
-  priceRow(lastResult.mode === 'sold' ? 'Цена на момент продажи' : 'Цена на момент покупки', lastResult.buyPriceFmt);
-  priceRow(lastResult.mode === 'sold' ? 'Продано монет' : 'Куплено монет', lastResult.coinsQtyFmt);
+  const rowLabels = lastResult.mode === 'dca'
+    ? { invested:'Всего вложено', price:'Средняя цена покупки', coins:'Куплено монет' }
+    : lastResult.mode === 'sold'
+      ? { invested:'Стоимость на момент продажи', price:'Цена на момент продажи', coins:'Продано монет' }
+      : { invested:'Вложено', price:'Цена на момент покупки', coins:'Куплено монет' };
+  priceRow(rowLabels.invested, lastResult.investedFmt);
+  priceRow(rowLabels.price, lastResult.buyPriceFmt);
+  priceRow(rowLabels.coins, lastResult.coinsQtyFmt);
   priceRow('Цена сейчас', lastResult.nowPriceFmt);
   y += 30;
   ctx.setLineDash([5,5]);
@@ -2296,9 +2319,13 @@ document.getElementById('shareTgBtn').addEventListener('click', ()=>{
   }
   const dateHuman = humanDate(lastResult.dateStr);
   const verb = lastResult.mode === 'sold' ? 'продал' : 'купил';
-  const text = lastResult.isGood
-    ? `${lastResult.tier.emoji} У меня было бы ${lastResult.resultFmt}, если бы я ${verb} ${lastResult.coinName} в ${dateHuman}.\n\nПроверь, что упустил ты →`
-    : `${lastResult.tier.emoji} ${lastResult.tier.label}: у меня было бы ${lastResult.resultFmt}, если бы я ${verb} ${lastResult.coinName} в ${dateHuman}.\n\nПроверь свой →`;
+  const text = lastResult.mode === 'dca'
+    ? (lastResult.isGood
+        ? `${lastResult.tier.emoji} У меня было бы ${lastResult.resultFmt}, если бы я инвестировал каждый месяц в ${lastResult.coinName} с ${dateHuman}.\n\nПроверь, сколько было бы у тебя →`
+        : `${lastResult.tier.emoji} ${lastResult.tier.label}: у меня было бы ${lastResult.resultFmt}, если бы я инвестировал каждый месяц в ${lastResult.coinName} с ${dateHuman}.\n\nПроверь свой →`)
+    : lastResult.isGood
+      ? `${lastResult.tier.emoji} У меня было бы ${lastResult.resultFmt}, если бы я ${verb} ${lastResult.coinName} в ${dateHuman}.\n\nПроверь, что упустил ты →`
+      : `${lastResult.tier.emoji} ${lastResult.tier.label}: у меня было бы ${lastResult.resultFmt}, если бы я ${verb} ${lastResult.coinName} в ${dateHuman}.\n\nПроверь свой →`;
   const shareUrl = 'https://cryptofumble.com/ru';
   const intentUrl = `https://t.me/share/url?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(text)}`;
   window.open(intentUrl, '_blank', 'noopener,noreferrer');
