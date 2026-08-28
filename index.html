@@ -840,6 +840,7 @@
     <div class="mode-toggle" id="modeToggle">
       <button type="button" class="mode-btn active" data-mode="bought">I bought</button>
       <button type="button" class="mode-btn" data-mode="sold">I sold too early</button>
+      <button type="button" class="mode-btn" data-mode="dca">I invest monthly</button>
     </div>
     <div class="row">
       <div class="field">
@@ -1484,7 +1485,7 @@ async function loadLiveFeed(){
       row.className = 'live-feed-row';
       // "checked buying/selling" instead of a flat "bought/sold" — nobody
       // actually traded anything here, they just ran the calculator
-      const verb = e.mode === 'sold' ? 'checked selling' : 'checked buying';
+      const verb = e.mode === 'sold' ? 'checked selling' : e.mode === 'dca' ? 'checked DCA-ing into' : 'checked buying';
       const entryIsGood = e.mode === 'sold' ? e.mult <= 1 : e.mult >= 1;
       row.innerHTML = `<span>${e.tierEmoji} Someone ${verb} <b>${e.coin}</b> · ${timeAgo(e.ts)}</span>
         <span class="fr-mult ${entryIsGood?'pos':'neg'}">x${e.mult.toFixed(1)}</span>`;
@@ -1590,7 +1591,9 @@ function animateCount(el, target, prefix, duration=900){
 }
 const calcBtn = document.getElementById('calcBtn');
 function calcBtnLabelForMode(){
-  return currentMode === 'sold' ? 'Show me what I lost →' : 'Show me what I missed →';
+  if(currentMode === 'sold') return 'Show me what I lost →';
+  if(currentMode === 'dca') return 'Show me my DCA result →';
+  return 'Show me what I missed →';
 }
 // ---- Bought vs "Sold too early" mode ----
 // In "bought" mode, `amount` typed by the user is a DOLLAR amount invested
@@ -1611,19 +1614,28 @@ modeToggle.addEventListener('click', (e)=>{
   if(!btn) return;
   currentMode = btn.dataset.mode;
   modeToggle.querySelectorAll('.mode-btn').forEach(b=> b.classList.toggle('active', b===btn));
+  const AMOUNT_DEFAULTS = { bought:'1000', sold:'1', dca:'100' };
+  if(Object.values(AMOUNT_DEFAULTS).includes(amountInputEl.value)) amountInputEl.value = AMOUNT_DEFAULTS[currentMode];
   if(currentMode === 'sold'){
     amountLabel.textContent = 'Coins sold';
     dateLabel.textContent = 'Date sold';
     calcBtn.textContent = 'Show me what I lost →';
     amountWrap.classList.add('no-prefix');
-    if(amountInputEl.value === '1000') amountInputEl.value = '1';
+  } else if(currentMode === 'dca'){
+    amountLabel.textContent = 'Monthly amount';
+    dateLabel.textContent = 'Start date';
+    calcBtn.textContent = 'Show me my DCA result →';
+    amountWrap.classList.remove('no-prefix');
   } else {
     amountLabel.textContent = 'Amount';
     dateLabel.textContent = 'Purchase date';
     calcBtn.textContent = 'Show me what I missed →';
     amountWrap.classList.remove('no-prefix');
-    if(amountInputEl.value === '1') amountInputEl.value = '1000';
   }
+  // sharing isn't wired up for DCA results yet (share text/card assume a single
+  // purchase) — hide those two buttons in DCA mode rather than show wrong wording
+  document.getElementById('shareBtn').style.display = currentMode === 'dca' ? 'none' : '';
+  document.getElementById('shareXBtn').style.display = currentMode === 'dca' ? 'none' : '';
 });
 // ---- Quick period-select shortcuts (1M/6M/1Y/5Y/MAX) ----
 document.querySelectorAll('.period-btn').forEach(btn=>{
@@ -1756,10 +1768,18 @@ async function getPrices(coin, dateStr){
   }
 }
 calcBtn.addEventListener('click', async ()=>{
+  calcBtn.disabled = true;
+  const coin = currentCoin;
+  if(currentMode === 'dca'){
+    await runDcaCalculation(coin);
+  } else {
+    await runLumpSumCalculation(coin);
+  }
+});
+// ---- "I bought" / "I sold too early" — single lump-sum purchase ----
+async function runLumpSumCalculation(coin){
   const amountInputVal = parseFloat(document.getElementById('amount').value) || 0;
   const dateStr = currentDateStr;
-  const coin = currentCoin;
-  calcBtn.disabled = true;
   calcBtn.innerHTML = '<span class="spin"></span>Crunching market data…';
   const priceData = await getPrices(coin, dateStr);
   if(priceData.error){
@@ -1875,7 +1895,108 @@ calcBtn.addEventListener('click', async ()=>{
   }).catch(()=>{});
   calcBtn.disabled = false;
   calcBtn.textContent = calcBtnLabelForMode();
-});
+}
+// ---- "I invest monthly" — DCA (dollar-cost averaging) simulation ----
+// Fetching a real price for every single calendar month can mean 100+ CoinGecko
+// calls for an old start date — too slow and too much load on a live launch.
+// Instead we sample up to 24 representative monthly prices (same range.js proxy,
+// just asking for more points) and let each sample "stand in" for an equal-sized
+// chunk of the real months in between — an honest approximation, consistent with
+// how this whole calculator already treats itself as illustrative, not exact.
+async function runDcaCalculation(coin){
+  const monthlyAmount = parseFloat(document.getElementById('amount').value) || 0;
+  const dateStr = currentDateStr;
+  calcBtn.innerHTML = '<span class="spin"></span>Crunching months of price history…';
+  try{
+    const nowPrice = await fetchCurrentPrice(coin.geckoId);
+    const res = await fetch(`/.netlify/functions/range?coin=${coin.geckoId}&from=${dateStr}&points=24`);
+    if(!res.ok) throw new Error('range proxy failed');
+    const { points } = await res.json();
+    if(!points || points.length < 1) throw new Error('not enough points');
+    points[points.length-1] = { date: points[points.length-1].date, price: nowPrice };
+    const [fy, fm] = dateStr.split('-').map(Number);
+    const now = new Date();
+    const toIdx = now.getFullYear()*12 + now.getMonth();
+    const fromIdx = fy*12 + (fm-1);
+    const totalMonths = Math.max(1, toIdx - fromIdx + 1);
+    const n = points.length;
+    const base = Math.floor(totalMonths / n);
+    const remainder = totalMonths % n;
+    let totalCoins = 0;
+    points.forEach((p, i)=>{
+      const weight = base + (i < remainder ? 1 : 0);
+      totalCoins += (monthlyAmount * weight) / p.price;
+    });
+    const totalInvested = monthlyAmount * totalMonths;
+    const result = totalCoins * nowPrice;
+    const mult = result / totalInvested;
+    const avgPrice = totalInvested / totalCoins;
+    const lumpSumValue = (totalInvested / points[0].price) * nowPrice;
+    const isGood = mult >= 1;
+    const tier = getTier(mult);
+    const rSub = document.getElementById('rSub');
+    rSub.innerHTML = '';
+    rSub.appendChild(makeIconEl(coin.symbol, coin.name, 'r-sub-icon'));
+    rSub.appendChild(document.createTextNode(`${coin.name} · monthly since ${dateStr}`));
+    document.getElementById('rInvestedLabel').textContent = 'Total invested';
+    document.getElementById('rBuyPriceLabel').textContent = 'Avg. price paid';
+    document.getElementById('rCoinsQtyLabel').textContent = 'Coins bought';
+    document.getElementById('rSource').textContent = `● approximate — averaged over ${n} sampled months`;
+    document.getElementById('rSource').className = 'r-source demo';
+    document.getElementById('rInvested').textContent = fmt(totalInvested);
+    document.getElementById('rBuyPrice').textContent = fmt(avgPrice);
+    document.getElementById('rCoinsQty').textContent = fmtCoinsQty(totalCoins, coin.symbol);
+    document.getElementById('rNowPrice').textContent = fmt(nowPrice);
+    document.getElementById('rMult').textContent = 'x'+mult.toFixed(1);
+    document.getElementById('rMult').className = 'r-mult '+(isGood?'pos':'neg');
+    document.getElementById('rResult').className = 'num '+(isGood?'pos':'neg');
+    document.getElementById('rTier').textContent = `${tier.emoji} ${tier.label}`;
+    const spBuy = interpPrice(SP500, dateStr);
+    const spNow = interpPrice(SP500, '2026-08');
+    const spResult = totalInvested * (spNow/spBuy);
+    const aaplBuy = interpPrice(AAPL, dateStr);
+    const aaplNow = interpPrice(AAPL, '2026-08');
+    const aaplResult = totalInvested * (aaplNow/aaplBuy);
+    document.getElementById('rCompare').textContent =
+      `If you'd put the same total (${fmt(totalInvested)}) in as a lump sum on day one instead, you'd have ${fmtBig(lumpSumValue)} today. For comparison, that same total in the S&P 500 would be worth ${fmtBig(spResult)}, or ${fmtBig(aaplResult)} in Apple (AAPL) stock.`;
+    // DCA спреды не совпадают по смыслу с "кривой одной покупки" — прячем график
+    // и таблицу по годам, а не показываем вводящую в заблуждение картинку
+    document.getElementById('rChartWrap').style.display = 'none';
+    document.getElementById('rYearTable').style.display = 'none';
+    document.getElementById('rStamp').textContent = new Date().toISOString().slice(0,19).replace('T',' ');
+    const ctaInvest = document.getElementById('ctaInvest');
+    const exchange = nextExchange();
+    ctaInvest.href = exchange.url;
+    ctaInvest.style.display = 'block';
+    document.getElementById('ctaInvestText').textContent =
+      isGood ? `Don't miss the next one — start on ${exchange.name} →` : `Start now on ${exchange.name}, thank yourself later →`;
+    ctaInvest.dataset.outcome = isGood ? 'win' : 'loss';
+    ctaInvest.dataset.coin = coin.symbol;
+    ctaInvest.dataset.mult = mult.toFixed(1);
+    ctaInvest.dataset.exchange = exchange.name.toLowerCase();
+    document.getElementById('receipt-holder').style.display = 'block';
+    animateCount(document.getElementById('rResult'), result, '$');
+    document.getElementById('receipt-holder').scrollIntoView({behavior:'smooth', block:'nearest'});
+    document.getElementById('shareCardWrap').style.display = 'none';
+    fetch('/.netlify/functions/feed', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        coin: coin.symbol,
+        mode: currentMode,
+        mult,
+        tierEmoji: tier.emoji,
+        tierLabel: tier.label,
+        resultFmt: fmtBig(result),
+      }),
+    }).catch(()=>{});
+  }catch(err){
+    alert(`Couldn't get monthly price history for ${coin.symbol} — try again in a moment, or pick a different coin.`);
+  }finally{
+    calcBtn.disabled = false;
+    calcBtn.textContent = calcBtnLabelForMode();
+  }
+}
 // keep the last computed result around so the share card can use it
 let lastResult = null;
 function roundedZigzagPath(ctx, x, y, w, h, teeth, amp, r){
