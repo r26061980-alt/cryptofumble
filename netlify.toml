@@ -4,6 +4,7 @@
 
 [functions]
   node_bundler = "esbuild"
+  external_node_modules = ["sharp"]
 
 # Красивые пути: фронт зовёт /api/price и /api/search,
 # Netlify тихо проксирует на реальные функции.
