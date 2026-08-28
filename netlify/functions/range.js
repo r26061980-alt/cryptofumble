@@ -116,7 +116,7 @@ async function fetchPointsThrottled(coin, months) {
 }
 
 exports.handler = async (event) => {
-  const { coin, from, granularity } = event.queryStringParameters || {};
+  const { coin, from, granularity, points: pointsParam } = event.queryStringParameters || {};
 
   if (!coin || !from) {
     return {
@@ -127,11 +127,16 @@ exports.handler = async (event) => {
 
   const now = new Date();
   const to = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+  // points=<N> — необязательный оверрайд числа точек для дефолтного (не annual)
+  // режима сэмплирования; используется DCA-калькулятором на фронтенде, которому
+  // нужно больше точек (до 24), чем хватает обычному графику (10). Если параметр
+  // не передан — поведение не меняется.
+  const maxPoints = Math.min(30, Math.max(2, parseInt(pointsParam, 10) || 10));
 
   try {
     const months = granularity === 'annual'
       ? sampleAnniversaryMonths(from, to, 12)
-      : sampleMonths(from, to, 10);
+      : sampleMonths(from, to, maxPoints);
     const points = await fetchPointsThrottled(coin, months);
 
     return {
