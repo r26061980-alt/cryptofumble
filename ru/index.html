@@ -744,6 +744,21 @@
     transition:transform .2s var(--ease), box-shadow .2s var(--ease);
   }
   .cta-invest:hover{box-shadow:0 1px 0 rgba(255,255,255,0.25) inset, 0 16px 30px -10px rgba(22,199,132,0.5); transform:translateY(-2px);}
+  .invest-note{
+    text-align:center;
+    font-size:11px;
+    color:var(--muted);
+    opacity:0.75;
+    margin-top:8px;
+    line-height:1.5;
+  }
+  .r-disclaimer{
+    text-align:center;
+    font-size:10.5px;
+    opacity:0.6;
+    margin-top:10px;
+    line-height:1.5;
+  }
   .disclaimer{
     font-size:11px;
     color:var(--muted);
@@ -907,13 +922,15 @@
       </div>
       <div class="r-year-table" id="rYearTable" style="display:none;"></div>
       <div class="r-compare" id="rCompare"></div>
+      <div class="r-disclaimer">Просто для развлечения — не инвестиционный совет.</div>
       <div class="r-footer">ЧЕК УПУЩЕННОЙ ПРИБЫЛИ · ВРЕМЯ <span id="rStamp"></span></div>
     </div>
     <a href="https://www.bybit.com/invite?ref=PK8RA3&medium=referral&utm_campaign=evergreen&share_to=post"
        target="_blank" rel="noopener noreferrer sponsored"
        class="cta-invest" id="ctaInvest" style="display:none;">
-      <span id="ctaInvestText">Начать инвестировать →</span>
+      <span id="ctaInvestText">Начать на бирже →</span>
     </a>
+    <div class="invest-note" id="investNote" style="display:none;">Партнёрская ссылка — можем получить небольшую комиссию, без доплаты с твоей стороны.</div>
     <button class="share-cta" id="shareBtn">📸 Сгенерировать карточку для шеринга</button>
     <button class="share-cta" id="shareTgBtn">✈️ Поделиться в Telegram</button>
     <div id="shareCardWrap" style="display:none; margin-top:14px; text-align:center;">
@@ -1859,8 +1876,8 @@ async function runLumpSumCalculation(coin){
   const exchange = nextExchange();
   ctaInvest.href = exchange.url;
   ctaInvest.style.display = 'block';
-  document.getElementById('ctaInvestText').textContent =
-    isGood ? `Не упусти следующий раз — начни на ${exchange.name} →` : `Начни сейчас на ${exchange.name}, потом сам себя поблагодаришь →`;
+  document.getElementById('investNote').style.display = 'block';
+  document.getElementById('ctaInvestText').textContent = `Хочешь попробовать сам? Начни на ${exchange.name} →`;
   // контекст для трекинга клика (см. обработчик ниже) — не влияет на сам расчёт
   ctaInvest.dataset.outcome = isGood ? 'win' : 'loss';
   ctaInvest.dataset.coin = coin.symbol;
@@ -1977,8 +1994,8 @@ async function runDcaCalculation(coin){
     const exchange = nextExchange();
     ctaInvest.href = exchange.url;
     ctaInvest.style.display = 'block';
-    document.getElementById('ctaInvestText').textContent =
-      isGood ? `Не упусти следующий раз — начни на ${exchange.name} →` : `Начни сейчас на ${exchange.name}, потом сам себя поблагодаришь →`;
+    document.getElementById('investNote').style.display = 'block';
+    document.getElementById('ctaInvestText').textContent = `Хочешь попробовать сам? Начни на ${exchange.name} →`;
     ctaInvest.dataset.outcome = isGood ? 'win' : 'loss';
     ctaInvest.dataset.coin = coin.symbol;
     ctaInvest.dataset.mult = mult.toFixed(1);
