@@ -745,6 +745,21 @@
     transition:transform .2s var(--ease), box-shadow .2s var(--ease);
   }
   .cta-invest:hover{box-shadow:0 1px 0 rgba(255,255,255,0.25) inset, 0 16px 30px -10px rgba(22,199,132,0.5); transform:translateY(-2px);}
+  .invest-note{
+    text-align:center;
+    font-size:11px;
+    color:var(--muted);
+    opacity:0.75;
+    margin-top:8px;
+    line-height:1.5;
+  }
+  .r-disclaimer{
+    text-align:center;
+    font-size:10.5px;
+    opacity:0.6;
+    margin-top:10px;
+    line-height:1.5;
+  }
   .disclaimer{
     font-size:11px;
     color:var(--muted);
@@ -908,13 +923,15 @@
       </div>
       <div class="r-year-table" id="rYearTable" style="display:none;"></div>
       <div class="r-compare" id="rCompare"></div>
+      <div class="r-disclaimer">Just for fun — not investment advice.</div>
       <div class="r-footer">RECEIPT OF REGRET · TIMESTAMP <span id="rStamp"></span></div>
     </div>
     <a href="https://www.bybit.com/invite?ref=PK8RA3&medium=referral&utm_campaign=evergreen&share_to=post"
        target="_blank" rel="noopener noreferrer sponsored"
        class="cta-invest" id="ctaInvest" style="display:none;">
-      <span id="ctaInvestText">Start investing now →</span>
+      <span id="ctaInvestText">Start on an exchange →</span>
     </a>
+    <div class="invest-note" id="investNote" style="display:none;">Affiliate link — we may earn a small commission, at no extra cost to you.</div>
     <button class="share-cta" id="shareBtn">📸 Generate share card</button>
     <button class="share-cta" id="shareXBtn">𝕏 Share on X</button>
     <div id="shareCardWrap" style="display:none; margin-top:14px; text-align:center;">
@@ -1851,8 +1868,8 @@ async function runLumpSumCalculation(coin){
   const exchange = nextExchange();
   ctaInvest.href = exchange.url;
   ctaInvest.style.display = 'block';
-  document.getElementById('ctaInvestText').textContent =
-    isGood ? `Don't miss the next one — start on ${exchange.name} →` : `Start now on ${exchange.name}, thank yourself later →`;
+  document.getElementById('investNote').style.display = 'block';
+  document.getElementById('ctaInvestText').textContent = `Want to try it yourself? Start on ${exchange.name} →`;
   // контекст для трекинга клика (см. обработчик ниже) — не влияет на сам расчёт
   ctaInvest.dataset.outcome = isGood ? 'win' : 'loss';
   ctaInvest.dataset.coin = coin.symbol;
@@ -1968,8 +1985,8 @@ async function runDcaCalculation(coin){
     const exchange = nextExchange();
     ctaInvest.href = exchange.url;
     ctaInvest.style.display = 'block';
-    document.getElementById('ctaInvestText').textContent =
-      isGood ? `Don't miss the next one — start on ${exchange.name} →` : `Start now on ${exchange.name}, thank yourself later →`;
+    document.getElementById('investNote').style.display = 'block';
+    document.getElementById('ctaInvestText').textContent = `Want to try it yourself? Start on ${exchange.name} →`;
     ctaInvest.dataset.outcome = isGood ? 'win' : 'loss';
     ctaInvest.dataset.coin = coin.symbol;
     ctaInvest.dataset.mult = mult.toFixed(1);
