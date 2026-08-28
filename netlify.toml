@@ -18,13 +18,17 @@
   to = "/.netlify/functions/search"
   status = 200
 
-# Короткая ссылка для шеринга результата: /r/AbC123 -> share.js?id=AbC123
-# ВАЖНО: именно ":splat" (из "from = /r/*") Netlify НЕ подставляет надёжно
-# в query string у "to" — теряется полностью, и share.js получает пустой
-# id. Именованный плейсхолдер (:id, из "from = /r/:id") в query string
-# подставляется корректно. Это была настоящая причина "$0/x1.0" на картинке
-# все прошлые разы — сама ссылка /r/<id> никогда не передавала id дальше.
+# Короткая ссылка для шеринга результата: /r/AbC123 -> функция share.js
+#
+# ВАЖНО: Netlify официально НЕ подставляет плейсхолдер из "from" (ни :splat,
+# ни именованный :id) в query string у "to" при rewrite на функцию —
+# это подтверждённое ограничение самой платформы, не ошибка в конфиге
+# (https://answers.netlify.com/t/redirect-rewrite-to-function-seems-broken/18595).
+# Именно поэтому картинка все прошлые разы выходила пустой: id вообще не
+# доезжал до share.js. Поэтому здесь без "?id=" — share.js сам достаёт id
+# из настоящего входящего пути запроса (event.path), который Netlify
+# передаёт функции без изменений.
 [[redirects]]
-  from = "/r/:id"
-  to = "/.netlify/functions/share?id=:id"
+  from = "/r/*"
+  to = "/.netlify/functions/share"
   status = 200
