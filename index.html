@@ -769,6 +769,18 @@
     opacity:0.55;
   }
 
+  /* ═══ New: favorite coins (localStorage, no backend) ═══ */
+  .fav-coins-wrap{margin-bottom:10px;}
+  .fav-coins{display:flex; flex-wrap:wrap; gap:8px; margin-bottom:14px;}
+  .fav-coins .coin-btn{flex:0 0 auto; min-width:64px;}
+  .fav-star{
+    background:none; border:none; cursor:pointer;
+    font-size:15px; line-height:1; color:var(--muted);
+    padding:0 0 0 6px; vertical-align:-1px;
+    transition:color .2s var(--ease), transform .15s var(--ease);
+  }
+  .fav-star:hover{color:var(--gold); transform:scale(1.15);}
+  .fav-star.active{color:var(--gold);}
   /* ═══ New: quick period-select shortcuts ═══ */
   .period-quick{display:flex; gap:6px; margin-top:-6px;}
   .period-btn{
@@ -847,6 +859,10 @@
       <div class="coin-search-wrap">
         <input type="text" id="coinSearch" placeholder="Search any coin: solana, pepe, ton…" autocomplete="off">
         <div class="coin-dropdown" id="coinDropdown"></div>
+      </div>
+      <div class="fav-coins-wrap" id="favCoinsWrap" style="display:none;">
+        <div style="font-size:11px; color:var(--muted); margin-bottom:8px;">⭐ your favorites:</div>
+        <div class="fav-coins" id="favCoins"></div>
       </div>
       <div style="font-size:11px; color:var(--muted); margin-bottom:8px;">or quick pick:</div>
       <div class="coin-grid" id="coinGrid"></div>
@@ -1414,15 +1430,78 @@ function renderQuickPicks(){
     grid.appendChild(btn);
   });
 }
+// ---- Favorite coins — client-side only (localStorage), no backend involved ----
+// Lets a returning visitor pin coins they care about (including ones found via
+// search, not just the 7 hardcoded quick-picks) so they don't have to search
+// again next time. Capped at FAV_MAX, newest-first.
+const FAV_KEY = 'cf_favorite_coins';
+const FAV_MAX = 8;
+function getFavorites(){
+  try{
+    const raw = localStorage.getItem(FAV_KEY);
+    const list = raw ? JSON.parse(raw) : [];
+    return Array.isArray(list) ? list : [];
+  }catch(e){ return []; }
+}
+function saveFavorites(list){
+  try{ localStorage.setItem(FAV_KEY, JSON.stringify(list)); }catch(e){}
+}
+function isFavorite(coin){
+  return getFavorites().some(f => f.geckoId === coin.geckoId);
+}
+function toggleFavorite(coin){
+  let list = getFavorites();
+  if(isFavorite(coin)){
+    list = list.filter(f => f.geckoId !== coin.geckoId);
+  } else {
+    list = list.filter(f => f.geckoId !== coin.geckoId); // avoid dupes, just in case
+    list.unshift({ symbol: coin.symbol, name: coin.name, geckoId: coin.geckoId });
+    list = list.slice(0, FAV_MAX);
+  }
+  saveFavorites(list);
+  renderFavorites();
+}
+function renderFavorites(){
+  const wrap = document.getElementById('favCoinsWrap');
+  const favGrid = document.getElementById('favCoins');
+  const list = getFavorites();
+  if(list.length === 0){ wrap.style.display = 'none'; return; }
+  wrap.style.display = 'block';
+  favGrid.innerHTML = '';
+  list.forEach(coin=>{
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'coin-btn' + (coin.geckoId === currentCoin.geckoId ? ' active' : '');
+    btn.appendChild(makeIconEl(coin.symbol, coin.name, 'coin-btn-icon'));
+    const label = document.createElement('span');
+    label.textContent = coin.symbol;
+    btn.appendChild(label);
+    btn.onclick = ()=>{
+      currentCoin = { symbol: coin.symbol, name: coin.name, geckoId: coin.geckoId };
+      updateSelectedUI();
+    };
+    favGrid.appendChild(btn);
+  });
+}
 function updateSelectedUI(){
   renderQuickPicks();
+  renderFavorites();
   selectedLabel.innerHTML = '';
   selectedLabel.appendChild(makeIconEl(currentCoin.symbol, currentCoin.name, 'selected-coin-icon'));
   const text = document.createElement('span');
   text.innerHTML = `Selected: <b>${currentCoin.symbol}</b> · ${currentCoin.name}`;
   selectedLabel.appendChild(text);
+  const fav = isFavorite(currentCoin);
+  const starBtn = document.createElement('button');
+  starBtn.type = 'button';
+  starBtn.className = 'fav-star' + (fav ? ' active' : '');
+  starBtn.textContent = fav ? '★' : '☆';
+  starBtn.setAttribute('aria-label', fav ? 'Remove from favorites' : 'Add to favorites');
+  starBtn.onclick = ()=>{ toggleFavorite(currentCoin); updateSelectedUI(); };
+  selectedLabel.appendChild(starBtn);
 }
 renderQuickPicks();
+renderFavorites();
 updateSelectedUI();
 // ---- Daily Regret — same scenario for everyone on a given calendar day ----
 // Picked from real historical crashes/peaks (not fully random dates) so the
