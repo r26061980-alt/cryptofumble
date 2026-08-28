@@ -2086,6 +2086,7 @@ async function runLumpSumCalculation(coin){
   // reset any previously generated share card since the numbers changed
   document.getElementById('shareCardWrap').style.display = 'none';
   precacheShareCard(); // рисуем PNG-карточку в фоне заранее, чтобы она была готова к моменту клика на "Share"
+  precacheShareId(); // заодно запрашиваем короткую ссылку в фоне, по той же логике
   // "сравнить с другой монетой" имеет смысл только для обычной разовой покупки —
   // сбрасываем на каждом новом расчёте, показываем переключатель только в режиме "купил"
   document.getElementById('comparePicker').style.display = 'none';
@@ -2217,6 +2218,7 @@ async function runDcaCalculation(coin){
     };
     document.getElementById('shareCardWrap').style.display = 'none';
     precacheShareCard(); // рисуем PNG-карточку в фоне заранее, чтобы она была готова к моменту клика на "Share"
+    precacheShareId(); // заодно запрашиваем короткую ссылку в фоне, по той же логике
     // сравнение с другой монетой применимо только к разовой покупке, не к DCA
     document.getElementById('comparePicker').style.display = 'none';
     document.getElementById('compareResult').style.display = 'none';
@@ -2261,6 +2263,29 @@ async function precacheShareCard(){
     catch(err2){ /* к моменту клика на Share картинки ещё не будет — тогда дорисуем на лету */ }
   }
 }
+// короткая ссылка "/r/<id>" для ТЕКУЩЕГО lastResult, запрашивается в фоне
+// сразу после каждого расчёта (та же логика, что и с PNG-карточкой выше —
+// никакого ожидания внутри обработчика клика). Если не успела прийти или
+// запрос не удался — buildShareUrl() подставит старую длинную ссылку.
+let cachedShareId = null;
+async function createShortLink(payload){
+  try{
+    const res = await fetch('/.netlify/functions/shorten', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify(payload),
+    });
+    if(!res.ok) return null;
+    const data = await res.json();
+    return (data && data.id) || null;
+  }catch(e){ return null; }
+}
+async function precacheShareId(){
+  cachedShareId = null;
+  const obj = shareParamsObject('ru');
+  if(!obj) return;
+  cachedShareId = await createShortLink(obj);
+}
 function showShareToast(msg){
   let toast = document.getElementById('shareToast');
   if(!toast){
@@ -2279,9 +2304,9 @@ function showShareToast(msg){
 // же параметрами, так что превью в Telegram/X показывает картинку именно
 // этого результата, а не общий скриншот; реальный посетитель по клику
 // перенаправляется прямо на калькулятор.
-function buildShareUrl(lang){
-  if(!lastResult) return 'https://cryptofumble.com/ru';
-  const params = new URLSearchParams({
+function shareParamsObject(lang){
+  if(!lastResult) return null;
+  const obj = {
     s: lastResult.coinSymbol,
     n: lastResult.coinName,
     m: lastResult.mode,
@@ -2290,9 +2315,18 @@ function buildShareUrl(lang){
     mu: lastResult.mult.toFixed(1),
     tl: lastResult.tier.label,
     g: lastResult.isGood ? '1' : '0',
-  });
-  if(lastResult.spResultFmt) params.set('sp', lastResult.spResultFmt);
-  if(lang === 'ru') params.set('lang', 'ru');
+  };
+  if(lastResult.spResultFmt) obj.sp = lastResult.spResultFmt;
+  if(lang === 'ru') obj.lang = 'ru';
+  return obj;
+}
+function buildShareUrl(lang){
+  const obj = shareParamsObject(lang);
+  if(!obj) return 'https://cryptofumble.com/ru';
+  // короткая ссылка (cryptofumble.com/r/<id>), если precacheShareId() успела
+  // отработать; иначе — старая длинная, но полностью самодостаточная ссылка
+  if(cachedShareId) return `https://cryptofumble.com/r/${cachedShareId}`;
+  const params = new URLSearchParams(obj);
   return `https://cryptofumble.com/.netlify/functions/share?${params.toString()}`;
 }
 async function downloadShareCardAndNotify(msg){
