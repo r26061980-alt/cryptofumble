@@ -14,6 +14,12 @@
 <link rel="icon" href="/favicon.ico" sizes="any">
 <link rel="icon" href="/favicon-32.png" type="image/png">
 <link rel="apple-touch-icon" href="/favicon-180.png">
+<!-- PWA: позволяет добавить сайт на экран телефона (Фаза 1, быстрая победа) -->
+<link rel="manifest" href="/manifest-ru.json">
+<meta name="theme-color" content="#0A0B10">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="CryptoFumble">
 <title>CryptoFumble — Сколько бы ты заработал?</title>
 <meta name="description" content="Узнай, сколько стоили бы твои деньги сегодня, если бы ты купил любую крипту, на любую сумму, в любую дату. Бесплатный калькулятор с живыми ценами — жестоко честно и странно приятно.">
 <link rel="canonical" href="https://cryptofumble.com/ru/">
@@ -697,6 +703,13 @@
   }
   .r-big .num.pos{color:#0F7A50;}
   .r-big .num.neg{color:#A82A30;}
+  .r-local-currency{
+    text-align:center;
+    font-family:var(--mono);
+    font-size:12px;
+    opacity:0.5;
+    margin-top:2px;
+  }
   .r-mult{
     text-align:center;
     font-size:13px;
@@ -892,6 +905,40 @@
   .r-year-row .ry-year{font-weight:700;}
   .r-year-row .ry-val{font-weight:600;}
 </style>
+<!-- FAQPage structured data — дословно повторяет FAQ-аккордеон ниже, чтобы
+     Google мог показать это как раскрывающийся сниппет прямо в выдаче. -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "Откуда берутся данные о ценах?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Живые цены берутся из CoinGecko через наш собственный кэширующий прокси. Если API временно недоступен, калькулятор переключается на приблизительный исторический набор данных по нескольким крупным монетам — на чеке это всегда чётко помечено как «ОФЛАЙН ДЕМО-ДАННЫЕ», чтобы ты точно знал, что видишь."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Это финансовый совет?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Нет. CryptoFumble сделан для развлечения и размышлений, а не как инвестиционный совет. Он показывает гипотетический результат на основе исторических цен — это не прогноз и не рекомендация. Крипта волатильна, можно потерять деньги. Перед тем как инвестировать, всегда изучай вопрос самостоятельно."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Почему иногда пишет «офлайн демо-данные»?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Это значит, что живой API CoinGecko был временно недоступен (лимиты запросов, сбой сети), поэтому чек использовал приблизительный резервный набор данных вместо точных исторических цен. Он покрывает только BTC, ETH, SOL, DOGE, ADA, XRP и BNB — для любой другой монеты, если живые данные недоступны, ты увидишь ошибку, а не неверную цифру."
+      }
+    }
+  ]
+}
+</script>
 </head>
 <body>
 <!-- ═══ Баннер Product Hunt — вставить ТОЛЬКО после старта запуска (после 15:01 по Пекину / 00:01 PDT, 28 августа), сразу после <body> ═══ -->
@@ -1012,6 +1059,7 @@
       <div class="r-big">
         <div class="label">Стоило бы сейчас</div>
         <div class="num" id="rResult">$0</div>
+        <div class="r-local-currency" id="rLocalCurrency" style="display:none;"></div>
       </div>
       <div class="r-tier" id="rTier"></div>
       <div class="r-mult-wrap"><span class="r-mult" id="rMult">x1.0</span></div>
@@ -1192,6 +1240,54 @@ function fmt(n){
 }
 function fmtBig(n){
   return '$'+Math.round(n).toLocaleString('en-US');
+}
+// ---- Локальная валюта под результатом (Фаза 1, быстрая победа) ----
+// Статичные приблизительные курсы (сколько единиц за 1 доллар), снимок на
+// ~август 2026 — сознательно НЕ живой запрос к FX API (не добавляем новую
+// зависимость/задержку ради числа, которое и так подписано «примерно»).
+// Обновлять таблицу вручную раз в несколько месяцев, чтобы не уезжала далеко.
+const FX_RATES = {
+  RUB: 86, EUR: 0.87, GBP: 0.74, INR: 95, BRL: 5.1, TRY: 48,
+  UAH: 45, KZT: 468, IDR: 17900, NGN: 1360, PHP: 61, VND: 26200,
+  PKR: 278, ARS: 1500, MXN: 17.2, JPY: 158, CNY: 6.75, KRW: 1424,
+  AUD: 1.42, CAD: 1.4, ZAR: 16.4,
+};
+// Сопоставляет язык браузера с валютой. Сначала проверяет регион (ru-KZ ->
+// KZT приоритетнее общего ru -> RUB), потом базовый язык. Возвращает null
+// для локалей, близких к доллару по умолчанию (en-US и т.п.) — незачем
+// дублировать то же число второй раз.
+function guessCurrency(lang){
+  if(!lang) return null;
+  const l = lang.toLowerCase();
+  const REGION_MAP = {
+    'kz':'KZT', 'ua':'UAH', 'br':'BRL', 'in':'INR', 'tr':'TRY', 'id':'IDR',
+    'ng':'NGN', 'ph':'PHP', 'vn':'VND', 'pk':'PKR', 'ar':'ARS', 'mx':'MXN',
+    'za':'ZAR', 'gb':'GBP', 'au':'AUD', 'ca':'CAD', 'jp':'JPY', 'cn':'CNY', 'kr':'KRW',
+  };
+  const region = l.split('-')[1];
+  if(region && REGION_MAP[region]) return REGION_MAP[region];
+  const BASE_MAP = {
+    'ru':'RUB', 'tr':'TRY', 'ja':'JPY', 'zh':'CNY', 'ko':'KRW', 'vi':'VND',
+    'id':'IDR', 'ur':'PKR', 'pt':'BRL', 'de':'EUR', 'fr':'EUR', 'it':'EUR',
+    'nl':'EUR', 'pl':'EUR', 'es':'EUR',
+  };
+  const base = l.split('-')[0];
+  return BASE_MAP[base] || null;
+}
+function renderLocalCurrency(resultRaw){
+  const el = document.getElementById('rLocalCurrency');
+  if(!el) return;
+  const code = guessCurrency(navigator.language);
+  const rate = code && FX_RATES[code];
+  if(!rate){ el.style.display = 'none'; return; }
+  try{
+    const converted = resultRaw * rate;
+    const formatted = new Intl.NumberFormat(navigator.language, {
+      style: 'currency', currency: code, maximumFractionDigits: 0,
+    }).format(converted);
+    el.textContent = '≈ ' + formatted + ' (примерно)';
+    el.style.display = 'block';
+  }catch(err){ el.style.display = 'none'; }
 }
 function fmtCoinsQty(qty, symbol){
   // for cheap coins (DOGE, SHIB, etc.) the raw coin count is part of the joke,
@@ -1386,11 +1482,21 @@ const EXCHANGES = [
   { name:'Bitget', url:'https://www.krbitget.com/ru/referral/register?clacCode=T0NB6A61&from=%2Fru%2Fevents%2Freferral-all-program&source=events&utmSource=PremierInviter' },
   { name:'BingX',  url:'https://bingxdao.com/invite/RIBWB2/' }
 ];
+// Гео-адаптивный порядок ротации (Фаза 1, быстрая победа): у Bitget
+// реферальная ссылка уже ведёт на локализованную /ru/ страницу — это
+// конкретная, проверяемая причина показывать её первой чаще остальных
+// именно тут, на русской версии сайта (сюда и так попадают только те, кто
+// сам выбрал русский). Это отправная точка, а не измеренный результат:
+// клик по каждой бирже уже логируется в GA как событие `click_invest_cta`
+// (см. обработчик в конце файла) — как только наберётся статистика, порядок
+// стоит пересчитать по реальной конверсии, а не по этому предположению.
+const RU_EXCHANGE_ORDER = [EXCHANGES[2], EXCHANGES[0], EXCHANGES[1], EXCHANGES[3]]; // Bitget первым
 function nextExchange(){
+  const order = RU_EXCHANGE_ORDER;
   let idx = parseInt(localStorage.getItem('cf_exchange_idx'), 10);
-  if(isNaN(idx)) idx = Math.floor(Math.random()*EXCHANGES.length);
-  const exchange = EXCHANGES[idx % EXCHANGES.length];
-  try{ localStorage.setItem('cf_exchange_idx', String((idx+1) % EXCHANGES.length)); }catch(err){
+  if(isNaN(idx)) idx = Math.floor(Math.random()*order.length);
+  const exchange = order[idx % order.length];
+  try{ localStorage.setItem('cf_exchange_idx', String((idx+1) % order.length)); }catch(err){
     // localStorage может быть недоступен в некоторых приватных режимах — не критично,
     // просто в этом браузере ротация не будет "запоминаться" между визитами
   }
@@ -2064,6 +2170,7 @@ async function runLumpSumCalculation(coin){
   ctaInvest.dataset.exchange = exchange.name.toLowerCase();
   document.getElementById('receipt-holder').style.display='block';
   animateCount(document.getElementById('rResult'), result, '$');
+  renderLocalCurrency(result);
   document.getElementById('receipt-holder').scrollIntoView({behavior:'smooth', block:'nearest'});
   lastResult = {
     coinName: coin.name,
@@ -2717,6 +2824,15 @@ document.getElementById('ctaInvest').addEventListener('click', function(){
     });
   }
 });
+// PWA: регистрируем service worker, чтобы сайт можно было "установить"
+// (Фаза 1, быстрая победа). Регистрация best-effort — если не сработает
+// (старый браузер, заблокировано настройками приватности), сайт просто
+// работает как обычная страница, ничего от этого не зависит.
+if('serviceWorker' in navigator){
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js').catch(()=>{});
+  });
+}
 </script>
 </body>
 </html>
