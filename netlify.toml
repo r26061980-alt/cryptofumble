@@ -32,3 +32,249 @@
   from = "/r/*"
   to = "/.netlify/functions/share"
   status = 200
+
+# Фаза 2 — SEO-страницы coin+year. Файлы лежат плоско в корне
+# (bitcoin-2013.html, ru-bitcoin-2013.html и т.д.), а сюда просто
+# статически переписываем красивый путь на реальный файл — никакого
+# :splat/:id и подстановки в query string здесь нет, так что описанное
+# выше ограничение платформы (см. комментарий про /r/*) не применяется.
+
+[[redirects]]
+  from = "/bitcoin-2013"
+  to = "/bitcoin-2013.html"
+  status = 200
+
+[[redirects]]
+  from = "/bitcoin-2013/"
+  to = "/bitcoin-2013.html"
+  status = 200
+
+[[redirects]]
+  from = "/ru/bitcoin-2013"
+  to = "/ru-bitcoin-2013.html"
+  status = 200
+
+[[redirects]]
+  from = "/ru/bitcoin-2013/"
+  to = "/ru-bitcoin-2013.html"
+  status = 200
+
+[[redirects]]
+  from = "/bitcoin-2017"
+  to = "/bitcoin-2017.html"
+  status = 200
+
+[[redirects]]
+  from = "/bitcoin-2017/"
+  to = "/bitcoin-2017.html"
+  status = 200
+
+[[redirects]]
+  from = "/ru/bitcoin-2017"
+  to = "/ru-bitcoin-2017.html"
+  status = 200
+
+[[redirects]]
+  from = "/ru/bitcoin-2017/"
+  to = "/ru-bitcoin-2017.html"
+  status = 200
+
+[[redirects]]
+  from = "/bitcoin-2020"
+  to = "/bitcoin-2020.html"
+  status = 200
+
+[[redirects]]
+  from = "/bitcoin-2020/"
+  to = "/bitcoin-2020.html"
+  status = 200
+
+[[redirects]]
+  from = "/ru/bitcoin-2020"
+  to = "/ru-bitcoin-2020.html"
+  status = 200
+
+[[redirects]]
+  from = "/ru/bitcoin-2020/"
+  to = "/ru-bitcoin-2020.html"
+  status = 200
+
+[[redirects]]
+  from = "/ethereum-2016"
+  to = "/ethereum-2016.html"
+  status = 200
+
+[[redirects]]
+  from = "/ethereum-2016/"
+  to = "/ethereum-2016.html"
+  status = 200
+
+[[redirects]]
+  from = "/ru/ethereum-2016"
+  to = "/ru-ethereum-2016.html"
+  status = 200
+
+[[redirects]]
+  from = "/ru/ethereum-2016/"
+  to = "/ru-ethereum-2016.html"
+  status = 200
+
+[[redirects]]
+  from = "/ethereum-2017"
+  to = "/ethereum-2017.html"
+  status = 200
+
+[[redirects]]
+  from = "/ethereum-2017/"
+  to = "/ethereum-2017.html"
+  status = 200
+
+[[redirects]]
+  from = "/ru/ethereum-2017"
+  to = "/ru-ethereum-2017.html"
+  status = 200
+
+[[redirects]]
+  from = "/ru/ethereum-2017/"
+  to = "/ru-ethereum-2017.html"
+  status = 200
+
+[[redirects]]
+  from = "/ethereum-2020"
+  to = "/ethereum-2020.html"
+  status = 200
+
+[[redirects]]
+  from = "/ethereum-2020/"
+  to = "/ethereum-2020.html"
+  status = 200
+
+[[redirects]]
+  from = "/ru/ethereum-2020"
+  to = "/ru-ethereum-2020.html"
+  status = 200
+
+[[redirects]]
+  from = "/ru/ethereum-2020/"
+  to = "/ru-ethereum-2020.html"
+  status = 200
+
+[[redirects]]
+  from = "/solana-2020"
+  to = "/solana-2020.html"
+  status = 200
+
+[[redirects]]
+  from = "/solana-2020/"
+  to = "/solana-2020.html"
+  status = 200
+
+[[redirects]]
+  from = "/ru/solana-2020"
+  to = "/ru-solana-2020.html"
+  status = 200
+
+[[redirects]]
+  from = "/ru/solana-2020/"
+  to = "/ru-solana-2020.html"
+  status = 200
+
+[[redirects]]
+  from = "/solana-2021"
+  to = "/solana-2021.html"
+  status = 200
+
+[[redirects]]
+  from = "/solana-2021/"
+  to = "/solana-2021.html"
+  status = 200
+
+[[redirects]]
+  from = "/ru/solana-2021"
+  to = "/ru-solana-2021.html"
+  status = 200
+
+[[redirects]]
+  from = "/ru/solana-2021/"
+  to = "/ru-solana-2021.html"
+  status = 200
+
+[[redirects]]
+  from = "/solana-2022"
+  to = "/solana-2022.html"
+  status = 200
+
+[[redirects]]
+  from = "/solana-2022/"
+  to = "/solana-2022.html"
+  status = 200
+
+[[redirects]]
+  from = "/ru/solana-2022"
+  to = "/ru-solana-2022.html"
+  status = 200
+
+[[redirects]]
+  from = "/ru/solana-2022/"
+  to = "/ru-solana-2022.html"
+  status = 200
+
+[[redirects]]
+  from = "/dogecoin-2018"
+  to = "/dogecoin-2018.html"
+  status = 200
+
+[[redirects]]
+  from = "/dogecoin-2018/"
+  to = "/dogecoin-2018.html"
+  status = 200
+
+[[redirects]]
+  from = "/ru/dogecoin-2018"
+  to = "/ru-dogecoin-2018.html"
+  status = 200
+
+[[redirects]]
+  from = "/ru/dogecoin-2018/"
+  to = "/ru-dogecoin-2018.html"
+  status = 200
+
+[[redirects]]
+  from = "/dogecoin-2020"
+  to = "/dogecoin-2020.html"
+  status = 200
+
+[[redirects]]
+  from = "/dogecoin-2020/"
+  to = "/dogecoin-2020.html"
+  status = 200
+
+[[redirects]]
+  from = "/ru/dogecoin-2020"
+  to = "/ru-dogecoin-2020.html"
+  status = 200
+
+[[redirects]]
+  from = "/ru/dogecoin-2020/"
+  to = "/ru-dogecoin-2020.html"
+  status = 200
+
+[[redirects]]
+  from = "/dogecoin-2021"
+  to = "/dogecoin-2021.html"
+  status = 200
+
+[[redirects]]
+  from = "/dogecoin-2021/"
+  to = "/dogecoin-2021.html"
+  status = 200
+
+[[redirects]]
+  from = "/ru/dogecoin-2021"
+  to = "/ru-dogecoin-2021.html"
+  status = 200
+
+[[redirects]]
+  from = "/ru/dogecoin-2021/"
+  to = "/ru-dogecoin-2021.html"
+  status = 200
