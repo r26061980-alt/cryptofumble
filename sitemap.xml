@@ -7,6 +7,8 @@
     <priority>1.0</priority>
     <xhtml:link rel="alternate" hreflang="en" href="https://cryptofumble.com/"/>
     <xhtml:link rel="alternate" hreflang="ru" href="https://cryptofumble.com/ru/"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://cryptofumble.com/es/"/>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://cryptofumble.com/pt/"/>
     <xhtml:link rel="alternate" hreflang="x-default" href="https://cryptofumble.com/"/>
   </url>
   <url>
@@ -15,6 +17,28 @@
     <priority>1.0</priority>
     <xhtml:link rel="alternate" hreflang="en" href="https://cryptofumble.com/"/>
     <xhtml:link rel="alternate" hreflang="ru" href="https://cryptofumble.com/ru/"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://cryptofumble.com/es/"/>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://cryptofumble.com/pt/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://cryptofumble.com/"/>
+  </url>
+  <url>
+    <loc>https://cryptofumble.com/es/</loc>
+    <changefreq>weekly</changefreq>
+    <priority>1.0</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://cryptofumble.com/"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://cryptofumble.com/ru/"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://cryptofumble.com/es/"/>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://cryptofumble.com/pt/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://cryptofumble.com/"/>
+  </url>
+  <url>
+    <loc>https://cryptofumble.com/pt/</loc>
+    <changefreq>weekly</changefreq>
+    <priority>1.0</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://cryptofumble.com/"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://cryptofumble.com/ru/"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://cryptofumble.com/es/"/>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://cryptofumble.com/pt/"/>
     <xhtml:link rel="alternate" hreflang="x-default" href="https://cryptofumble.com/"/>
   </url>
   <url>
