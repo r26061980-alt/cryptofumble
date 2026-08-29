@@ -301,3 +301,25 @@
   from = "/ru/widget/"
   to = "/widget-ru.html"
   status = 200
+
+# Фаза 4 — испанская и португальская версии сайта. Тоже плоские файлы в корне
+# (es-index.html, pt-index.html), без папок — по той же причине, что и выше.
+[[redirects]]
+  from = "/es"
+  to = "/es-index.html"
+  status = 200
+
+[[redirects]]
+  from = "/es/"
+  to = "/es-index.html"
+  status = 200
+
+[[redirects]]
+  from = "/pt"
+  to = "/pt-index.html"
+  status = 200
+
+[[redirects]]
+  from = "/pt/"
+  to = "/pt-index.html"
+  status = 200
