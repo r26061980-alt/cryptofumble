@@ -1,0 +1,16 @@
+{
+  "name": "CryptoFumble — What Could You Have Made?",
+  "short_name": "CryptoFumble",
+  "description": "See exactly what your money would be worth today if you'd bought any crypto, any amount, on any date.",
+  "start_url": "/",
+  "id": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#0A0B10",
+  "theme_color": "#0A0B10",
+  "lang": "en",
+  "icons": [
+    { "src": "/favicon-32.png", "sizes": "32x32", "type": "image/png" },
+    { "src": "/favicon-180.png", "sizes": "180x180", "type": "image/png", "purpose": "any" }
+  ]
+}
