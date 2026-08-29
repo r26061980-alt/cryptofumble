@@ -1,0 +1,16 @@
+{
+  "name": "CryptoFumble — ¿Cuánto habrías ganado?",
+  "short_name": "CryptoFumble",
+  "description": "Descubre cuánto valdría hoy tu dinero si hubieras comprado cripto antes.",
+  "start_url": "/es/",
+  "id": "/es/",
+  "scope": "/es/",
+  "display": "standalone",
+  "background_color": "#0A0B10",
+  "theme_color": "#0A0B10",
+  "lang": "es",
+  "icons": [
+    { "src": "/favicon-32.png", "sizes": "32x32", "type": "image/png" },
+    { "src": "/favicon-180.png", "sizes": "180x180", "type": "image/png", "purpose": "any" }
+  ]
+}
