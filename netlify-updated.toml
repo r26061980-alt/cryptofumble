@@ -1,0 +1,325 @@
+[build]
+  functions = "netlify/functions"
+  publish = "."
+
+[functions]
+  node_bundler = "esbuild"
+  external_node_modules = ["sharp"]
+
+# Красивые пути: фронт зовёт /api/price и /api/search,
+# Netlify тихо проксирует на реальные функции.
+[[redirects]]
+  from = "/api/price"
+  to = "/.netlify/functions/price"
+  status = 200
+
+[[redirects]]
+  from = "/api/search"
+  to = "/.netlify/functions/search"
+  status = 200
+
+# Короткая ссылка для шеринга результата: /r/AbC123 -> функция share.js
+#
+# ВАЖНО: Netlify официально НЕ подставляет плейсхолдер из "from" (ни :splat,
+# ни именованный :id) в query string у "to" при rewrite на функцию —
+# это подтверждённое ограничение самой платформы, не ошибка в конфиге
+# (https://answers.netlify.com/t/redirect-rewrite-to-function-seems-broken/18595).
+# Именно поэтому картинка все прошлые разы выходила пустой: id вообще не
+# доезжал до share.js. Поэтому здесь без "?id=" — share.js сам достаёт id
+# из настоящего входящего пути запроса (event.path), который Netlify
+# передаёт функции без изменений.
+[[redirects]]
+  from = "/r/*"
+  to = "/.netlify/functions/share"
+  status = 200
+
+# Фаза 2 — SEO-страницы coin+year. EN-файлы лежат плоско в корне
+# (bitcoin-2013.html и т.д.), RU-файлы физически лежат внутри папки ru/
+# (ru/ru-bitcoin-2013.html и т.д., так получилось при загрузке через
+# GitHub веб-интерфейс) — здесь просто статически переписываем красивый
+# путь на реальный файл, без :splat/:id и подстановки в query string,
+# так что ограничение платформы из комментария про /r/* здесь не применяется.
+
+[[redirects]]
+  from = "/bitcoin-2013"
+  to = "/bitcoin-2013.html"
+  status = 200
+
+[[redirects]]
+  from = "/bitcoin-2013/"
+  to = "/bitcoin-2013.html"
+  status = 200
+
+[[redirects]]
+  from = "/ru/bitcoin-2013"
+  to = "/ru/ru-bitcoin-2013.html"
+  status = 200
+
+[[redirects]]
+  from = "/ru/bitcoin-2013/"
+  to = "/ru/ru-bitcoin-2013.html"
+  status = 200
+
+[[redirects]]
+  from = "/bitcoin-2017"
+  to = "/bitcoin-2017.html"
+  status = 200
+
+[[redirects]]
+  from = "/bitcoin-2017/"
+  to = "/bitcoin-2017.html"
+  status = 200
+
+[[redirects]]
+  from = "/ru/bitcoin-2017"
+  to = "/ru/ru-bitcoin-2017.html"
+  status = 200
+
+[[redirects]]
+  from = "/ru/bitcoin-2017/"
+  to = "/ru/ru-bitcoin-2017.html"
+  status = 200
+
+[[redirects]]
+  from = "/bitcoin-2020"
+  to = "/bitcoin-2020.html"
+  status = 200
+
+[[redirects]]
+  from = "/bitcoin-2020/"
+  to = "/bitcoin-2020.html"
+  status = 200
+
+[[redirects]]
+  from = "/ru/bitcoin-2020"
+  to = "/ru/ru-bitcoin-2020.html"
+  status = 200
+
+[[redirects]]
+  from = "/ru/bitcoin-2020/"
+  to = "/ru/ru-bitcoin-2020.html"
+  status = 200
+
+[[redirects]]
+  from = "/ethereum-2016"
+  to = "/ethereum-2016.html"
+  status = 200
+
+[[redirects]]
+  from = "/ethereum-2016/"
+  to = "/ethereum-2016.html"
+  status = 200
+
+[[redirects]]
+  from = "/ru/ethereum-2016"
+  to = "/ru/ru-ethereum-2016.html"
+  status = 200
+
+[[redirects]]
+  from = "/ru/ethereum-2016/"
+  to = "/ru/ru-ethereum-2016.html"
+  status = 200
+
+[[redirects]]
+  from = "/ethereum-2017"
+  to = "/ethereum-2017.html"
+  status = 200
+
+[[redirects]]
+  from = "/ethereum-2017/"
+  to = "/ethereum-2017.html"
+  status = 200
+
+[[redirects]]
+  from = "/ru/ethereum-2017"
+  to = "/ru/ru-ethereum-2017.html"
+  status = 200
+
+[[redirects]]
+  from = "/ru/ethereum-2017/"
+  to = "/ru/ru-ethereum-2017.html"
+  status = 200
+
+[[redirects]]
+  from = "/ethereum-2020"
+  to = "/ethereum-2020.html"
+  status = 200
+
+[[redirects]]
+  from = "/ethereum-2020/"
+  to = "/ethereum-2020.html"
+  status = 200
+
+[[redirects]]
+  from = "/ru/ethereum-2020"
+  to = "/ru/ru-ethereum-2020.html"
+  status = 200
+
+[[redirects]]
+  from = "/ru/ethereum-2020/"
+  to = "/ru/ru-ethereum-2020.html"
+  status = 200
+
+[[redirects]]
+  from = "/solana-2020"
+  to = "/solana-2020.html"
+  status = 200
+
+[[redirects]]
+  from = "/solana-2020/"
+  to = "/solana-2020.html"
+  status = 200
+
+[[redirects]]
+  from = "/ru/solana-2020"
+  to = "/ru/ru-solana-2020.html"
+  status = 200
+
+[[redirects]]
+  from = "/ru/solana-2020/"
+  to = "/ru/ru-solana-2020.html"
+  status = 200
+
+[[redirects]]
+  from = "/solana-2021"
+  to = "/solana-2021.html"
+  status = 200
+
+[[redirects]]
+  from = "/solana-2021/"
+  to = "/solana-2021.html"
+  status = 200
+
+[[redirects]]
+  from = "/ru/solana-2021"
+  to = "/ru/ru-solana-2021.html"
+  status = 200
+
+[[redirects]]
+  from = "/ru/solana-2021/"
+  to = "/ru/ru-solana-2021.html"
+  status = 200
+
+[[redirects]]
+  from = "/solana-2022"
+  to = "/solana-2022.html"
+  status = 200
+
+[[redirects]]
+  from = "/solana-2022/"
+  to = "/solana-2022.html"
+  status = 200
+
+[[redirects]]
+  from = "/ru/solana-2022"
+  to = "/ru/ru-solana-2022.html"
+  status = 200
+
+[[redirects]]
+  from = "/ru/solana-2022/"
+  to = "/ru/ru-solana-2022.html"
+  status = 200
+
+[[redirects]]
+  from = "/dogecoin-2018"
+  to = "/dogecoin-2018.html"
+  status = 200
+
+[[redirects]]
+  from = "/dogecoin-2018/"
+  to = "/dogecoin-2018.html"
+  status = 200
+
+[[redirects]]
+  from = "/ru/dogecoin-2018"
+  to = "/ru/ru-dogecoin-2018.html"
+  status = 200
+
+[[redirects]]
+  from = "/ru/dogecoin-2018/"
+  to = "/ru/ru-dogecoin-2018.html"
+  status = 200
+
+[[redirects]]
+  from = "/dogecoin-2020"
+  to = "/dogecoin-2020.html"
+  status = 200
+
+[[redirects]]
+  from = "/dogecoin-2020/"
+  to = "/dogecoin-2020.html"
+  status = 200
+
+[[redirects]]
+  from = "/ru/dogecoin-2020"
+  to = "/ru/ru-dogecoin-2020.html"
+  status = 200
+
+[[redirects]]
+  from = "/ru/dogecoin-2020/"
+  to = "/ru/ru-dogecoin-2020.html"
+  status = 200
+
+[[redirects]]
+  from = "/dogecoin-2021"
+  to = "/dogecoin-2021.html"
+  status = 200
+
+[[redirects]]
+  from = "/dogecoin-2021/"
+  to = "/dogecoin-2021.html"
+  status = 200
+
+[[redirects]]
+  from = "/ru/dogecoin-2021"
+  to = "/ru/ru-dogecoin-2021.html"
+  status = 200
+
+[[redirects]]
+  from = "/ru/dogecoin-2021/"
+  to = "/ru/ru-dogecoin-2021.html"
+  status = 200
+
+# Фаза 3 — встраиваемый виджет для крипто-медиа. Тоже плоские файлы в корне
+# (widget-en.html, widget-ru.html), без папок — по той же причине, что и выше.
+[[redirects]]
+  from = "/widget"
+  to = "/widget-en.html"
+  status = 200
+
+[[redirects]]
+  from = "/widget/"
+  to = "/widget-en.html"
+  status = 200
+
+[[redirects]]
+  from = "/ru/widget"
+  to = "/widget-ru.html"
+  status = 200
+
+[[redirects]]
+  from = "/ru/widget/"
+  to = "/widget-ru.html"
+  status = 200
+
+# Фаза 4 — испанская и португальская версии сайта. Тоже плоские файлы в корне
+# (es-index.html, pt-index.html), без папок — по той же причине, что и выше.
+[[redirects]]
+  from = "/es"
+  to = "/es-index.html"
+  status = 200
+
+[[redirects]]
+  from = "/es/"
+  to = "/es-index.html"
+  status = 200
+
+[[redirects]]
+  from = "/pt"
+  to = "/pt-index.html"
+  status = 200
+
+[[redirects]]
+  from = "/pt/"
+  to = "/pt-index.html"
+  status = 200
