@@ -15,7 +15,9 @@
 // split actually safe.
 //
 // Query params: same as og-image.js, plus:
-//   lang  "ru" to link back to /ru instead of the English homepage
+//   lang  "ru" | "es" | "pt" to link back to that language's homepage
+//         instead of the English one (Phase 4: added es/pt alongside the
+//         existing ru support)
 //   id    a short id from shorten.js — resolved via Redis into the full set
 //         of fields above (see resolveParams below); when present, the
 //         image/canonical links below stay short too instead of growing
@@ -49,6 +51,59 @@ async function resolveParams(q) {
   return q;
 }
 
+// Per-language site root and share-page copy. Adding a language here is the
+// only change needed to support it in this function — buildTitle/buildDescription
+// below just look it up by q.lang, falling back to English for an unknown/
+// missing lang (covers the plain "/" homepage and any old share links).
+const SITES = {
+  en:  { url: 'https://cryptofumble.com',     htmlLang: 'en' },
+  ru:  { url: 'https://cryptofumble.com/ru',  htmlLang: 'ru' },
+  es:  { url: 'https://cryptofumble.com/es',  htmlLang: 'es' },
+  pt:  { url: 'https://cryptofumble.com/pt',  htmlLang: 'pt' },
+};
+
+function verbFor(lang, mode) {
+  const verbs = {
+    en: { sold: 'sold', dca: 'invested monthly in', bought: 'bought' },
+    ru: { sold: 'продал', dca: 'инвестировал в', bought: 'купил' },
+    es: { sold: 'vendí', dca: 'invertí cada mes en', bought: 'compré' },
+    pt: { sold: 'vendi', dca: 'investi todo mês em', bought: 'comprei' },
+  };
+  const set = verbs[lang] || verbs.en;
+  return mode === 'sold' ? set.sold : mode === 'dca' ? set.dca : set.bought;
+}
+
+function buildTitle(lang, q) {
+  if (!q.r) {
+    const brand = {
+      en: 'CryptoFumble — What Could You Have Made?',
+      ru: 'CryptoFumble — Сколько бы ты заработал?',
+      es: 'CryptoFumble — ¿Cuánto habrías ganado?',
+      pt: 'CryptoFumble — Quanto você teria ganhado?',
+    };
+    return brand[lang] || brand.en;
+  }
+  const coin = q.n || q.s || (lang === 'ru' ? 'крипту' : lang === 'es' ? 'cripto' : lang === 'pt' ? 'cripto' : 'crypto');
+  const verb = verbFor(lang, q.m);
+  const templates = {
+    en: `I would've had ${q.r} if I'd ${verb} ${coin}`,
+    ru: `Я бы имел ${q.r}, если бы ${verb} ${coin}`,
+    es: `Habría tenido ${q.r} si hubiera ${verb} ${coin}`,
+    pt: `Eu teria ${q.r} se tivesse ${verb} ${coin}`,
+  };
+  return templates[lang] || templates.en;
+}
+
+function buildDescription(lang) {
+  const d = {
+    en: 'Find out what your money would be worth today if you had bought crypto back then.',
+    ru: 'Узнай, сколько бы ты заработал (или потерял), если бы купил крипту раньше.',
+    es: 'Descubre cuánto valdría hoy tu dinero si hubieras comprado cripto en aquel entonces.',
+    pt: 'Descubra quanto valeria hoje o seu dinheiro se você tivesse comprado cripto naquela época.',
+  };
+  return d[lang] || d.en;
+}
+
 exports.handler = async (event) => {
   const rawQ = event.queryStringParameters || {};
   // When reached through the "/r/<id>" short-link redirect, Netlify does NOT
@@ -64,8 +119,8 @@ exports.handler = async (event) => {
     if (m) rawQ.id = m[1];
   }
   const q = await resolveParams(rawQ);
-  const isRu = q.lang === 'ru';
-  const siteUrl = isRu ? 'https://cryptofumble.com/ru' : 'https://cryptofumble.com';
+  const lang = SITES[q.lang] ? q.lang : 'en';
+  const site = SITES[lang];
   // imageUrl/shareUrl are built from the ORIGINAL request params (rawQ), not
   // the resolved ones — that way a short "?id=" link stays short all the way
   // through (og-image.js resolves the id itself too), while an old-style
@@ -76,17 +131,11 @@ exports.handler = async (event) => {
     ? `https://cryptofumble.com/r/${rawQ.id}`
     : `https://cryptofumble.com/.netlify/functions/share?${params.toString()}`;
 
-  const title = q.r
-    ? (isRu
-        ? `Я бы имел ${q.r}, если бы ${q.m === 'sold' ? 'продал' : q.m === 'dca' ? 'инвестировал в' : 'купил'} ${q.n || q.s || 'крипту'}`
-        : `I would've had ${q.r} if I'd ${q.m === 'sold' ? 'sold' : q.m === 'dca' ? 'invested monthly in' : 'bought'} ${q.n || q.s || 'crypto'}`)
-    : 'CryptoFumble — What Could You Have Made?';
-  const description = isRu
-    ? 'Узнай, сколько бы ты заработал (или потерял), если бы купил крипту раньше.'
-    : 'Find out what your money would be worth today if you had bought crypto back then.';
+  const title = buildTitle(lang, q);
+  const description = buildDescription(lang);
 
   const html = `<!DOCTYPE html>
-<html lang="${isRu ? 'ru' : 'en'}">
+<html lang="${site.htmlLang}">
 <head>
 <meta charset="utf-8">
 <title>${esc(title)}</title>
@@ -108,8 +157,8 @@ exports.handler = async (event) => {
 </style>
 </head>
 <body>
-  <p>Redirecting to <a href="${esc(siteUrl)}">CryptoFumble</a>…</p>
-  <script>location.replace(${JSON.stringify(siteUrl)});</script>
+  <p>Redirecting to <a href="${esc(site.url)}">CryptoFumble</a>…</p>
+  <script>location.replace(${JSON.stringify(site.url)});</script>
 </body>
 </html>`;
 
