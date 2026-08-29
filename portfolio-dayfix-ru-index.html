@@ -1,0 +1,3408 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-83PMW2GVF7"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-83PMW2GVF7');
+</script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="icon" href="/favicon-32.png" type="image/png">
+<link rel="apple-touch-icon" href="/favicon-180.png">
+<!-- PWA: позволяет добавить сайт на экран телефона (Фаза 1, быстрая победа) -->
+<link rel="manifest" href="/manifest-ru.json">
+<meta name="theme-color" content="#0A0B10">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="CryptoFumble">
+<title>CryptoFumble — Сколько бы ты заработал?</title>
+<meta name="description" content="Узнай, сколько стоили бы твои деньги сегодня, если бы ты купил любую крипту, на любую сумму, в любую дату. Бесплатный калькулятор с живыми ценами — жестоко честно и странно приятно.">
+<link rel="canonical" href="https://cryptofumble.com/ru/">
+<link rel="alternate" hreflang="en" href="https://cryptofumble.com/">
+<link rel="alternate" hreflang="ru" href="https://cryptofumble.com/ru/">
+<link rel="alternate" hreflang="es" href="https://cryptofumble.com/es/">
+<link rel="alternate" hreflang="pt" href="https://cryptofumble.com/pt/">
+<link rel="alternate" hreflang="x-default" href="https://cryptofumble.com/">
+<!-- Open Graph (Twitter, Product Hunt, Slack, Facebook, etc.) -->
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://cryptofumble.com/ru/">
+<meta property="og:title" content="CryptoFumble — Сколько бы ты заработал?">
+<meta property="og:description" content="Узнай, сколько стоили бы твои деньги сегодня, если бы ты купил любую крипту, на любую сумму, в любую дату.">
+<meta property="og:image" content="https://cryptofumble.com/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="CryptoFumble — Сколько бы ты заработал?">
+<meta name="twitter:description" content="Узнай, сколько стоили бы твои деньги сегодня, если бы ты купил любую крипту, на любую сумму, в любую дату.">
+<meta name="twitter:image" content="https://cryptofumble.com/og-image.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0A0B10;
+    --panel:#12161D;
+    --panel-border:rgba(255,255,255,0.08);
+    --panel-border-soft:rgba(255,255,255,0.06);
+    --field-bg:#0B0E13;
+    --paper:#F7F1E3;
+    --paper-ink:#2A2418;
+    --green:#16C784;
+    --red:#EA3943;
+    --gold:#F0B90B;
+    --gold-soft:#FFD65C;
+    --text:#F3F2EE;
+    --muted:#98A0AC;
+    --mono:'IBM Plex Mono', monospace;
+    --sans:'Manrope', sans-serif;
+    --r-sm:10px;
+    --r-md:14px;
+    --r-lg:20px;
+    --r-xl:24px;
+    --ease:cubic-bezier(.16,1,.3,1);
+    --shadow-1:0 1px 0 rgba(255,255,255,0.05) inset, 0 1px 2px rgba(0,0,0,0.4);
+    --shadow-2:0 1px 0 rgba(255,255,255,0.05) inset, 0 20px 40px -20px rgba(0,0,0,0.6), 0 6px 16px -8px rgba(0,0,0,0.45);
+    --shadow-3:0 1px 0 rgba(255,255,255,0.06) inset, 0 32px 70px -24px rgba(0,0,0,0.65);
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  html{scroll-behavior:smooth;}
+  body{
+    background:
+      radial-gradient(ellipse 900px 520px at 50% -12%, rgba(240,185,11,0.11), transparent 60%),
+      radial-gradient(ellipse 700px 420px at 105% 105%, rgba(22,199,132,0.05), transparent 60%),
+      var(--bg);
+    color:var(--text);
+    font-family:var(--sans);
+    padding:40px 18px 72px;
+    min-height:100vh;
+    -webkit-font-smoothing:antialiased;
+    -moz-osx-font-smoothing:grayscale;
+  }
+  :focus-visible{outline:2px solid rgba(240,185,11,0.6); outline-offset:2px; border-radius:4px;}
+  .wrap{max-width:640px; margin:0 auto;}
+  .layout-grid{display:block;}
+  .main-col{min-width:0;}
+  .side-col{min-width:0;}
+  @media (min-width:980px){
+    .wrap{max-width:1040px;}
+    .layout-grid{
+      display:grid;
+      grid-template-columns:640px minmax(280px, 1fr);
+      gap:32px;
+      align-items:start;
+    }
+    .side-col{
+      position:sticky;
+      top:32px;
+    }
+    .side-col .live-feed{
+      max-width:none;
+      margin:0;
+      padding:24px;
+      border-top:none;
+      background:linear-gradient(180deg, rgba(255,255,255,0.035), rgba(255,255,255,0) 42%), var(--panel);
+      border:1px solid var(--panel-border);
+      border-radius:var(--r-xl);
+      box-shadow:var(--shadow-2);
+    }
+    .side-col .live-feed-title{text-align:left;}
+  }
+  @keyframes fadeUp{ from{opacity:0; transform:translateY(10px);} to{opacity:1; transform:translateY(0);} }
+  .eyebrow{
+    font-family:var(--mono);
+    font-size:12px;
+    letter-spacing:0.16em;
+    text-transform:uppercase;
+    color:var(--gold);
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+    background:rgba(240,185,11,0.08);
+    border:1px solid rgba(240,185,11,0.18);
+    padding:7px 14px 7px 12px;
+    border-radius:999px;
+    margin-bottom:18px;
+    animation:fadeUp .5s var(--ease) both;
+  }
+  .eyebrow::before{content:"●"; color:var(--green); font-size:9px; animation:pulse 1.6s infinite;}
+  @keyframes pulse{0%,100%{opacity:1;} 50%{opacity:0.25;}}
+  h1{
+    font-family:var(--sans);
+    font-weight:800;
+    font-size:clamp(30px, 6.6vw, 44px);
+    line-height:1.06;
+    letter-spacing:-0.035em;
+    margin-bottom:14px;
+    animation:fadeUp .5s var(--ease) .05s both;
+  }
+  h1 span{
+    background:linear-gradient(135deg, var(--gold-soft), var(--gold));
+    -webkit-background-clip:text; background-clip:text; color:transparent;
+  }
+  .sub{
+    color:var(--muted);
+    font-size:16px;
+    line-height:1.6;
+    margin-bottom:32px;
+    max-width:50ch;
+    animation:fadeUp .5s var(--ease) .1s both;
+  }
+  .live-feed{
+    max-width:480px;
+    margin:44px auto 0;
+    padding-top:28px;
+    border-top:1px solid var(--panel-border-soft);
+  }
+  .live-feed-title{
+    font-family:var(--mono);
+    font-size:10px;
+    letter-spacing:0.1em;
+    color:var(--muted);
+    text-align:center;
+    margin-bottom:16px;
+  }
+  .live-feed-row{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    padding:11px 14px;
+    margin-bottom:6px;
+    border-radius:12px;
+    background:rgba(255,255,255,0.025);
+    font-size:13px;
+    color:var(--muted);
+    animation:feedIn .4s ease;
+    transition:background .2s var(--ease), transform .2s var(--ease);
+  }
+  .live-feed-row:hover{background:rgba(255,255,255,0.05); transform:translateY(-1px);}
+  .live-feed-row:last-child{margin-bottom:0;}
+  .live-feed-row b{color:var(--text);}
+  .live-feed-row .fr-mult{
+    margin-left:auto;
+    font-family:var(--mono);
+    font-weight:700;
+    flex-shrink:0;
+  }
+  .live-feed-row .fr-mult.pos{color:#16C784;}
+  .live-feed-row .fr-mult.neg{color:#EA3943;}
+  @keyframes feedIn{ from{opacity:0; transform:translateY(-4px);} to{opacity:1; transform:translateY(0);} }
+  .regret-counter{
+    font-family:var(--mono);
+    font-size:12px;
+    color:var(--muted);
+    margin-bottom:22px;
+  }
+  .regret-counter b{color:var(--gold); font-weight:700;}
+  .faq{
+    max-width:480px;
+    margin:40px auto 0;
+    padding-top:28px;
+    border-top:1px solid var(--panel-border-soft);
+  }
+  .faq-title{
+    font-family:var(--mono);
+    font-size:10px;
+    letter-spacing:0.1em;
+    color:var(--muted);
+    text-align:center;
+    margin-bottom:16px;
+    text-transform:uppercase;
+  }
+  .faq details{
+    border-bottom:1px solid var(--panel-border-soft);
+    padding:14px 2px;
+  }
+  .faq details:last-child{border-bottom:none;}
+  .faq summary{
+    cursor:pointer;
+    font-weight:700;
+    font-size:14px;
+    color:var(--text);
+    list-style:none;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:10px;
+    transition:color .2s var(--ease);
+  }
+  .faq summary:hover{color:var(--gold);}
+  .faq summary::-webkit-details-marker{display:none;}
+  .faq summary::after{
+    content:"+";
+    color:var(--gold);
+    font-size:18px;
+    flex-shrink:0;
+    display:inline-block;
+    transition:transform .25s var(--ease);
+  }
+  .faq details[open] summary::after{transform:rotate(45deg);}
+  .faq p{
+    font-size:13px;
+    color:var(--muted);
+    line-height:1.6;
+    margin-top:10px;
+  }
+  .daily-regret{
+    background:linear-gradient(135deg, rgba(240,185,11,0.09), rgba(240,185,11,0.02));
+    border:1px solid rgba(240,185,11,0.22);
+    border-radius:var(--r-lg);
+    padding:18px 20px;
+    margin-bottom:28px;
+    box-shadow:0 1px 0 rgba(255,255,255,0.04) inset;
+    animation:fadeUp .5s var(--ease) .15s both;
+  }
+  .daily-regret-label{
+    font-family:var(--mono);
+    font-size:10px;
+    letter-spacing:0.12em;
+    color:var(--gold);
+    margin-bottom:8px;
+    font-weight:700;
+  }
+  .daily-regret-text{
+    font-size:14px;
+    line-height:1.5;
+    color:var(--text);
+    margin-bottom:10px;
+  }
+  .daily-regret-text b{color:var(--gold);}
+  .daily-regret-cta{
+    background:none;
+    border:none;
+    color:var(--gold);
+    font-family:var(--sans);
+    font-weight:700;
+    font-size:13px;
+    cursor:pointer;
+    padding:0;
+  }
+  .daily-regret-cta:hover{text-decoration:underline;}
+  .panel{
+    background:linear-gradient(180deg, rgba(255,255,255,0.035), rgba(255,255,255,0) 42%), var(--panel);
+    border:1px solid var(--panel-border);
+    border-radius:var(--r-xl);
+    padding:26px;
+    margin-bottom:24px;
+    box-shadow:var(--shadow-2);
+    animation:fadeUp .5s var(--ease) .2s both;
+  }
+  .field{margin-bottom:18px;}
+  .field:last-child{margin-bottom:0;}
+  label{
+    display:block;
+    font-family:var(--mono);
+    font-size:11px;
+    letter-spacing:0.09em;
+    text-transform:uppercase;
+    color:var(--muted);
+    margin-bottom:10px;
+  }
+  .coin-grid{
+    display:grid;
+    grid-template-columns:repeat(4, 1fr);
+    gap:10px;
+  }
+  .coin-search-wrap{position:relative; margin-bottom:10px;}
+  #coinSearch{
+    width:100%;
+    background:var(--field-bg);
+    border:1px solid var(--panel-border);
+    color:var(--text);
+    font-family:var(--sans);
+    font-size:15px;
+    padding:13px 16px;
+    border-radius:var(--r-md);
+    outline:none;
+    transition:border-color .2s var(--ease), box-shadow .2s var(--ease);
+  }
+  #coinSearch:focus{border-color:var(--gold); box-shadow:0 0 0 4px rgba(240,185,11,0.12);}
+  .coin-dropdown{
+    display:none;
+    position:absolute;
+    left:0; right:0; top:calc(100% + 8px);
+    background:#10141A;
+    border:1px solid var(--panel-border);
+    border-radius:var(--r-lg);
+    max-height:260px;
+    overflow-y:auto;
+    z-index:20;
+    box-shadow:var(--shadow-3);
+  }
+  .coin-dropdown.open{display:block;}
+  .coin-opt{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    padding:11px 14px;
+    cursor:pointer;
+    border-bottom:1px solid var(--panel-border-soft);
+    transition:background .15s ease;
+  }
+  .coin-opt:last-child{border-bottom:none;}
+  .coin-opt:hover{background:rgba(240,185,11,0.08);}
+  .coin-opt img{width:22px; height:22px; border-radius:50%; flex-shrink:0;}
+  .co-avatar{
+    width:22px; height:22px; border-radius:50%; flex-shrink:0;
+    background:rgba(240,185,11,0.15); color:var(--gold);
+    display:flex; align-items:center; justify-content:center;
+    font-family:var(--mono); font-weight:700; font-size:11px;
+  }
+  .coin-dropdown-note{
+    padding:9px 14px; font-size:10px; letter-spacing:0.04em;
+    color:var(--muted); border-bottom:1px solid var(--panel-border-soft);
+    text-transform:uppercase;
+  }
+  .coin-opt .co-sym{font-family:var(--mono); font-weight:700; font-size:13px; color:var(--gold);}
+  .co-avatar-sized{width:22px; height:22px; border-radius:50%; flex-shrink:0; display:block;}
+  .co-avatar-sized.avatar-fallback{
+    background:rgba(240,185,11,0.15); color:var(--gold);
+    display:flex; align-items:center; justify-content:center;
+    font-family:var(--mono); font-weight:700; font-size:11px;
+  }
+  .coin-opt .co-name{font-size:12px; color:var(--muted);}
+  .coin-dropdown .empty, .coin-dropdown .loading{
+    padding:16px; font-size:12px; color:var(--muted); text-align:center;
+  }
+  .selected-coin{
+    font-family:var(--mono);
+    font-size:11px;
+    color:var(--muted);
+    margin-top:10px;
+    min-height:14px;
+    display:flex;
+    align-items:center;
+    gap:6px;
+  }
+  .selected-coin b{color:var(--gold);}
+  .selected-coin-icon{width:16px; height:16px; border-radius:50%; flex-shrink:0;}
+  .selected-coin-icon.avatar-fallback{
+    background:rgba(240,185,11,0.15); color:var(--gold);
+    display:flex; align-items:center; justify-content:center;
+    font-family:var(--mono); font-weight:700; font-size:9px;
+  }
+  .coin-btn{
+    font-family:var(--mono);
+    font-weight:600;
+    font-size:13px;
+    background:var(--field-bg);
+    border:1px solid var(--panel-border);
+    color:var(--muted);
+    padding:11px 4px 10px;
+    border-radius:var(--r-sm);
+    cursor:pointer;
+    transition:border-color .2s var(--ease), color .2s var(--ease), transform .2s var(--ease), box-shadow .2s var(--ease);
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:5px;
+  }
+  .coin-btn:hover{border-color:var(--gold); color:var(--text); transform:translateY(-2px);}
+  .coin-btn.active{
+    background:rgba(240,185,11,0.12);
+    border-color:var(--gold);
+    color:var(--gold);
+    box-shadow:0 0 0 3px rgba(240,185,11,0.12);
+  }
+  .coin-btn-icon{
+    width:22px; height:22px; border-radius:50%;
+    display:block;
+  }
+  .coin-btn-icon.avatar-fallback{
+    background:rgba(139,147,161,0.15); color:var(--muted);
+    display:flex; align-items:center; justify-content:center;
+    font-family:var(--mono); font-weight:700; font-size:11px;
+  }
+  .coin-btn.active .coin-btn-icon.avatar-fallback{
+    background:rgba(240,185,11,0.2); color:var(--gold);
+  }
+  .row{display:flex; gap:12px;}
+  .row > .field{flex:1;}
+  input[type=number], input[type=month]{
+    width:100%;
+    background:var(--field-bg);
+    border:1px solid var(--panel-border);
+    color:var(--text);
+    font-family:var(--mono);
+    font-size:16px;
+    padding:13px 16px;
+    border-radius:var(--r-md);
+    outline:none;
+    transition:border-color .2s var(--ease), box-shadow .2s var(--ease);
+  }
+  input[type=number]:focus, input[type=month]:focus{border-color:var(--gold); box-shadow:0 0 0 4px rgba(240,185,11,0.12);}
+  /* --- Date trigger button (opens wheel picker) --- */
+  .date-trigger{
+    width:100%;
+    text-align:left;
+    background:var(--field-bg);
+    border:1px solid var(--panel-border);
+    color:var(--text);
+    font-family:var(--mono);
+    font-size:16px;
+    padding:13px 16px;
+    border-radius:var(--r-md);
+    cursor:pointer;
+    position:relative;
+    transition:border-color .2s var(--ease);
+  }
+  .date-trigger:hover{border-color:var(--gold);}
+  .date-trigger::after{
+    content:"📅";
+    position:absolute;
+    right:14px; top:50%; transform:translateY(-50%);
+    font-size:14px; opacity:0.6;
+  }
+  /* --- Wheel picker bottom sheet --- */
+  .date-sheet-overlay{
+    display:none;
+    position:fixed; inset:0;
+    background:rgba(0,0,0,0.6);
+    z-index:100;
+    align-items:flex-end;
+    justify-content:center;
+  }
+  .date-sheet-overlay.open{display:flex;}
+  .date-sheet{
+    width:100%;
+    max-width:640px;
+    background:#12161D;
+    border-radius:28px 28px 0 0;
+    border:1px solid var(--panel-border);
+    border-bottom:none;
+    padding-bottom:env(safe-area-inset-bottom, 0px);
+    box-shadow:0 -20px 60px rgba(0,0,0,0.5);
+    animation:sheetUp .3s var(--ease);
+  }
+  @keyframes sheetUp{
+    from{transform:translateY(100%);}
+    to{transform:translateY(0);}
+  }
+  .date-sheet-header{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:16px 20px;
+    border-bottom:1px solid var(--panel-border-soft);
+    font-family:var(--sans);
+    font-weight:700;
+    font-size:14px;
+  }
+  .date-sheet-header button{
+    background:none; border:none;
+    font-family:var(--sans);
+    font-size:14px;
+    cursor:pointer;
+    padding:4px 2px;
+  }
+  #dateCancel{color:var(--muted); font-weight:500;}
+  #dateDone{color:var(--gold); font-weight:800;}
+  .wheel-wrap{
+    position:relative;
+    display:flex;
+    justify-content:center;
+    gap:0;
+    height:220px; /* 5 rows x 44px — do not change, JS scroll math depends on this */
+    overflow:hidden;
+    padding:0 20px;
+  }
+  .wheel-highlight{
+    position:absolute;
+    left:20px; right:20px; top:88px; /* center row: (220-44)/2 */
+    height:44px;
+    background:rgba(240,185,11,0.08);
+    border-top:1px solid rgba(240,185,11,0.35);
+    border-bottom:1px solid rgba(240,185,11,0.35);
+    pointer-events:none;
+    z-index:2;
+  }
+  .wheel-fade{
+    position:absolute; left:0; right:0; height:88px;
+    pointer-events:none; z-index:3;
+  }
+  .wheel-fade-top{top:0; background:linear-gradient(#12161D, rgba(18,22,29,0));}
+  .wheel-fade-bottom{bottom:0; background:linear-gradient(rgba(18,22,29,0), #12161D);}
+  .wheel-col{
+    flex:1;
+    max-width:220px;
+    overflow-y:scroll;
+    scroll-snap-type:y mandatory;
+    scrollbar-width:none;
+    -ms-overflow-style:none;
+  }
+  .wheel-col::-webkit-scrollbar{display:none;}
+  .wheel-item{
+    height:44px; /* do not change — JS ROW_H constant depends on this */
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    scroll-snap-align:center;
+    font-family:var(--mono);
+    font-size:17px;
+    color:var(--muted);
+    transition:color .2s var(--ease), opacity .2s var(--ease);
+    opacity:0.4;
+    user-select:none;
+  }
+  .wheel-item.picked{
+    color:var(--text);
+    font-weight:700;
+    opacity:1;
+  }
+  .wheel-item.disabled{
+    color:#3A414D;
+    opacity:0.25;
+  }
+  .date-sheet-hint{
+    text-align:center;
+    font-size:11px;
+    color:var(--muted);
+    padding:2px 18px 18px;
+    min-height:16px;
+  }
+  .amount-wrap{position:relative;}
+  .amount-wrap::before{
+    content:"$";
+    position:absolute;
+    left:14px; top:50%; transform:translateY(-50%);
+    color:var(--muted);
+    font-family:var(--mono);
+    pointer-events:none;
+  }
+  .amount-wrap input{padding-left:26px;}
+  .amount-wrap.no-prefix::before{content:""; display:none;}
+  .amount-wrap.no-prefix input{padding-left:16px;}
+  .mode-toggle{
+    display:flex;
+    gap:8px;
+    margin-bottom:18px;
+    background:var(--field-bg);
+    border:1px solid var(--panel-border);
+    border-radius:var(--r-md);
+    padding:4px;
+  }
+  .mode-btn{
+    flex:1;
+    background:transparent;
+    border:none;
+    color:var(--muted);
+    font-family:var(--sans);
+    font-weight:700;
+    font-size:13px;
+    padding:11px;
+    border-radius:10px;
+    cursor:pointer;
+    transition:background .2s var(--ease), color .2s var(--ease);
+  }
+  .mode-btn:hover{color:var(--text);}
+  .mode-btn.active{
+    background:rgba(240,185,11,0.13);
+    color:var(--gold);
+    box-shadow:0 1px 0 rgba(255,255,255,0.05) inset;
+  }
+  .cta{
+    width:100%;
+    background:linear-gradient(180deg, var(--gold-soft), var(--gold));
+    color:#1A1400;
+    border:none;
+    font-family:var(--sans);
+    font-weight:800;
+    font-size:15px;
+    padding:16px;
+    border-radius:var(--r-lg);
+    cursor:pointer;
+    letter-spacing:-0.01em;
+    box-shadow:0 1px 0 rgba(255,255,255,0.3) inset, 0 12px 26px -10px rgba(240,185,11,0.45);
+    transition:transform .2s var(--ease), box-shadow .2s var(--ease);
+  }
+  .cta:hover{box-shadow:0 1px 0 rgba(255,255,255,0.3) inset, 0 16px 32px -10px rgba(240,185,11,0.55); transform:translateY(-2px);}
+  .cta:active{transform:translateY(0) scale(0.985);}
+  .cta:disabled{opacity:0.65; cursor:wait; transform:none; box-shadow:none;}
+  .cta .spin{
+    display:inline-block; width:13px; height:13px; margin-right:8px;
+    border:2px solid rgba(26,20,0,0.25); border-top-color:#1A1400;
+    border-radius:50%; vertical-align:-2px;
+    animation:spin .7s linear infinite;
+  }
+  @keyframes spin{to{transform:rotate(360deg);}}
+  .r-source{
+    font-size:9px; letter-spacing:0.12em; text-transform:uppercase;
+    text-align:center; margin-top:2px; opacity:0.5;
+  }
+  .r-source.live{color:#0F7A50; opacity:0.8;}
+  .r-source.demo{color:#A87A2A; opacity:0.8;}
+  /* --- RECEIPT REVEAL --- */
+  #receipt-holder{
+    display:none;
+    margin-top:24px;
+  }
+  .receipt{
+    background:var(--paper);
+    color:var(--paper-ink);
+    font-family:var(--mono);
+    padding:28px 24px 22px;
+    position:relative;
+    clip-path:polygon(
+      0% 1.5%, 4% 0%, 8% 1.5%, 12% 0%, 16% 1.5%, 20% 0%, 24% 1.5%, 28% 0%, 32% 1.5%, 36% 0%,
+      40% 1.5%, 44% 0%, 48% 1.5%, 52% 0%, 56% 1.5%, 60% 0%, 64% 1.5%, 68% 0%, 72% 1.5%, 76% 0%,
+      80% 1.5%, 84% 0%, 88% 1.5%, 92% 0%, 96% 1.5%, 100% 0%,
+      100% 98.5%, 96% 100%, 92% 98.5%, 88% 100%, 84% 98.5%, 80% 100%, 76% 98.5%, 72% 100%,
+      68% 98.5%, 64% 100%, 60% 98.5%, 56% 100%, 52% 98.5%, 48% 100%, 44% 98.5%, 40% 100%,
+      36% 98.5%, 32% 100%, 28% 98.5%, 24% 100%, 20% 98.5%, 16% 100%, 12% 98.5%, 8% 100%,
+      4% 98.5%, 0% 100%
+    );
+    box-shadow:0 1px 0 rgba(255,255,255,0.5) inset, 0 30px 70px -20px rgba(0,0,0,0.55), 0 10px 24px -12px rgba(0,0,0,0.4);
+    animation:dropIn .5s cubic-bezier(.2,.9,.3,1.3);
+  }
+  @keyframes dropIn{
+    from{opacity:0; transform:translateY(-16px) scale(0.98);}
+    to{opacity:1; transform:translateY(0) scale(1);}
+  }
+  .r-title{
+    text-align:center;
+    font-size:11px;
+    letter-spacing:0.2em;
+    text-transform:uppercase;
+    opacity:0.55;
+    margin-bottom:4px;
+  }
+  .r-sub{
+    text-align:center;
+    font-size:11px;
+    opacity:0.45;
+    margin-bottom:18px;
+  }
+  .r-sub-icon{
+    width:14px; height:14px; border-radius:50%;
+    vertical-align:-2px; margin-right:5px;
+  }
+  .r-sub-icon.avatar-fallback{
+    background:rgba(42,36,24,0.12); color:rgba(42,36,24,0.65);
+    display:inline-flex; align-items:center; justify-content:center;
+    font-family:var(--mono); font-weight:700; font-size:8px;
+    vertical-align:-3px;
+  }
+  .dashed{border-top:1.5px dashed rgba(42,36,24,0.35); margin:14px 0;}
+  .r-line{
+    display:flex;
+    justify-content:space-between;
+    font-size:13px;
+    margin-bottom:8px;
+  }
+  .r-line span:last-child{font-weight:600;}
+  .r-big{
+    text-align:center;
+    margin:18px 0 10px;
+  }
+  .r-big .label{font-size:11px; letter-spacing:0.1em; text-transform:uppercase; opacity:0.5; margin-bottom:6px;}
+  .r-big .num{
+    font-size:clamp(32px, 9vw, 46px);
+    font-weight:700;
+    letter-spacing:-0.03em;
+  }
+  .r-big .num.pos{color:#0F7A50;}
+  .r-big .num.neg{color:#A82A30;}
+  .r-local-currency{
+    text-align:center;
+    font-family:var(--mono);
+    font-size:12px;
+    opacity:0.5;
+    margin-top:2px;
+  }
+  .r-mult{
+    text-align:center;
+    font-size:13px;
+    font-weight:600;
+    padding:6px 14px;
+    border-radius:999px;
+    display:inline-block;
+    margin:0 auto;
+  }
+  .r-mult-wrap{text-align:center; margin-bottom:6px;}
+  .r-tier{
+    text-align:center;
+    font-family:var(--mono);
+    font-weight:700;
+    font-size:13px;
+    letter-spacing:0.06em;
+    color:var(--gold);
+    margin-bottom:10px;
+  }
+  .r-mult.pos{background:rgba(15,122,80,0.12); color:#0F7A50;}
+  .r-mult.neg{background:rgba(168,42,48,0.12); color:#A82A30;}
+  .r-chart-wrap{margin:14px 0 4px; display:none;}
+  .r-chart-wrap svg{width:100%; height:64px; display:block;}
+  .r-chart-caption{
+    font-size:10px; letter-spacing:0.06em; text-transform:uppercase;
+    color:rgba(42,36,24,0.45); text-align:center; margin-top:4px;
+  }
+  .r-compare{
+    font-size:12px;
+    opacity:0.6;
+    text-align:center;
+    margin-top:14px;
+    line-height:1.5;
+  }
+  .r-footer{
+    text-align:center;
+    font-size:10px;
+    opacity:0.4;
+    margin-top:16px;
+    letter-spacing:0.05em;
+  }
+  .share-cta{
+    width:100%;
+    background:var(--field-bg);
+    color:var(--gold);
+    border:1px solid var(--gold);
+    font-family:var(--sans);
+    font-weight:700;
+    font-size:14px;
+    padding:14px;
+    border-radius:var(--r-md);
+    cursor:pointer;
+    margin-top:14px;
+    transition:background .2s var(--ease), transform .2s var(--ease);
+  }
+  .share-cta:hover{background:rgba(240,185,11,0.08); transform:translateY(-1px);}
+  .cta-invest{
+    display:block;
+    width:100%;
+    background:linear-gradient(180deg, #21DC97, #0F9D68);
+    color:#06251A;
+    font-family:var(--sans);
+    font-weight:800;
+    font-size:15px;
+    text-align:center;
+    padding:15px;
+    border-radius:var(--r-md);
+    text-decoration:none;
+    margin-top:14px;
+    box-sizing:border-box;
+    box-shadow:0 1px 0 rgba(255,255,255,0.25) inset, 0 12px 24px -10px rgba(22,199,132,0.4);
+    transition:transform .2s var(--ease), box-shadow .2s var(--ease);
+  }
+  .cta-invest:hover{box-shadow:0 1px 0 rgba(255,255,255,0.25) inset, 0 16px 30px -10px rgba(22,199,132,0.5); transform:translateY(-2px);}
+  .invest-note{
+    text-align:center;
+    font-size:11px;
+    color:var(--muted);
+    opacity:0.75;
+    margin-top:8px;
+    line-height:1.5;
+  }
+  .r-disclaimer{
+    text-align:center;
+    font-size:10.5px;
+    opacity:0.6;
+    margin-top:10px;
+    line-height:1.5;
+  }
+  .compare-block{margin-top:18px; text-align:center;}
+  .compare-toggle{
+    background:none;
+    border:1px dashed var(--panel-border);
+    color:var(--muted);
+    font-family:var(--mono);
+    font-size:11px;
+    letter-spacing:0.04em;
+    padding:10px 16px;
+    border-radius:999px;
+    cursor:pointer;
+    transition:border-color .2s var(--ease), color .2s var(--ease);
+  }
+  .compare-toggle:hover{border-color:var(--gold); color:var(--gold);}
+  .compare-picker{margin-top:14px; animation:fadeUp .3s var(--ease) both;}
+  .compare-picker-label{font-size:11px; color:var(--muted); margin-bottom:8px;}
+  .compare-coin-grid{display:flex; flex-wrap:wrap; gap:8px; justify-content:center;}
+  .compare-result{
+    margin-top:14px;
+    padding:16px;
+    border-radius:14px;
+    background:rgba(255,255,255,0.03);
+    border:1px solid var(--panel-border-soft);
+    font-size:13.5px;
+    line-height:1.65;
+    text-align:left;
+    animation:fadeUp .3s var(--ease) both;
+  }
+  .compare-result b{color:var(--text);}
+  .compare-result .cr-win{color:#16C784; font-weight:700;}
+  .compare-result .cr-lose{color:#EA3943; font-weight:700;}
+  .compare-result .r-line{padding-bottom:6px; border-bottom:1px dashed var(--panel-border-soft);}
+  .compare-result .r-line:last-of-type{border-bottom:none;}
+  .portfolio-calc-btn{margin-top:14px; font-size:13px; padding:12px; width:100%;}
+  .share-toast{
+    position:fixed;
+    left:50%;
+    bottom:24px;
+    transform:translateX(-50%) translateY(20px);
+    max-width:min(92vw, 420px);
+    background:rgba(20,20,24,0.97);
+    color:var(--text);
+    border:1px solid var(--panel-border);
+    border-radius:14px;
+    padding:14px 18px;
+    font-size:13px;
+    line-height:1.5;
+    box-shadow:0 12px 40px rgba(0,0,0,0.5);
+    opacity:0;
+    pointer-events:none;
+    transition:opacity .25s var(--ease), transform .25s var(--ease);
+    z-index:9999;
+  }
+  .share-toast.visible{opacity:1; transform:translateX(-50%) translateY(0); pointer-events:auto;}
+  .disclaimer{
+    font-size:11px;
+    color:var(--muted);
+    text-align:center;
+    margin-top:28px;
+    line-height:1.6;
+    opacity:0.55;
+  }
+
+  /* ═══ New: favorite coins (localStorage, no backend) ═══ */
+  .fav-coins-wrap{margin-bottom:10px;}
+  .fav-coins{display:flex; flex-wrap:wrap; gap:8px; margin-bottom:14px;}
+  .fav-coins .coin-btn{flex:0 0 auto; min-width:64px;}
+  .fav-star{
+    background:none; border:none; cursor:pointer;
+    font-size:15px; line-height:1; color:var(--muted);
+    padding:0 0 0 6px; vertical-align:-1px;
+    transition:color .2s var(--ease), transform .15s var(--ease);
+  }
+  .fav-star:hover{color:var(--gold); transform:scale(1.15);}
+  .fav-star.active{color:var(--gold);}
+  /* ═══ New: quick period-select shortcuts ═══ */
+  .period-quick{display:flex; gap:6px; margin-top:-6px;}
+  .period-btn{
+    flex:1;
+    background:var(--field-bg);
+    border:1px solid var(--panel-border);
+    color:var(--muted);
+    font-family:var(--mono);
+    font-weight:700;
+    font-size:11px;
+    padding:9px 4px;
+    border-radius:9px;
+    cursor:pointer;
+    transition:border-color .2s var(--ease), color .2s var(--ease), background .2s var(--ease);
+  }
+  .period-btn:hover{border-color:var(--gold); color:var(--text);}
+  .period-btn.active{background:rgba(240,185,11,0.13); border-color:var(--gold); color:var(--gold);}
+  /* ═══ New: value-by-year breakdown table on the receipt ═══ */
+  .r-year-table{margin:16px 0 4px;}
+  .r-year-table-title{
+    font-size:10px; letter-spacing:0.08em; text-transform:uppercase;
+    text-align:center; opacity:0.5; margin-bottom:8px;
+  }
+  .r-year-row{
+    display:flex; justify-content:space-between; font-size:12px;
+    padding:5px 0; border-bottom:1px dashed rgba(42,36,24,0.2);
+  }
+  .r-year-row:last-child{border-bottom:none;}
+  .r-year-row .ry-year{font-weight:700;}
+  .r-year-row .ry-val{font-weight:600;}
+
+  /* ═══ Page-level tabs: Calculator vs My Portfolio ═══ */
+  .page-tabs{
+    display:flex; gap:8px; margin-bottom:22px;
+    background:var(--field-bg); border:1px solid var(--panel-border);
+    border-radius:var(--r-md); padding:4px;
+  }
+  .page-tab{
+    flex:1; background:transparent; border:none; color:var(--muted);
+    font-family:var(--sans); font-weight:700; font-size:13px;
+    padding:11px; border-radius:10px; cursor:pointer;
+    transition:background .2s var(--ease), color .2s var(--ease);
+  }
+  .page-tab:hover{color:var(--text);}
+  .page-tab.active{
+    background:rgba(240,185,11,0.13); color:var(--gold);
+    box-shadow:0 1px 0 rgba(255,255,255,0.05) inset;
+  }
+  /* ═══ My Portfolio tab ═══ */
+  #pfCoinSearch{
+    width:100%; background:var(--field-bg); border:1px solid var(--panel-border);
+    color:var(--text); font-family:var(--sans); font-size:15px;
+    padding:13px 16px; border-radius:var(--r-md); outline:none;
+    transition:border-color .2s var(--ease), box-shadow .2s var(--ease);
+  }
+  #pfCoinSearch:focus{border-color:var(--gold); box-shadow:0 0 0 4px rgba(240,185,11,0.12);}
+  .pf-note{
+    font-size:12px; color:var(--muted); text-align:center;
+    margin:0 0 20px; line-height:1.6;
+  }
+  .pf-add-btn{
+    width:100%; background:var(--gold); color:#1C1503; border:none;
+    font-family:var(--sans); font-weight:800; font-size:15px;
+    padding:14px; border-radius:var(--r-md); cursor:pointer;
+    transition:filter .2s var(--ease); margin-top:4px;
+  }
+  .pf-add-btn:hover{filter:brightness(1.08);}
+  .pf-add-btn:disabled{opacity:0.5; cursor:not-allowed;}
+  .pf-computed-price{
+    font-family:var(--mono); font-size:12px; color:var(--muted);
+    margin-top:8px; min-height:16px;
+  }
+  .pf-computed-price b{color:var(--gold);}
+  .pf-empty{
+    text-align:center; color:var(--muted); font-size:13px;
+    padding:30px 10px; line-height:1.7;
+  }
+  .pf-totals{
+    display:flex; justify-content:space-around; text-align:center;
+    background:var(--panel); border:1px solid var(--panel-border);
+    border-radius:var(--r-lg); padding:20px 12px; margin-bottom:20px;
+    box-shadow:var(--shadow-2);
+  }
+  .pf-totals .pf-tot-item{flex:1;}
+  .pf-totals .pf-tot-label{
+    font-family:var(--mono); font-size:10px; letter-spacing:0.08em;
+    text-transform:uppercase; color:var(--muted); margin-bottom:8px;
+  }
+  .pf-totals .pf-tot-val{font-family:var(--mono); font-weight:700; font-size:19px;}
+  .pf-totals .pf-tot-val.pos{color:#16C784;}
+  .pf-totals .pf-tot-val.neg{color:#EA3943;}
+  .pf-coin-card{
+    background:var(--panel); border:1px solid var(--panel-border);
+    border-radius:var(--r-lg); padding:18px 20px; margin-bottom:14px;
+    box-shadow:var(--shadow-1);
+  }
+  .pf-coin-head{display:flex; align-items:center; gap:10px; margin-bottom:14px;}
+  .pf-coin-head img, .pf-coin-head .avatar-fallback{width:28px; height:28px; border-radius:50%;}
+  .pf-coin-head .avatar-fallback{
+    background:rgba(240,185,11,0.15); color:var(--gold);
+    display:flex; align-items:center; justify-content:center;
+    font-family:var(--mono); font-weight:700; font-size:13px;
+  }
+  .pf-coin-head .pf-coin-name{font-weight:700; font-size:15px;}
+  .pf-coin-head .pf-coin-sym{font-family:var(--mono); font-size:11px; color:var(--muted);}
+  .pf-coin-stats{
+    display:grid; grid-template-columns:1fr 1fr; gap:10px 16px;
+    font-family:var(--mono); font-size:12.5px; margin-bottom:12px;
+  }
+  .pf-coin-stats .pf-stat-label{color:var(--muted); margin-bottom:3px; font-size:10.5px; text-transform:uppercase; letter-spacing:0.05em;}
+  .pf-coin-stats .pf-stat-val{color:var(--text); font-weight:600;}
+  .pf-pnl{
+    display:flex; justify-content:space-between; align-items:center;
+    padding-top:12px; border-top:1px dashed var(--panel-border-soft);
+  }
+  .pf-pnl-val{font-family:var(--mono); font-weight:700; font-size:16px;}
+  .pf-pnl-val.pos{color:#16C784;}
+  .pf-pnl-val.neg{color:#EA3943;}
+  .pf-entries-toggle{
+    font-family:var(--mono); font-size:11px; color:var(--muted);
+    background:none; border:none; cursor:pointer; padding:0; margin-top:12px;
+    text-decoration:underline; text-underline-offset:2px;
+  }
+  .pf-entries-toggle:hover{color:var(--gold);}
+  .pf-entry-row{
+    display:flex; justify-content:space-between; align-items:center;
+    font-size:12px; padding:8px 0; border-top:1px dashed var(--panel-border-soft);
+    color:var(--muted);
+  }
+  .pf-entry-row .pf-entry-del{
+    background:none; border:none; color:var(--muted); cursor:pointer;
+    font-size:14px; padding:2px 6px; line-height:1;
+  }
+  .pf-entry-row .pf-entry-del:hover{color:#EA3943;}
+</style>
+<!-- FAQPage structured data — дословно повторяет FAQ-аккордеон ниже, чтобы
+     Google мог показать это как раскрывающийся сниппет прямо в выдаче. -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "Откуда берутся данные о ценах?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Живые цены берутся из CoinGecko через наш собственный кэширующий прокси. Если API временно недоступен, калькулятор переключается на приблизительный исторический набор данных по нескольким крупным монетам — на чеке это всегда чётко помечено как «ОФЛАЙН ДЕМО-ДАННЫЕ», чтобы ты точно знал, что видишь."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Это финансовый совет?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Нет. CryptoFumble сделан для развлечения и размышлений, а не как инвестиционный совет. Он показывает гипотетический результат на основе исторических цен — это не прогноз и не рекомендация. Крипта волатильна, можно потерять деньги. Перед тем как инвестировать, всегда изучай вопрос самостоятельно."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Почему иногда пишет «офлайн демо-данные»?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Это значит, что живой API CoinGecko был временно недоступен (лимиты запросов, сбой сети), поэтому чек использовал приблизительный резервный набор данных вместо точных исторических цен. Он покрывает только BTC, ETH, SOL, DOGE, ADA, XRP и BNB — для любой другой монеты, если живые данные недоступны, ты увидишь ошибку, а не неверную цифру."
+      }
+    }
+  ]
+}
+</script>
+</head>
+<body>
+<!-- ═══ Баннер Product Hunt — вставить ТОЛЬКО после старта запуска (после 15:01 по Пекину / 00:01 PDT, 28 августа), сразу после <body> ═══ -->
+<div id="ph-banner" style="
+  display:flex; align-items:center; justify-content:center; gap:12px;
+  flex-wrap:wrap; text-align:center;
+  background:linear-gradient(90deg, #F0B90B, #F7CD3A);
+  color:#0D1117; font-family:'Manrope', sans-serif; font-weight:700;
+  font-size:14px; padding:12px 44px 12px 16px; position:relative;
+">
+  <span>🚀 Сегодня мы на Product Hunt — твой голос очень важен!</span>
+  <a href="https://www.producthunt.com/products/cryptofumble-what-could-you-have-made?launch=cryptofumble-what-could-you-have-made"
+     target="_blank" rel="noopener"
+     style="background:#0D1117; color:#F0B90B; padding:7px 16px; border-radius:8px; text-decoration:none; font-weight:800; white-space:nowrap;">
+    Проголосовать →
+  </a>
+  <button onclick="document.getElementById('ph-banner').style.display='none'; try{localStorage.setItem('phBannerClosed','1')}catch(e){}"
+    aria-label="Закрыть"
+    style="position:absolute; right:12px; top:50%; transform:translateY(-50%); background:none; border:none; font-size:18px; font-weight:700; color:#0D1117; cursor:pointer; line-height:1;">
+    ×
+  </button>
+</div>
+<script>
+  try {
+    if (localStorage.getItem('phBannerClosed') === '1') {
+      var b = document.getElementById('ph-banner');
+      if (b) b.style.display = 'none';
+    }
+  } catch(e) {}
+</script>
+
+<div class="wrap">
+  <div class="page-tabs" id="pageTabs">
+    <button type="button" class="page-tab active" data-view="calc">🧮 Калькулятор</button>
+    <button type="button" class="page-tab" data-view="portfolio">📓 Мой портфель</button>
+  </div>
+  <div id="calcView">
+  <div class="layout-grid">
+  <div class="main-col">
+  <div class="eyebrow">живые цены · coingecko</div>
+  <h1>Сколько бы ты <span>заработал</span>, если бы купил тогда?</h1>
+  <p class="sub">Выбери монету, сумму и дату — узнай, во что превратились бы твои деньги. Больно, но полезно.</p>
+  <div class="regret-counter" id="regretCounter" style="display:none;"></div>
+  <div class="daily-regret" id="dailyRegret" style="display:none;">
+    <div class="daily-regret-label">📅 РЕГРЕТ ДНЯ</div>
+    <div class="daily-regret-text" id="dailyRegretText">Загрузка…</div>
+    <button type="button" class="daily-regret-cta" id="dailyRegretCta">Попробовать самому →</button>
+  </div>
+  <div class="panel">
+    <div class="field">
+      <label>Монета</label>
+      <div class="coin-search-wrap">
+        <input type="text" id="coinSearch" placeholder="Найти любую монету: solana, pepe, ton…" autocomplete="off">
+        <div class="coin-dropdown" id="coinDropdown"></div>
+      </div>
+      <div class="fav-coins-wrap" id="favCoinsWrap" style="display:none;">
+        <div style="font-size:11px; color:var(--muted); margin-bottom:8px;">⭐ избранное:</div>
+        <div class="fav-coins" id="favCoins"></div>
+      </div>
+      <div style="font-size:11px; color:var(--muted); margin-bottom:8px;">или быстрый выбор:</div>
+      <div class="coin-grid" id="coinGrid"></div>
+      <div class="selected-coin" id="selectedCoinLabel"></div>
+    </div>
+    <div class="mode-toggle" id="modeToggle">
+      <button type="button" class="mode-btn active" data-mode="bought">Я купил</button>
+      <button type="button" class="mode-btn" data-mode="sold">Я продал слишком рано</button>
+      <button type="button" class="mode-btn" data-mode="dca">Покупаю каждый месяц</button>
+    </div>
+    <div class="row">
+      <div class="field">
+        <label id="amountLabel">Сумма</label>
+        <div class="amount-wrap">
+          <input type="number" id="amount" value="1000" min="1">
+        </div>
+      </div>
+      <div class="field">
+        <label id="dateLabel">Дата покупки</label>
+        <button type="button" class="date-trigger" id="dateTrigger">Март 2020</button>
+      </div>
+    </div>
+    <div class="field">
+      <div class="period-quick" id="periodQuick">
+        <button type="button" class="period-btn" data-period="1">1М</button>
+        <button type="button" class="period-btn" data-period="6">6М</button>
+        <button type="button" class="period-btn" data-period="12">1Г</button>
+        <button type="button" class="period-btn" data-period="60">5Л</button>
+        <button type="button" class="period-btn" data-period="max">ВСЕ</button>
+      </div>
+    </div>
+    <div class="field" style="margin-top:4px;">
+      <button class="cta" id="calcBtn">Покажи, что я упустил →</button>
+    </div>
+  </div>
+  <div id="receipt-holder">
+    <div class="receipt">
+      <div class="r-title" id="rTitle">— чек упущенной прибыли —</div>
+      <div class="r-sub" id="rSub"></div>
+      <div class="r-source" id="rSource"></div>
+      <div class="dashed"></div>
+      <div class="r-line"><span id="rInvestedLabel">Вложено</span><span id="rInvested"></span></div>
+      <div class="r-line"><span id="rBuyPriceLabel">Цена на момент покупки</span><span id="rBuyPrice"></span></div>
+      <div class="r-line"><span id="rCoinsQtyLabel">Куплено монет</span><span id="rCoinsQty"></span></div>
+      <div class="r-line"><span>Цена сейчас</span><span id="rNowPrice"></span></div>
+      <div class="dashed"></div>
+      <div class="r-big">
+        <div class="label">Стоило бы сейчас</div>
+        <div class="num" id="rResult">$0</div>
+        <div class="r-local-currency" id="rLocalCurrency" style="display:none;"></div>
+      </div>
+      <div class="r-tier" id="rTier"></div>
+      <div class="r-mult-wrap"><span class="r-mult" id="rMult">x1.0</span></div>
+      <div class="r-chart-wrap" id="rChartWrap">
+        <svg id="rChartSvg" viewBox="0 0 280 70" preserveAspectRatio="none"></svg>
+        <div class="r-chart-caption" id="rChartCaption"></div>
+      </div>
+      <div class="r-year-table" id="rYearTable" style="display:none;"></div>
+      <div class="r-compare" id="rCompare"></div>
+      <div class="r-disclaimer">Просто для развлечения — не инвестиционный совет.</div>
+      <div class="r-footer">ЧЕК УПУЩЕННОЙ ПРИБЫЛИ · ВРЕМЯ <span id="rStamp"></span></div>
+    </div>
+    <a href="https://www.bybit.com/invite?ref=PK8RA3&medium=referral&utm_campaign=evergreen&share_to=post"
+       target="_blank" rel="noopener noreferrer sponsored"
+       class="cta-invest" id="ctaInvest" style="display:none;">
+      <span id="ctaInvestText">Начать на бирже →</span>
+    </a>
+    <div class="invest-note" id="investNote" style="display:none;">Партнёрская ссылка — можем получить небольшую комиссию, без доплаты с твоей стороны.</div>
+    <button class="share-cta" id="shareBtn">📸 Сгенерировать карточку для шеринга</button>
+    <button class="share-cta" id="shareTgBtn">✈️ Поделиться в Telegram</button>
+    <div id="shareCardWrap" style="display:none; margin-top:14px; text-align:center;">
+      <canvas id="shareCanvas" width="640" height="800" style="display:none;"></canvas>
+      <img id="shareCardImg" style="width:100%; border-radius:14px; box-shadow:0 12px 40px rgba(0,0,0,0.5);">
+      <a id="shareDownload" class="share-cta" style="display:block; text-decoration:none; margin-top:10px; box-sizing:border-box;" download="crypto-regret-card.png">⬇️ Скачать PNG</a>
+    </div>
+    <div class="compare-block" id="compareBlock" style="display:none;">
+      <button type="button" class="compare-toggle" id="compareToggle">⚖️ Сравнить с другой монетой</button>
+      <div class="compare-picker" id="comparePicker" style="display:none;">
+        <div class="compare-picker-label">Та же сумма, та же дата — но в:</div>
+        <div class="compare-coin-grid" id="compareCoinGrid"></div>
+      </div>
+      <div class="compare-result" id="compareResult" style="display:none;"></div>
+    </div>
+    <div class="compare-block" id="portfolioBlock" style="display:none;">
+      <button type="button" class="compare-toggle" id="portfolioToggle">🧺 Разбить на несколько монет</button>
+      <div class="compare-picker" id="portfolioPicker" style="display:none;">
+        <div class="compare-picker-label">Выбери 2–4 монеты, чтобы разбить ту же сумму между ними:</div>
+        <div class="compare-coin-grid" id="portfolioCoinGrid"></div>
+        <button type="button" class="cta portfolio-calc-btn" id="portfolioCalcBtn" style="display:none;">Посчитать разбивку →</button>
+      </div>
+      <div class="compare-result" id="portfolioResult" style="display:none;"></div>
+    </div>
+  </div>
+  <p class="disclaimer">Цены идут через собственный кэширующий прокси (Netlify function → CoinGecko), с fallback на прямой запрос и на демо-данные, если всё недоступно. Источник виден на чеке.</p>
+  </div>
+  <div class="side-col">
+  <div class="live-feed" id="liveFeed" style="display:none;">
+    <div class="live-feed-title">🌍 ПОСЛЕДНИЕ РЕГРЕТЫ СО ВСЕГО МИРА</div>
+    <div class="live-feed-list" id="liveFeedList"></div>
+  </div>
+  </div>
+  </div>
+  </div>
+  <!-- Custom date wheel-picker (native mobile-app style) -->
+  <div class="date-sheet-overlay" id="dateSheetOverlay">
+    <div class="date-sheet">
+      <div class="date-sheet-header">
+        <button type="button" id="dateCancel">Отмена</button>
+        <span>Дата покупки</span>
+        <button type="button" id="dateDone">Готово</button>
+      </div>
+      <div class="wheel-wrap" id="wheelWrap">
+        <div class="wheel-highlight"></div>
+        <div class="wheel-fade wheel-fade-top"></div>
+        <div class="wheel-fade wheel-fade-bottom"></div>
+        <div class="wheel-col" id="monthWheel"></div>
+        <div class="wheel-col" id="dayWheel"></div>
+        <div class="wheel-col" id="yearWheel"></div>
+      </div>
+      <div class="date-sheet-hint" id="dateSheetHint"></div>
+    </div>
+  </div>
+  <div id="portfolioView" style="display:none;">
+    <div class="panel">
+      <div class="field">
+        <label>Монета</label>
+        <div class="coin-search-wrap">
+          <input type="text" id="pfCoinSearch" placeholder="Найти любую монету: solana, pepe, ton…" autocomplete="off">
+          <div class="coin-dropdown" id="pfCoinDropdown"></div>
+        </div>
+        <div style="font-size:11px; color:var(--muted); margin-bottom:8px;">или быстрый выбор:</div>
+        <div class="coin-grid" id="pfCoinGrid"></div>
+        <div class="selected-coin" id="pfSelectedCoinLabel"></div>
+      </div>
+      <div class="row">
+        <div class="field">
+          <label>Куплено монет</label>
+          <input type="number" id="pfQty" placeholder="0.00" min="0" step="any">
+        </div>
+        <div class="field">
+          <label>Потрачено (USDT)</label>
+          <input type="number" id="pfSpent" placeholder="0" min="0" step="any">
+        </div>
+      </div>
+      <div class="field">
+        <label>Дата покупки</label>
+        <button type="button" class="date-trigger" id="pfDateTrigger">Август 2026</button>
+      </div>
+      <div class="pf-computed-price" id="pfComputedPrice"></div>
+      <div class="field" style="margin-top:4px;">
+        <button type="button" class="pf-add-btn" id="pfAddBtn">Добавить в портфель →</button>
+      </div>
+    </div>
+    <p class="pf-note">Хранится только в этом браузере, на этом устройстве — очистишь данные браузера, и записи пропадут. Нигде не синхронизируется, это не инвестиционный совет.</p>
+    <div id="pfContent"></div>
+  </div>
+  <div class="faq">
+    <div class="faq-title">❓ Частые вопросы</div>
+    <details>
+      <summary>Откуда берутся данные о ценах?</summary>
+      <p>Живые цены берутся из CoinGecko через наш собственный кэширующий прокси. Если API временно недоступен, калькулятор переключается на приблизительный исторический набор данных по нескольким крупным монетам — на чеке это всегда чётко помечено как «ОФЛАЙН ДЕМО-ДАННЫЕ», чтобы ты точно знал, что видишь.</p>
+    </details>
+    <details>
+      <summary>Это финансовый совет?</summary>
+      <p>Нет. CryptoFumble сделан для развлечения и размышлений, а не как инвестиционный совет. Он показывает гипотетический результат на основе исторических цен — это не прогноз и не рекомендация. Крипта волатильна, можно потерять деньги. Перед тем как инвестировать, всегда изучай вопрос самостоятельно.</p>
+    </details>
+    <details>
+      <summary>Почему иногда пишет «офлайн демо-данные»?</summary>
+      <p>Это значит, что живой API CoinGecko был временно недоступен (лимиты запросов, сбой сети), поэтому чек использовал приблизительный резервный набор данных вместо точных исторических цен. Он покрывает только BTC, ETH, SOL, DOGE, ADA, XRP и BNB — для любой другой монеты, если живые данные недоступны, ты увидишь ошибку, а не неверную цифру.</p>
+    </details>
+  </div>
+  <div class="scenario-links" style="max-width:480px;margin:40px auto 0;padding-top:28px;border-top:1px solid var(--panel-border-soft);">
+    <div style="font-family:var(--mono);font-size:10px;letter-spacing:0.1em;color:var(--muted);text-align:center;margin-bottom:16px;text-transform:uppercase;">📈 популярные сценарии</div>
+    <div style="display:flex;flex-wrap:wrap;gap:8px;justify-content:center;">
+      <a href="/ru/bitcoin-2013/" style="padding:8px 14px;background:var(--panel);border:1px solid var(--panel-border);border-radius:999px;text-decoration:none;font-size:12px;font-family:var(--mono);color:var(--gold-soft);">Bitcoin в 2013</a>
+      <a href="/ru/bitcoin-2017/" style="padding:8px 14px;background:var(--panel);border:1px solid var(--panel-border);border-radius:999px;text-decoration:none;font-size:12px;font-family:var(--mono);color:var(--gold-soft);">Bitcoin в 2017</a>
+      <a href="/ru/ethereum-2016/" style="padding:8px 14px;background:var(--panel);border:1px solid var(--panel-border);border-radius:999px;text-decoration:none;font-size:12px;font-family:var(--mono);color:var(--gold-soft);">Ethereum в 2016</a>
+      <a href="/ru/solana-2021/" style="padding:8px 14px;background:var(--panel);border:1px solid var(--panel-border);border-radius:999px;text-decoration:none;font-size:12px;font-family:var(--mono);color:var(--gold-soft);">Solana в 2021</a>
+      <a href="/ru/dogecoin-2021/" style="padding:8px 14px;background:var(--panel);border:1px solid var(--panel-border);border-radius:999px;text-decoration:none;font-size:12px;font-family:var(--mono);color:var(--gold-soft);">Dogecoin в 2021</a>
+      <a href="/ru/solana-2022/" style="padding:8px 14px;background:var(--panel);border:1px solid var(--panel-border);border-radius:999px;text-decoration:none;font-size:12px;font-family:var(--mono);color:var(--gold-soft);">Solana в 2022</a>
+    </div>
+  </div>
+</div>
+<script>
+// ---- Approximate historical price anchors (log-interpolated between points) ----
+// Format: [YYYY-MM, price]. Illustrative demo data, not exact market data.
+const DATA = {
+  BTC: { name:'Bitcoin', points:[
+    ['2013-01',13],['2013-04',100],['2013-11',350],['2013-12',750],
+    ['2014-01',800],['2014-06',600],['2014-12',320],
+    ['2015-06',230],['2015-12',430],
+    ['2016-06',670],['2016-12',960],
+    ['2017-06',2500],['2017-09',4000],['2017-12',13800],
+    ['2018-01',10000],['2018-06',6300],['2018-12',3800],
+    ['2019-06',10800],['2019-12',7200],
+    ['2020-01',9350],['2020-03',5900],['2020-06',9100],['2020-12',29000],
+    ['2021-01',33000],['2021-04',57800],['2021-07',33000],['2021-11',64000],['2021-12',46000],
+    ['2022-01',38000],['2022-06',20000],['2022-11',16500],['2022-12',16500],
+    ['2023-01',23000],['2023-06',30500],['2023-10',34000],['2023-12',42000],
+    ['2024-01',43000],['2024-03',70000],['2024-06',64000],['2024-12',95000],
+    ['2025-03',100000],['2025-06',105000],['2025-12',112000],
+    ['2026-01',118000],['2026-04',122000],['2026-08',128000]
+  ]},
+  ETH: { name:'Ethereum', points:[
+    ['2016-01',1],['2017-06',200],['2017-12',750],
+    ['2018-01',1200],['2018-06',460],['2018-12',130],
+    ['2019-06',280],['2019-12',130],
+    ['2020-01',130],['2020-03',110],['2020-06',225],['2020-12',730],
+    ['2021-01',1000],['2021-05',2700],['2021-07',1900],['2021-11',4800],['2021-12',3700],
+    ['2022-01',3300],['2022-06',1100],['2022-11',1200],['2022-12',1200],
+    ['2023-01',1550],['2023-06',1900],['2023-12',2300],
+    ['2024-01',2300],['2024-03',3900],['2024-06',3400],['2024-12',3400],
+    ['2025-06',3600],['2026-01',3900],['2026-08',4200]
+  ]},
+  SOL: { name:'Solana', points:[
+    ['2020-05',0.5],['2020-12',1.5],
+    ['2021-01',1.8],['2021-05',35],['2021-09',140],['2021-11',260],['2021-12',170],
+    ['2022-01',150],['2022-06',38],['2022-11',13],['2022-12',10],
+    ['2023-01',11],['2023-06',18],['2023-12',100],
+    ['2024-01',100],['2024-03',200],['2024-06',150],['2024-12',190],
+    ['2025-06',210],['2026-01',235],['2026-08',255]
+  ]},
+  DOGE:{ name:'Dogecoin', points:[
+    ['2017-12',0.0095],
+    ['2020-01',0.0023],['2020-12',0.0047],
+    ['2021-01',0.0086],['2021-04',0.34],['2021-05',0.65],['2021-07',0.21],['2021-11',0.23],['2021-12',0.17],
+    ['2022-01',0.14],['2022-06',0.06],['2022-11',0.09],['2022-12',0.07],
+    ['2023-01',0.075],['2023-06',0.065],['2023-12',0.09],
+    ['2024-01',0.085],['2024-03',0.16],['2024-06',0.13],['2024-12',0.32],
+    ['2025-06',0.28],['2026-01',0.26],['2026-08',0.24]
+  ]},
+  ADA: { name:'Cardano', points:[
+    ['2017-12',0.7],
+    ['2020-01',0.033],['2020-12',0.18],
+    ['2021-01',0.17],['2021-05',1.9],['2021-09',2.9],['2021-11',1.8],['2021-12',1.3],
+    ['2022-01',1.2],['2022-06',0.43],['2022-11',0.3],['2022-12',0.25],
+    ['2023-01',0.32],['2023-06',0.28],['2023-12',0.5],
+    ['2024-01',0.55],['2024-03',0.65],['2024-06',0.45],['2024-12',0.9],
+    ['2025-06',0.75],['2026-01',0.7],['2026-08',0.68]
+  ]},
+  XRP: { name:'XRP', points:[
+    ['2017-12',2.8],
+    ['2020-01',0.19],['2020-12',0.22],
+    ['2021-01',0.23],['2021-04',1.8],['2021-07',0.6],['2021-11',1.1],['2021-12',0.83],
+    ['2022-01',0.6],['2022-06',0.34],['2022-11',0.4],['2022-12',0.34],
+    ['2023-01',0.34],['2023-06',0.47],['2023-12',0.6],
+    ['2024-01',0.6],['2024-03',0.63],['2024-06',0.47],['2024-12',2.2],
+    ['2025-06',2.6],['2026-01',2.9],['2026-08',3.1]
+  ]},
+  BNB: { name:'BNB', points:[
+    ['2019-01',6],
+    ['2020-01',14],['2020-12',37],
+    ['2021-01',38],['2021-05',600],['2021-07',290],['2021-11',580],['2021-12',520],
+    ['2022-01',400],['2022-06',220],['2022-11',280],['2022-12',250],
+    ['2023-01',245],['2023-06',240],['2023-12',310],
+    ['2024-01',310],['2024-03',410],['2024-06',580],['2024-12',700],
+    ['2025-06',780],['2026-01',850],['2026-08',920]
+  ]}
+};
+// Rough Apple (AAPL) split-adjusted price anchors — same "boring alternative"
+// comparison idea as SP500 below, same rough-anchor + log-interpolation approach
+const AAPL = [
+  ['2013-01',18],['2015-01',27],['2017-01',29],['2019-01',38],['2020-01',75],
+  ['2020-12',132],['2021-11',165],['2022-12',129],['2023-12',193],['2024-12',250],
+  ['2025-06',270],['2026-08',300]
+];
+// Rough S&P500 index anchors for "boring alternative" comparison
+const SP500 = [
+  ['2013-01',1500],['2015-01',2050],['2017-01',2270],['2019-01',2600],['2020-01',3230],
+  ['2020-12',3760],['2021-11',4700],['2022-12',3850],['2023-12',4770],['2024-12',6000],
+  ['2025-06',6300],['2026-08',6850]
+];
+// Приблизительные опорные точки спотовой цены золота (USD/унция) — та же идея
+// «скучной альтернативы», что и SP500/AAPL выше, тот же метод (грубые опорные
+// точки + лог-интерполяция). Фаза 4: переиспользуем готовую инфраструктуру,
+// просто новый набор точек, без новой логики расчёта.
+const GOLD = [
+  ['2013-01',1671],['2015-01',1218],['2017-01',1151],['2019-01',1287],['2020-01',1560],
+  ['2020-12',1895],['2021-11',1790],['2022-12',1824],['2023-12',2063],['2024-12',2641],
+  ['2025-06',3300],['2026-08',3500]
+];
+function monthToTs(m){ const [y,mo]=m.split('-').map(Number); return y*12+mo; }
+function interpPrice(points, dateStr){
+  const t = monthToTs(dateStr);
+  const pts = points.map(p=>[monthToTs(p[0]), p[1]]);
+  if(t<=pts[0][0]) return pts[0][1];
+  if(t>=pts[pts.length-1][0]) return pts[pts.length-1][1];
+  for(let i=0;i<pts.length-1;i++){
+    const [t0,p0]=pts[i], [t1,p1]=pts[i+1];
+    if(t>=t0 && t<=t1){
+      const frac = (t-t0)/(t1-t0);
+      // log-interpolation, closer to real crypto price behavior
+      return Math.exp(Math.log(p0) + frac*(Math.log(p1)-Math.log(p0)));
+    }
+  }
+  return pts[pts.length-1][1];
+}
+function fmt(n){
+  if(n>=1000) return '$'+Math.round(n).toLocaleString('en-US');
+  if(n>=1) return '$'+n.toFixed(2);
+  return '$'+n.toFixed(6).replace(/0+$/,'').replace(/\.$/,'');
+}
+function fmtBig(n){
+  return '$'+Math.round(n).toLocaleString('en-US');
+}
+// ---- Локальная валюта под результатом (Фаза 1, быстрая победа) ----
+// Статичные приблизительные курсы (сколько единиц за 1 доллар), снимок на
+// ~август 2026 — сознательно НЕ живой запрос к FX API (не добавляем новую
+// зависимость/задержку ради числа, которое и так подписано «примерно»).
+// Обновлять таблицу вручную раз в несколько месяцев, чтобы не уезжала далеко.
+const FX_RATES = {
+  RUB: 86, EUR: 0.87, GBP: 0.74, INR: 95, BRL: 5.1, TRY: 48,
+  UAH: 45, KZT: 468, IDR: 17900, NGN: 1360, PHP: 61, VND: 26200,
+  PKR: 278, ARS: 1500, MXN: 17.2, JPY: 158, CNY: 6.75, KRW: 1424,
+  AUD: 1.42, CAD: 1.4, ZAR: 16.4,
+};
+// Сопоставляет язык браузера с валютой. Сначала проверяет регион (ru-KZ ->
+// KZT приоритетнее общего ru -> RUB), потом базовый язык. Возвращает null
+// для локалей, близких к доллару по умолчанию (en-US и т.п.) — незачем
+// дублировать то же число второй раз.
+function guessCurrency(lang){
+  if(!lang) return null;
+  const l = lang.toLowerCase();
+  const REGION_MAP = {
+    'kz':'KZT', 'ua':'UAH', 'br':'BRL', 'in':'INR', 'tr':'TRY', 'id':'IDR',
+    'ng':'NGN', 'ph':'PHP', 'vn':'VND', 'pk':'PKR', 'ar':'ARS', 'mx':'MXN',
+    'za':'ZAR', 'gb':'GBP', 'au':'AUD', 'ca':'CAD', 'jp':'JPY', 'cn':'CNY', 'kr':'KRW',
+  };
+  const region = l.split('-')[1];
+  if(region && REGION_MAP[region]) return REGION_MAP[region];
+  const BASE_MAP = {
+    'ru':'RUB', 'tr':'TRY', 'ja':'JPY', 'zh':'CNY', 'ko':'KRW', 'vi':'VND',
+    'id':'IDR', 'ur':'PKR', 'pt':'BRL', 'de':'EUR', 'fr':'EUR', 'it':'EUR',
+    'nl':'EUR', 'pl':'EUR', 'es':'EUR',
+  };
+  const base = l.split('-')[0];
+  return BASE_MAP[base] || null;
+}
+function renderLocalCurrency(resultRaw){
+  const el = document.getElementById('rLocalCurrency');
+  if(!el) return;
+  const code = guessCurrency(navigator.language);
+  const rate = code && FX_RATES[code];
+  if(!rate){ el.style.display = 'none'; return; }
+  try{
+    const converted = resultRaw * rate;
+    const formatted = new Intl.NumberFormat(navigator.language, {
+      style: 'currency', currency: code, maximumFractionDigits: 0,
+    }).format(converted);
+    el.textContent = '≈ ' + formatted + ' (примерно)';
+    el.style.display = 'block';
+  }catch(err){ el.style.display = 'none'; }
+}
+function fmtCoinsQty(qty, symbol){
+  // for cheap coins (DOGE, SHIB, etc.) the raw coin count is part of the joke,
+  // so large quantities round to a whole number with thousands separators,
+  // while pricier coins (BTC, etc.) need fractional precision
+  let numStr;
+  if(qty >= 1000){
+    numStr = Math.round(qty).toLocaleString('en-US');
+  } else if(qty >= 1){
+    numStr = qty.toFixed(4).replace(/0+$/,'').replace(/\.$/,'');
+  } else {
+    numStr = qty.toFixed(6).replace(/0+$/,'').replace(/\.$/,'');
+  }
+  return `${numStr} ${symbol}`;
+}
+// ---- Russian pluralization helper (1/2-4/5-20 forms) ----
+function pluralForm(n, forms){
+  const n10 = n % 10, n100 = n % 100;
+  if(n10 === 1 && n100 !== 11) return forms[0];
+  if(n10 >= 2 && n10 <= 4 && (n100 < 10 || n100 >= 20)) return forms[1];
+  return forms[2];
+}
+// ---- Mobile-style wheel picker for the purchase date ----
+const MONTH_NAMES = ['Январь','Февраль','Март','Апрель','Май','Июнь','Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь'];
+// родительный падеж — нужен для формата "29 августа 2026" (день + месяц + год)
+// в дате покупки на вкладке «Портфель»; именительный падеж выше используется
+// везде, где месяц идёт один, без числа дня (например "Март 2020")
+const MONTH_NAMES_GEN = ['января','февраля','марта','апреля','мая','июня','июля','августа','сентября','октября','ноября','декабря'];
+function humanDate(dateStr){
+  const [y,m] = dateStr.split('-');
+  return `${MONTH_NAMES[parseInt(m,10)-1]} ${y}`;
+}
+const PICKER_MIN_YEAR = 2013;
+// "Максимум" считается от реальной даты браузера в момент загрузки страницы,
+// а не от жёстко прописанного числа — иначе 1 сентября сайт продолжил бы
+// думать, что "сейчас" — это ещё август, и не пускал бы дальше.
+const _now = new Date();
+const PICKER_MAX_YEAR = _now.getFullYear();
+const PICKER_MAX_MONTH_IN_MAX_YEAR = _now.getMonth() + 1; // getMonth() is 0-indexed, so +1
+const PICKER_MAX_DAY_IN_MAX_MONTH = _now.getDate();
+let pickedMonth = 3;   // 1-12, starting value = March
+let pickedYear = 2020;
+let pickedDay = 15;    // только для вкладки «Портфель» — сам калькулятор
+                        // остаётся на уровне месяца, как и его исторические данные
+let currentDateStr = '2020-03'; // source of truth for calculation, synced on "Done"
+const dateTrigger = document.getElementById('dateTrigger');
+const dateSheetOverlay = document.getElementById('dateSheetOverlay');
+const wheelWrap = document.getElementById('wheelWrap');
+const monthWheel = document.getElementById('monthWheel');
+const dayWheel = document.getElementById('dayWheel');
+const yearWheel = document.getElementById('yearWheel');
+const dateSheetHint = document.getElementById('dateSheetHint');
+const ROW_H = 44;
+const PAD_ROWS = 2; // (visible area height 220px = 5 rows) -> 2 padding rows top/bottom
+function buildWheel(container, items, isDisabled){
+  container.innerHTML = '';
+  const spacer1 = document.createElement('div');
+  spacer1.style.height = (ROW_H*PAD_ROWS)+'px';
+  container.appendChild(spacer1);
+  items.forEach(item=>{
+    const el = document.createElement('div');
+    el.className = 'wheel-item' + (isDisabled && isDisabled(item.value) ? ' disabled' : '');
+    el.textContent = item.label;
+    el.dataset.value = item.value;
+    container.appendChild(el);
+  });
+  const spacer2 = document.createElement('div');
+  spacer2.style.height = (ROW_H*PAD_ROWS)+'px';
+  container.appendChild(spacer2);
+}
+function scrollWheelTo(container, index, smooth){
+  container.scrollTo({ top: index*ROW_H, behavior: smooth ? 'smooth' : 'auto' });
+}
+function getSelectedIndex(container){
+  return Math.round(container.scrollTop / ROW_H);
+}
+function highlightPicked(container){
+  const idx = getSelectedIndex(container);
+  container.querySelectorAll('.wheel-item').forEach((el,i)=>{
+    el.classList.toggle('picked', i===idx);
+  });
+  return idx;
+}
+function clampFutureAndRefresh(){
+  // if a month/year past "now" (2026-08) was picked — softly clamp back to the max
+  let clamped = false;
+  if(pickedYear > PICKER_MAX_YEAR || (pickedYear===PICKER_MAX_YEAR && pickedMonth>PICKER_MAX_MONTH_IN_MAX_YEAR)){
+    pickedYear = PICKER_MAX_YEAR;
+    pickedMonth = PICKER_MAX_MONTH_IN_MAX_YEAR;
+    clamped = true;
+  }
+  // колесо дня важно только для вкладки «Портфель», но проверка безобидна и
+  // для калькулятора — там pickedDay никогда не выходит за пределы диапазона
+  if(pickedYear===PICKER_MAX_YEAR && pickedMonth===PICKER_MAX_MONTH_IN_MAX_YEAR && pickedDay>PICKER_MAX_DAY_IN_MAX_MONTH){
+    pickedDay = PICKER_MAX_DAY_IN_MAX_MONTH;
+    clamped = true;
+  }
+  if(clamped){
+    dateSheetHint.textContent = 'Нельзя выбрать будущее — поставили последнюю доступную дату';
+    return true;
+  }
+  dateSheetHint.textContent = '';
+  return false;
+}
+function daysInMonth(year, month){
+  return new Date(year, month, 0).getDate();
+}
+function isDayDisabled(v){
+  return pickedYear===PICKER_MAX_YEAR && pickedMonth===PICKER_MAX_MONTH_IN_MAX_YEAR && v>PICKER_MAX_DAY_IN_MAX_MONTH;
+}
+function buildDayWheel(){
+  const n = daysInMonth(pickedYear, pickedMonth);
+  if(pickedDay > n) pickedDay = n;
+  const dayItems = [];
+  for(let d=1; d<=n; d++) dayItems.push({label:String(d), value:d});
+  buildWheel(dayWheel, dayItems, isDayDisabled);
+}
+function initWheels(){
+  const monthItems = MONTH_NAMES.map((name,i)=>({label:name, value:i+1}));
+  const years = [];
+  for(let y=PICKER_MIN_YEAR; y<=PICKER_MAX_YEAR; y++) years.push({label:String(y), value:y});
+  buildWheel(monthWheel, monthItems, (v)=> pickedYear===PICKER_MAX_YEAR && v>PICKER_MAX_MONTH_IN_MAX_YEAR);
+  buildWheel(yearWheel, years);
+  buildDayWheel();
+  attachWheelScroll(monthWheel, (idx)=>{ pickedMonth = monthItems[idx] ? monthItems[idx].value : pickedMonth; });
+  attachWheelScroll(yearWheel, (idx)=>{ pickedYear = years[idx] ? years[idx].value : pickedYear; });
+  attachWheelScroll(dayWheel, (idx)=>{
+    const el = dayWheel.querySelectorAll('.wheel-item')[idx];
+    if(el) pickedDay = parseInt(el.dataset.value, 10);
+  });
+}
+function attachWheelScroll(container, onPick){
+  let scrollTimer = null;
+  container.addEventListener('scroll', ()=>{
+    highlightPicked(container); // instant visual feedback while scrolling
+    clearTimeout(scrollTimer);
+    scrollTimer = setTimeout(()=>{
+      const idx = getSelectedIndex(container);
+      // snap precisely to a row (native snap sometimes lands imperfectly on a fast flick)
+      scrollWheelTo(container, idx, true);
+      onPick(idx);
+      highlightPicked(container);
+      if(container===monthWheel || container===yearWheel){
+        // if the year hit the max — redraw months reflecting the disabled state
+        if(container===yearWheel) refreshMonthDisabledState();
+        // days-in-month (and which days are "in the future") can change
+        // whenever month or year changes — rebuild the day wheel to match
+        buildDayWheel();
+        scrollWheelTo(dayWheel, pickedDay-1, false);
+        highlightPicked(dayWheel);
+      }
+    }, 120);
+  }, { passive:true });
+  // Mouse wheel on desktop scrolls by "lines" (often 2-3 rows per notch), which
+  // makes it near-impossible to land on a precise month/year with a mouse.
+  // We take over wheel input entirely and step exactly one row per notch,
+  // with a short lock so one physical click can't fire multiple steps.
+  let wheelLocked = false;
+  container.addEventListener('wheel', (e)=>{
+    e.preventDefault();
+    if(wheelLocked) return;
+    wheelLocked = true;
+    const dir = e.deltaY > 0 ? 1 : -1;
+    const currentIdx = getSelectedIndex(container);
+    const maxIdx = container.querySelectorAll('.wheel-item').length - 1;
+    const nextIdx = Math.max(0, Math.min(maxIdx, currentIdx + dir));
+    scrollWheelTo(container, nextIdx, true);
+    setTimeout(()=>{ wheelLocked = false; }, 110);
+  }, { passive:false });
+}
+function refreshMonthDisabledState(){
+  const items = Array.from(monthWheel.querySelectorAll('.wheel-item'));
+  items.forEach(el=>{
+    const v = parseInt(el.dataset.value, 10);
+    el.classList.toggle('disabled', pickedYear===PICKER_MAX_YEAR && v>PICKER_MAX_MONTH_IN_MAX_YEAR);
+  });
+}
+function openDateSheet(){
+  dateSheetOverlay.classList.add('open');
+  // колесо дня нужно только вкладке «Портфель» — калькулятор остаётся на
+  // уровне месяца, как и его исторические данные
+  dayWheel.style.display = dateSheetTarget === 'portfolio' ? '' : 'none';
+  buildDayWheel();
+  // set the wheels to the current value without animation
+  const monthIdx = pickedMonth - 1;
+  const yearIdx = pickedYear - PICKER_MIN_YEAR;
+  requestAnimationFrame(()=>{
+    scrollWheelTo(monthWheel, monthIdx, false);
+    scrollWheelTo(yearWheel, yearIdx, false);
+    scrollWheelTo(dayWheel, pickedDay-1, false);
+    highlightPicked(monthWheel);
+    highlightPicked(yearWheel);
+    highlightPicked(dayWheel);
+    refreshMonthDisabledState();
+  });
+  dateSheetHint.textContent = '';
+}
+function closeDateSheet(){
+  dateSheetOverlay.classList.remove('open');
+}
+function updateDateTriggerLabel(){
+  dateTrigger.textContent = `${MONTH_NAMES[pickedMonth-1]} ${pickedYear}`;
+  currentDateStr = `${pickedYear}-${String(pickedMonth).padStart(2,'0')}`;
+}
+initWheels();
+updateDateTriggerLabel();
+// The same wheel-picker sheet is shared between the calculator's date field
+// and the Portfolio tab's date field — only one can be open at a time, so we
+// just track which field is currently being edited and route "Done" there.
+let dateSheetTarget = 'calc';
+dateTrigger.addEventListener('click', ()=>{
+  dateSheetTarget = 'calc';
+  // re-sync the shared wheel state to the calculator's own current value —
+  // it may currently hold the Portfolio tab's date instead, since both
+  // triggers drive the same pickedMonth/pickedYear while their sheet is open
+  const [y, m] = currentDateStr.split('-').map(Number);
+  pickedYear = y; pickedMonth = m;
+  openDateSheet();
+});
+document.getElementById('dateCancel').addEventListener('click', closeDateSheet);
+dateSheetOverlay.addEventListener('click', (e)=>{ if(e.target===dateSheetOverlay) closeDateSheet(); });
+document.getElementById('dateDone').addEventListener('click', ()=>{
+  const wasClamped = clampFutureAndRefresh();
+  if(wasClamped){
+    // user scrolled into the future — don't close the sheet silently, instead
+    // snap the wheels to the latest available date and let them see the hint.
+    // It will close on the next "Done" tap (which will already be valid).
+    scrollWheelTo(monthWheel, pickedMonth-1, true);
+    scrollWheelTo(yearWheel, pickedYear-PICKER_MIN_YEAR, true);
+    buildDayWheel();
+    scrollWheelTo(dayWheel, pickedDay-1, true);
+    highlightPicked(monthWheel);
+    highlightPicked(yearWheel);
+    highlightPicked(dayWheel);
+    refreshMonthDisabledState();
+    return;
+  }
+  if(dateSheetTarget === 'portfolio'){
+    pfPickedMonth = pickedMonth;
+    pfPickedYear = pickedYear;
+    pfPickedDay = pickedDay;
+    updatePfDateTriggerLabel();
+  } else {
+    updateDateTriggerLabel();
+    document.querySelectorAll('.period-btn').forEach(b=>b.classList.remove('active'));
+  }
+  closeDateSheet();
+});
+// CoinGecko coin ids for live lookups
+const GECKO_ID = {
+  BTC:'bitcoin', ETH:'ethereum', SOL:'solana', DOGE:'dogecoin',
+  ADA:'cardano', XRP:'ripple', BNB:'binancecoin'
+};
+// ---- Ротация партнёрских ссылок между биржами ----
+// Каждый показ CTA выбирает следующую биржу по кругу, чтобы трафик более-менее
+// равномерно распределялся между партнёрками, а не весь уходил в одну.
+// Стартовая позиция в каждом браузере случайная — иначе у всех первый чек
+// всегда указывал бы на Bybit.
+const EXCHANGES = [
+  { name:'Bybit',  url:'https://www.bybit.com/invite?ref=PK8RA3&medium=referral&utm_campaign=evergreen&share_to=post' },
+  { name:'MEXC',   url:'https://s.mexc.com/referral/CM545FtMvs' },
+  { name:'Bitget', url:'https://www.krbitget.com/ru/referral/register?clacCode=T0NB6A61&from=%2Fru%2Fevents%2Freferral-all-program&source=events&utmSource=PremierInviter' },
+  { name:'BingX',  url:'https://bingxdao.com/invite/RIBWB2/' }
+];
+// Гео-адаптивный порядок ротации (Фаза 1, быстрая победа): у Bitget
+// реферальная ссылка уже ведёт на локализованную /ru/ страницу — это
+// конкретная, проверяемая причина показывать её первой чаще остальных
+// именно тут, на русской версии сайта (сюда и так попадают только те, кто
+// сам выбрал русский). Это отправная точка, а не измеренный результат:
+// клик по каждой бирже уже логируется в GA как событие `click_invest_cta`
+// (см. обработчик в конце файла) — как только наберётся статистика, порядок
+// стоит пересчитать по реальной конверсии, а не по этому предположению.
+const RU_EXCHANGE_ORDER = [EXCHANGES[2], EXCHANGES[0], EXCHANGES[1], EXCHANGES[3]]; // Bitget первым
+function nextExchange(){
+  const order = RU_EXCHANGE_ORDER;
+  let idx = parseInt(localStorage.getItem('cf_exchange_idx'), 10);
+  if(isNaN(idx)) idx = Math.floor(Math.random()*order.length);
+  const exchange = order[idx % order.length];
+  try{ localStorage.setItem('cf_exchange_idx', String((idx+1) % order.length)); }catch(err){
+    // localStorage может быть недоступен в некоторых приватных режимах — не критично,
+    // просто в этом браузере ротация не будет "запоминаться" между визитами
+  }
+  return exchange;
+}
+// ---- Simple in-session cache to avoid hammering CoinGecko on repeat lookups ----
+// (in production this belongs server-side — see note at bottom of file)
+const priceCache = new Map();
+function cacheKey(id, kind, date){ return `${id}:${kind}:${date||'now'}`; }
+async function fetchHistoricalPrice(geckoId, dateStr){
+  const key = cacheKey(geckoId, 'hist', dateStr);
+  if(priceCache.has(key)) return priceCache.get(key);
+  let price;
+  try{
+    // prefer our own proxy (netlify/functions/price.js) — it caches
+    // on the CDN and stops every user hammering CoinGecko directly at once
+    const res = await fetch(`/.netlify/functions/price?type=history&coin=${geckoId}&date=${dateStr}`);
+    if(!res.ok) throw new Error('proxy history failed');
+    const json = await res.json();
+    if(!json.price) throw new Error('no price from proxy');
+    price = json.price;
+  }catch(proxyErr){
+    // no proxy available (e.g. the file was opened locally without deploying) — go direct
+    const [y,m] = dateStr.split('-');
+    const apiDate = `01-${m}-${y}`;
+    const res = await fetch(`https://api.coingecko.com/api/v3/coins/${geckoId}/history?date=${apiDate}&localization=false`);
+    if(!res.ok) throw new Error('history fetch failed');
+    const json = await res.json();
+    price = json?.market_data?.current_price?.usd;
+    if(!price) throw new Error('no price in response');
+  }
+  priceCache.set(key, price);
+  return price;
+}
+async function fetchCurrentPrice(geckoId){
+  const key = cacheKey(geckoId, 'now');
+  if(priceCache.has(key)){
+    const cached = priceCache.get(key);
+    if(Date.now() - cached.ts < 60000) return cached.price; // 60s TTL for "current" price
+  }
+  let price;
+  try{
+    const res = await fetch(`/.netlify/functions/price?type=current&coin=${geckoId}`);
+    if(!res.ok) throw new Error('proxy current failed');
+    const json = await res.json();
+    if(!json.price) throw new Error('no price from proxy');
+    price = json.price;
+  }catch(proxyErr){
+    const res = await fetch(`https://api.coingecko.com/api/v3/simple/price?ids=${geckoId}&vs_currencies=usd`);
+    if(!res.ok) throw new Error('current price fetch failed');
+    const json = await res.json();
+    price = json?.[geckoId]?.usd;
+    if(!price) throw new Error('no price in response');
+  }
+  priceCache.set(key, { price, ts: Date.now() });
+  return price;
+}
+// Static offline index of popular coins — used when live search
+// via CoinGecko is unavailable (no network, CORS on file://, proxy not deployed, etc.)
+// Without this, search would be completely broken offline, unlike the price calc,
+// which has a demo fallback. Only id/symbol/name here, no images —
+// we render a colored letter-avatar instead of an <img> in the result row.
+const STATIC_COIN_INDEX = [
+  {id:'bitcoin', symbol:'btc', name:'Bitcoin'},
+  {id:'ethereum', symbol:'eth', name:'Ethereum'},
+  {id:'solana', symbol:'sol', name:'Solana'},
+  {id:'dogecoin', symbol:'doge', name:'Dogecoin'},
+  {id:'cardano', symbol:'ada', name:'Cardano'},
+  {id:'ripple', symbol:'xrp', name:'XRP'},
+  {id:'binancecoin', symbol:'bnb', name:'BNB'},
+  {id:'tron', symbol:'trx', name:'TRON'},
+  {id:'toncoin', symbol:'ton', name:'Toncoin'},
+  {id:'the-open-network', symbol:'ton', name:'Toncoin (TON)'},
+  {id:'polkadot', symbol:'dot', name:'Polkadot'},
+  {id:'chainlink', symbol:'link', name:'Chainlink'},
+  {id:'avalanche-2', symbol:'avax', name:'Avalanche'},
+  {id:'litecoin', symbol:'ltc', name:'Litecoin'},
+  {id:'shiba-inu', symbol:'shib', name:'Shiba Inu'},
+  {id:'pepe', symbol:'pepe', name:'Pepe'},
+  {id:'uniswap', symbol:'uni', name:'Uniswap'},
+  {id:'polygon-ecosystem-token', symbol:'pol', name:'Polygon'},
+  {id:'near', symbol:'near', name:'NEAR Protocol'},
+  {id:'internet-computer', symbol:'icp', name:'Internet Computer'},
+  {id:'aptos', symbol:'apt', name:'Aptos'},
+  {id:'arbitrum', symbol:'arb', name:'Arbitrum'},
+  {id:'optimism', symbol:'op', name:'Optimism'},
+  {id:'sui', symbol:'sui', name:'Sui'},
+  {id:'stellar', symbol:'xlm', name:'Stellar'},
+  {id:'monero', symbol:'xmr', name:'Monero'},
+  {id:'cosmos', symbol:'atom', name:'Cosmos'},
+  {id:'filecoin', symbol:'fil', name:'Filecoin'},
+  {id:'render-token', symbol:'render', name:'Render'},
+  {id:'injective-protocol', symbol:'inj', name:'Injective'},
+  {id:'the-graph', symbol:'grt', name:'The Graph'},
+  {id:'fantom', symbol:'ftm', name:'Fantom'},
+  {id:'vechain', symbol:'vet', name:'VeChain'},
+  {id:'hedera-hashgraph', symbol:'hbar', name:'Hedera'},
+  {id:'algorand', symbol:'algo', name:'Algorand'},
+  {id:'okb', symbol:'okb', name:'OKB'},
+  {id:'notcoin', symbol:'not', name:'Notcoin'},
+  {id:'worldcoin-wld', symbol:'wld', name:'Worldcoin'},
+  {id:'bonk', symbol:'bonk', name:'Bonk'},
+  {id:'dogwifcoin', symbol:'wif', name:'dogwifhat'},
+  {id:'ondo-finance', symbol:'ondo', name:'Ondo'},
+];
+function searchOffline(q){
+  const query = q.trim().toLowerCase();
+  return STATIC_COIN_INDEX.filter(c =>
+    c.symbol.toLowerCase().includes(query) || c.name.toLowerCase().includes(query)
+  ).slice(0, 8);
+}
+let currentCoin = { symbol:'BTC', name:'Bitcoin', geckoId:'bitcoin' };
+const grid=document.getElementById('coinGrid');
+const selectedLabel = document.getElementById('selectedCoinLabel');
+// Public CDN for coin icons (by symbol). If a specific coin's icon
+// isn't available (e.g. a new memecoin) — <img onerror> quietly swaps it for
+// a colored letter-avatar, so the UI never breaks.
+function iconUrl(symbol){
+  return `https://cdn.jsdelivr.net/gh/spothq/cryptocurrency-icons@master/128/color/${symbol.toLowerCase()}.png`;
+}
+function makeIconEl(symbol, name, sizeClass, extraClass){
+  const img = document.createElement('img');
+  img.src = iconUrl(symbol);
+  img.alt = '';
+  img.className = sizeClass + (extraClass ? ' '+extraClass : '');
+  img.onerror = ()=>{
+    const fallback = document.createElement('div');
+    fallback.className = sizeClass + ' avatar-fallback' + (extraClass ? ' '+extraClass : '');
+    fallback.textContent = (symbol||name||'?').charAt(0).toUpperCase();
+    img.replaceWith(fallback);
+  };
+  return img;
+}
+function renderQuickPicks(){
+  grid.innerHTML = '';
+  Object.keys(DATA).forEach(sym=>{
+    const btn=document.createElement('button');
+    btn.className='coin-btn'+(sym===currentCoin.symbol && currentCoin.geckoId===GECKO_ID[sym] ?' active':'');
+    btn.appendChild(makeIconEl(sym, DATA[sym].name, 'coin-btn-icon'));
+    const label = document.createElement('span');
+    label.textContent = sym;
+    btn.appendChild(label);
+    btn.onclick=()=>{
+      currentCoin = { symbol:sym, name:DATA[sym].name, geckoId:GECKO_ID[sym] };
+      updateSelectedUI();
+    };
+    grid.appendChild(btn);
+  });
+}
+// ---- Избранные монеты — только на клиенте (localStorage), без бэкенда ----
+// Позволяет закрепить монеты, которые нашли через поиск (не только 7
+// захардкоженных быстрых кнопок), чтобы не искать их заново при следующем
+// визите. Ограничено FAV_MAX, новые — в начало списка.
+const FAV_KEY = 'cf_favorite_coins';
+const FAV_MAX = 8;
+function getFavorites(){
+  try{
+    const raw = localStorage.getItem(FAV_KEY);
+    const list = raw ? JSON.parse(raw) : [];
+    return Array.isArray(list) ? list : [];
+  }catch(e){ return []; }
+}
+function saveFavorites(list){
+  try{ localStorage.setItem(FAV_KEY, JSON.stringify(list)); }catch(e){}
+}
+function isFavorite(coin){
+  return getFavorites().some(f => f.geckoId === coin.geckoId);
+}
+function toggleFavorite(coin){
+  let list = getFavorites();
+  if(isFavorite(coin)){
+    list = list.filter(f => f.geckoId !== coin.geckoId);
+  } else {
+    list = list.filter(f => f.geckoId !== coin.geckoId);
+    list.unshift({ symbol: coin.symbol, name: coin.name, geckoId: coin.geckoId });
+    list = list.slice(0, FAV_MAX);
+  }
+  saveFavorites(list);
+  renderFavorites();
+}
+function renderFavorites(){
+  const wrap = document.getElementById('favCoinsWrap');
+  const favGrid = document.getElementById('favCoins');
+  const list = getFavorites();
+  if(list.length === 0){ wrap.style.display = 'none'; return; }
+  wrap.style.display = 'block';
+  favGrid.innerHTML = '';
+  list.forEach(coin=>{
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'coin-btn' + (coin.geckoId === currentCoin.geckoId ? ' active' : '');
+    btn.appendChild(makeIconEl(coin.symbol, coin.name, 'coin-btn-icon'));
+    const label = document.createElement('span');
+    label.textContent = coin.symbol;
+    btn.appendChild(label);
+    btn.onclick = ()=>{
+      currentCoin = { symbol: coin.symbol, name: coin.name, geckoId: coin.geckoId };
+      updateSelectedUI();
+    };
+    favGrid.appendChild(btn);
+  });
+}
+function updateSelectedUI(){
+  renderQuickPicks();
+  renderFavorites();
+  selectedLabel.innerHTML = '';
+  selectedLabel.appendChild(makeIconEl(currentCoin.symbol, currentCoin.name, 'selected-coin-icon'));
+  const text = document.createElement('span');
+  text.innerHTML = `Выбрано: <b>${currentCoin.symbol}</b> · ${currentCoin.name}`;
+  selectedLabel.appendChild(text);
+  const fav = isFavorite(currentCoin);
+  const starBtn = document.createElement('button');
+  starBtn.type = 'button';
+  starBtn.className = 'fav-star' + (fav ? ' active' : '');
+  starBtn.textContent = fav ? '★' : '☆';
+  starBtn.setAttribute('aria-label', fav ? 'Убрать из избранного' : 'Добавить в избранное');
+  starBtn.onclick = ()=>{ toggleFavorite(currentCoin); updateSelectedUI(); };
+  selectedLabel.appendChild(starBtn);
+}
+// ---- Диплинк для SEO-страниц (Фаза 2) ----
+// ?coin=BTC&date=2013-01 заранее выбирает монету и месяц/год, чтобы ссылка
+// "посчитай свою сумму" со страницы под конкретную монету+год открывала
+// калькулятор уже готовым к сценарию, а не с пустой формой. Некорректные
+// или отсутствующие параметры просто оставляют обычные значения по умолчанию.
+(function applyDeepLinkParams(){
+  try{
+    const params = new URLSearchParams(location.search);
+    const coinParam = (params.get('coin') || '').toUpperCase();
+    if(coinParam && DATA[coinParam] && GECKO_ID[coinParam]){
+      currentCoin = { symbol: coinParam, name: DATA[coinParam].name, geckoId: GECKO_ID[coinParam] };
+    }
+    const dateParam = params.get('date') || '';
+    const m = dateParam.match(/^(\d{4})-(\d{2})$/);
+    if(m){
+      const y = parseInt(m[1], 10), mo = parseInt(m[2], 10);
+      if(y >= PICKER_MIN_YEAR && y <= PICKER_MAX_YEAR && mo >= 1 && mo <= 12){
+        pickedYear = y;
+        pickedMonth = mo;
+        currentDateStr = dateParam;
+        dateTrigger.textContent = `${MONTH_NAMES[mo-1]} ${y}`;
+      }
+    }
+  }catch(err){ /* некорректные параметры — просто используем значения по умолчанию */ }
+})();
+renderQuickPicks();
+renderFavorites();
+updateSelectedUI();
+// ---- Daily Regret — same scenario for everyone on a given calendar day ----
+// Picked from real historical crashes/peaks (not fully random dates) so the
+// result is always dramatic enough to be worth sharing, never a boring x1.05.
+const DAILY_SCENARIOS = [
+  { symbol:'BTC',  date:'2020-03' }, // covid crash low
+  { symbol:'BTC',  date:'2021-11' }, // all-time high
+  { symbol:'BTC',  date:'2022-12' }, // FTX collapse bottom
+  { symbol:'ETH',  date:'2021-11' }, // all-time high
+  { symbol:'ETH',  date:'2022-06' }, // bear market bottom
+  { symbol:'DOGE', date:'2021-05' }, // meme mania peak
+  { symbol:'DOGE', date:'2020-01' }, // right before the pump
+  { symbol:'SOL',  date:'2022-12' }, // FTX-linked crash bottom
+  { symbol:'ADA',  date:'2021-09' }, // cycle peak
+  { symbol:'XRP',  date:'2017-12' }, // 2017 mania peak
+  { symbol:'BNB',  date:'2021-05' }, // cycle peak
+];
+async function loadDailyRegret(){
+  const dayOfYear = Math.floor((Date.now() - new Date(new Date().getFullYear(),0,0)) / 86400000);
+  const scenario = DAILY_SCENARIOS[dayOfYear % DAILY_SCENARIOS.length];
+  const amount = 1000;
+  const coin = { symbol: scenario.symbol, name: DATA[scenario.symbol].name, geckoId: GECKO_ID[scenario.symbol] };
+  try{
+    const priceData = await getPrices(coin, scenario.date);
+    if(priceData.error) throw new Error('no price data');
+    const { buyPrice, nowPrice } = priceData;
+    const coins = amount / buyPrice;
+    const result = coins * nowPrice;
+    const mult = result / amount;
+    const tier = getTier(mult);
+    const [y, m] = scenario.date.split('-');
+    const monthLabel = MONTH_NAMES[parseInt(m,10)-1];
+    document.getElementById('dailyRegretText').innerHTML =
+      `Если бы ты купил $1,000 <b>${coin.name}</b> в ${monthLabel} ${y}, сегодня у тебя было бы <b>${fmtBig(result)}</b>. ${tier.emoji} ${tier.label}`;
+    document.getElementById('dailyRegret').style.display = 'block';
+    document.getElementById('dailyRegretCta').addEventListener('click', ()=>{
+      currentCoin = coin;
+      updateSelectedUI();
+      document.getElementById('amount').value = amount;
+      pickedYear = parseInt(y,10);
+      pickedMonth = parseInt(m,10);
+      currentDateStr = scenario.date;
+      dateTrigger.textContent = `${monthLabel} ${y}`;
+      document.querySelector('.panel').scrollIntoView({behavior:'smooth', block:'start'});
+    });
+  }catch(err){
+    // if even the demo fallback fails for some reason, just hide the banner —
+    // this is a nice-to-have, never worth showing a broken/empty state for
+  }
+}
+loadDailyRegret();
+// ---- Live feed of anonymous receipts from other visitors ----
+function timeAgo(ts){
+  const sec = Math.floor((Date.now()-ts)/1000);
+  if(sec < 60) return 'только что';
+  const min = Math.floor(sec/60);
+  if(min < 60) return `${min} мин назад`;
+  const hr = Math.floor(min/60);
+  if(hr < 24) return `${hr} ч назад`;
+  return `${Math.floor(hr/24)} дн назад`;
+}
+async function loadLiveFeed(){
+  try{
+    const res = await fetch('/.netlify/functions/feed');
+    if(!res.ok) return; // лента не настроена или временно недоступна — просто не показываем блок
+    const { entries, count } = await res.json();
+    if(typeof count === 'number' && count > 0){
+      const counterEl = document.getElementById('regretCounter');
+      const countWord = pluralForm(count, ['человек', 'человека', 'человек']);
+      const countVerb = pluralForm(count, ['проверил', 'проверили', 'проверили']);
+      counterEl.innerHTML = `🔥 <b>${count.toLocaleString('ru-RU')}</b> ${countWord} уже ${countVerb} свой регрет сегодня`;
+      counterEl.style.display = 'block';
+    }
+    if(!entries || entries.length === 0) return;
+    const list = document.getElementById('liveFeedList');
+    list.innerHTML = '';
+    entries.forEach(e=>{
+      const row = document.createElement('div');
+      row.className = 'live-feed-row';
+      // "проверил покупку/продажу" вместо прямого "купил/продал" — на самом
+      // деле никто ничего не покупал и не продавал, просто прогнали калькулятор
+      const verb = e.mode === 'sold' ? 'проверил продажу' : e.mode === 'dca' ? 'проверил усреднение' : 'проверил покупку';
+      const entryIsGood = e.mode === 'sold' ? e.mult <= 1 : e.mult >= 1;
+      row.innerHTML = `<span>${e.tierEmoji} Кто-то ${verb} <b>${e.coin}</b> · ${timeAgo(e.ts)}</span>
+        <span class="fr-mult ${entryIsGood?'pos':'neg'}">x${e.mult.toFixed(1)}</span>`;
+      list.appendChild(row);
+    });
+    document.getElementById('liveFeed').style.display = 'block';
+  }catch(err){
+    // тихо ничего не показываем — лента опциональная фича, не должна ничего ломать
+  }
+}
+loadLiveFeed();
+// ---- Free-text coin search via CoinGecko /search ----
+const searchInput = document.getElementById('coinSearch');
+const dropdown = document.getElementById('coinDropdown');
+let searchDebounce = null;
+searchInput.addEventListener('input', ()=>{
+  const q = searchInput.value.trim();
+  clearTimeout(searchDebounce);
+  if(q.length < 2){ dropdown.classList.remove('open'); return; }
+  dropdown.innerHTML = '<div class="loading">ищем…</div>';
+  dropdown.classList.add('open');
+  searchDebounce = setTimeout(()=>runCoinSearch(q), 350);
+});
+document.addEventListener('click', (e)=>{
+  if(!e.target.closest('.coin-search-wrap')) dropdown.classList.remove('open');
+});
+async function runCoinSearch(q){
+  let coins = [];
+  let offline = false;
+  try{
+    try{
+      // proxy first — a short edge-cache absorbs bursts from fast typing
+      const res = await fetch(`/.netlify/functions/search?query=${encodeURIComponent(q)}`);
+      if(!res.ok) throw new Error('proxy search failed');
+      const json = await res.json();
+      coins = json.coins || [];
+    }catch(proxyErr){
+      const res = await fetch(`https://api.coingecko.com/api/v3/search?query=${encodeURIComponent(q)}`);
+      if(!res.ok) throw new Error('search failed');
+      const json = await res.json();
+      coins = (json.coins || []).slice(0, 8);
+    }
+  }catch(err){
+    // neither the proxy nor direct CoinGecko is reachable (no network, CORS on file://, etc.) —
+    // don't leave search completely dead, fall back to the local offline index
+    coins = searchOffline(q);
+    offline = true;
+  }
+  if(coins.length === 0){
+    dropdown.innerHTML = offline
+      ? '<div class="empty">Не нашли офлайн — попробуй быстрый выбор ниже, или дождись сети для полного поиска</div>'
+      : '<div class="empty">Ничего не нашлось</div>';
+    return;
+  }
+  dropdown.innerHTML = '';
+  if(offline){
+    const note = document.createElement('div');
+    note.className = 'coin-dropdown-note';
+    note.textContent = 'офлайн-поиск (нет сети) · ограниченный список';
+    dropdown.appendChild(note);
+  }
+  coins.forEach(c=>{
+    const opt = document.createElement('div');
+    opt.className = 'coin-opt';
+    if(c.thumb){
+      // a live CoinGecko result already has a ready-made image
+      const img = document.createElement('img');
+      img.src = c.thumb; img.alt = '';
+      img.onerror = ()=>{
+        const fb = document.createElement('div');
+        fb.className = 'co-avatar';
+        fb.textContent = c.symbol.charAt(0).toUpperCase();
+        img.replaceWith(fb);
+      };
+      opt.appendChild(img);
+    } else {
+      // offline entry — try the public CDN by symbol, fall back to a letter
+      opt.appendChild(makeIconEl(c.symbol, c.name, 'co-avatar-sized'));
+    }
+    const info = document.createElement('div');
+    info.innerHTML = `<div class="co-sym">${c.symbol.toUpperCase()}</div><div class="co-name">${c.name}</div>`;
+    opt.appendChild(info);
+    opt.onclick = ()=>{
+      currentCoin = { symbol:c.symbol.toUpperCase(), name:c.name, geckoId:c.id };
+      updateSelectedUI();
+      searchInput.value = '';
+      dropdown.classList.remove('open');
+    };
+    dropdown.appendChild(opt);
+  });
+}
+function animateCount(el, target, prefix, duration=900){
+  const start=performance.now();
+  function step(now){
+    const p=Math.min(1,(now-start)/duration);
+    const eased=1-Math.pow(1-p,3);
+    const val=target*eased;
+    el.textContent = prefix + fmtBig(val).replace('$','');
+    if(p<1) requestAnimationFrame(step);
+    else el.textContent = prefix + fmtBig(target).replace('$','');
+  }
+  requestAnimationFrame(step);
+}
+const calcBtn = document.getElementById('calcBtn');
+function calcBtnLabelForMode(){
+  if(currentMode === 'sold') return 'Покажи, сколько я потерял →';
+  if(currentMode === 'dca') return 'Покажи, что получилось бы →';
+  return 'Покажи, что я упустил →';
+}
+// ---- Bought vs "Sold too early" mode ----
+// In "bought" mode, `amount` typed by the user is a DOLLAR amount invested
+// at the purchase date; coins are derived (amount / priceThen).
+// In "sold" mode, `amount` is now the exact number of COINS sold — the user
+// almost always remembers that precisely, unlike the dollar value they got
+// at the time, which used to be reconstructed backwards from a guess.
+// The `$` prefix on the amount field only makes sense for the dollar-input
+// case, so it's toggled off via the .no-prefix class in "sold" mode.
+let currentMode = 'bought';
+const modeToggle = document.getElementById('modeToggle');
+const amountLabel = document.getElementById('amountLabel');
+const dateLabel = document.getElementById('dateLabel');
+const amountWrap = document.querySelector('.amount-wrap');
+const amountInputEl = document.getElementById('amount');
+modeToggle.addEventListener('click', (e)=>{
+  const btn = e.target.closest('.mode-btn');
+  if(!btn) return;
+  currentMode = btn.dataset.mode;
+  modeToggle.querySelectorAll('.mode-btn').forEach(b=> b.classList.toggle('active', b===btn));
+  const AMOUNT_DEFAULTS = { bought:'1000', sold:'1', dca:'100' };
+  if(Object.values(AMOUNT_DEFAULTS).includes(amountInputEl.value)) amountInputEl.value = AMOUNT_DEFAULTS[currentMode];
+  if(currentMode === 'sold'){
+    amountLabel.textContent = 'Продано монет';
+    dateLabel.textContent = 'Дата продажи';
+    calcBtn.textContent = 'Покажи, сколько я потерял →';
+    amountWrap.classList.add('no-prefix');
+  } else if(currentMode === 'dca'){
+    amountLabel.textContent = 'Сумма в месяц';
+    dateLabel.textContent = 'Дата начала';
+    calcBtn.textContent = 'Покажи, что получилось бы →';
+    amountWrap.classList.remove('no-prefix');
+  } else {
+    amountLabel.textContent = 'Сумма';
+    dateLabel.textContent = 'Дата покупки';
+    calcBtn.textContent = 'Покажи, что я упустил →';
+    amountWrap.classList.remove('no-prefix');
+  }
+});
+// ---- Quick period-select shortcuts (1M/6M/1Y/5Y/MAX) ----
+document.querySelectorAll('.period-btn').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    const val = btn.dataset.period;
+    let y, m;
+    if(val === 'max'){
+      y = PICKER_MIN_YEAR; m = 1;
+    } else {
+      const monthsBack = parseInt(val, 10);
+      const nowIdx = PICKER_MAX_YEAR*12 + (PICKER_MAX_MONTH_IN_MAX_YEAR-1);
+      const idx = Math.max(PICKER_MIN_YEAR*12, nowIdx - monthsBack);
+      y = Math.floor(idx/12);
+      m = (idx % 12) + 1;
+    }
+    pickedYear = y;
+    pickedMonth = m;
+    updateDateTriggerLabel();
+    document.querySelectorAll('.period-btn').forEach(b=>b.classList.toggle('active', b===btn));
+    calcBtn.click();
+  });
+});
+// ---- Regret tiers — turns the bare multiplier into a shareable status ----
+function getTier(mult){
+  if(mult < 0.3)  return { label: 'ПОЛНЫЙ РЕКТ', emoji: '💀' };
+  if(mult < 0.7)  return { label: 'СЕРТИФИЦИРОВАННЫЙ БЭГХОЛДЕР', emoji: '🧻' };
+  if(mult < 1)    return { label: 'ЛЁГКИЙ ПРОМАХ', emoji: '😬' };
+  if(mult < 3)    return { label: 'НЕПЛОХОЙ ХОД', emoji: '👍' };
+  if(mult < 10)   return { label: 'ХОРОШИЙ УЛОВ', emoji: '🎣' };
+  if(mult < 50)   return { label: 'ЛЕГЕНДАРНЫЙ ТАЙМИНГ', emoji: '🏆' };
+  return { label: 'АЛМАЗНЫЕ РУКИ ОКУПИЛИСЬ', emoji: '💎' };
+}
+// ---- Кривая стоимости позиции для графика на чеке ----
+async function fetchValueCurve(coin, dateStr, buyPrice, nowPrice, baseValue){
+  try{
+    const res = await fetch(`/.netlify/functions/range?coin=${coin.geckoId}&from=${dateStr}`);
+    if(!res.ok) throw new Error('range proxy failed');
+    const { points } = await res.json();
+    if(!points || points.length < 2) throw new Error('not enough points');
+    // первую и последнюю точку жёстко фиксируем на уже посчитанных
+    // buyPrice/nowPrice, чтобы график не расходился с цифрами в чеке
+    return points.map((p,i)=>{
+      let price = p.price;
+      if(i===0) price = buyPrice;
+      if(i===points.length-1) price = nowPrice;
+      return baseValue * (price/buyPrice);
+    });
+  }catch(err){
+    return null; // график опциональный — тихо скрываем при любой ошибке
+  }
+}
+
+// ---- Value-by-year breakdown table (uses the same range.js proxy, annual mode) ----
+async function fetchYearlyBreakdown(coin, dateStr, buyPrice, nowPrice, baseValue){
+  const startYear = parseInt(dateStr.split('-')[0], 10);
+  const nowYear = new Date().getFullYear();
+  if(nowYear - startYear < 2) return null; // слишком короткий период — таблица не нужна
+  try{
+    const res = await fetch(`/.netlify/functions/range?coin=${coin.geckoId}&from=${dateStr}&granularity=annual`);
+    if(!res.ok) throw new Error('range proxy failed');
+    const { points } = await res.json();
+    if(!points || points.length < 2) throw new Error('not enough points');
+    return points.map((p,i)=>{
+      let price = p.price;
+      if(i===0) price = buyPrice;
+      if(i===points.length-1) price = nowPrice;
+      return { year: p.date.split('-')[0], value: baseValue * (price/buyPrice) };
+    });
+  }catch(err){
+    return null; // таблица опциональна — тихо скрываем при любой ошибке, как и график
+  }
+}
+function renderYearTable(rows){
+  const el = document.getElementById('rYearTable');
+  el.innerHTML = '<div class="r-year-table-title">Стоимость по годам</div>' +
+    rows.map(r => `<div class="r-year-row"><span class="ry-year">${r.year}</span><span class="ry-val">${fmt(r.value)}</span></div>`).join('');
+  el.style.display = 'block';
+}
+function renderValueCurveSvg(values){
+  const svg = document.getElementById('rChartSvg');
+  const W=280, H=70, PAD=4;
+  const min=Math.min(...values), max=Math.max(...values);
+  const range=(max-min)||1;
+  const stepX=(W-PAD*2)/(values.length-1);
+  const pts=values.map((v,i)=>[PAD+i*stepX, H-PAD-((v-min)/range)*(H-PAD*2)]);
+  const path=pts.map((p,i)=>(i===0?'M':'L')+p[0].toFixed(1)+','+p[1].toFixed(1)).join(' ');
+  const last=pts[pts.length-1];
+  const rising=values[values.length-1]>=values[0];
+  const color=rising?'#0F7A50':'#A82A30';
+  const areaPath=path+` L${last[0].toFixed(1)},${H-PAD} L${pts[0][0].toFixed(1)},${H-PAD} Z`;
+  svg.innerHTML=`<path d="${areaPath}" fill="${color}" opacity="0.08"></path>
+    <path d="${path}" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
+    <circle cx="${last[0].toFixed(1)}" cy="${last[1].toFixed(1)}" r="3" fill="${color}"></circle>`;
+}
+function drawShareChart(ctx, values, centerX, topY, width, height){
+  const left=centerX-width/2;
+  const min=Math.min(...values), max=Math.max(...values);
+  const range=(max-min)||1;
+  const stepX=width/(values.length-1);
+  const rising=values[values.length-1]>=values[0];
+  const color=rising?'#0F7A50':'#A82A30';
+  const pts=values.map((v,i)=>[left+i*stepX, topY+height-((v-min)/range)*height]);
+  ctx.beginPath();
+  pts.forEach((p,i)=> i===0? ctx.moveTo(p[0],p[1]) : ctx.lineTo(p[0],p[1]));
+  ctx.strokeStyle=color; ctx.lineWidth=2.5; ctx.lineJoin='round'; ctx.lineCap='round';
+  ctx.stroke();
+  ctx.lineTo(pts[pts.length-1][0], topY+height);
+  ctx.lineTo(pts[0][0], topY+height);
+  ctx.closePath();
+  ctx.fillStyle=color; ctx.globalAlpha=0.08; ctx.fill(); ctx.globalAlpha=1;
+}
+async function getPrices(coin, dateStr){
+  const demoPoints = DATA[coin.symbol]?.points;
+  try{
+    const [buyPrice, nowPrice] = await Promise.all([
+      fetchHistoricalPrice(coin.geckoId, dateStr),
+      fetchCurrentPrice(coin.geckoId)
+    ]);
+    return { buyPrice, nowPrice, source:'live' };
+  }catch(err){
+    // fallback to approximate demo dataset — only available for the 7 preset coins
+    if(demoPoints){
+      return {
+        buyPrice: interpPrice(demoPoints, dateStr),
+        nowPrice: interpPrice(demoPoints, '2026-08'),
+        source:'demo'
+      };
+    }
+    return { error:true };
+  }
+}
+calcBtn.addEventListener('click', async ()=>{
+  calcBtn.disabled = true;
+  const coin = currentCoin;
+  if(currentMode === 'dca'){
+    await runDcaCalculation(coin);
+  } else {
+    await runLumpSumCalculation(coin);
+  }
+});
+// ---- "Я купил" / "Я продал слишком рано" — разовая покупка ----
+async function runLumpSumCalculation(coin){
+  const amountInputVal = parseFloat(document.getElementById('amount').value) || 0;
+  const dateStr = currentDateStr;
+  calcBtn.innerHTML = '<span class="spin"></span>Считаем по рынку…';
+  const priceData = await getPrices(coin, dateStr);
+  if(priceData.error){
+    calcBtn.disabled = false;
+    calcBtn.textContent = calcBtnLabelForMode();
+    alert(`Не смогли получить цены для ${coin.symbol} — API недоступен, а демо-данных для этой монеты нет. Попробуй BTC/ETH/SOL/DOGE/ADA/XRP/BNB, или повтори попытку.`);
+    return;
+  }
+  const { buyPrice, nowPrice, source } = priceData;
+  // "bought": amountInputVal — доллары, вложенные тогда → coins = amount/priceThen.
+  // "sold": amountInputVal — количество монет, проданных тогда (введено напрямую,
+  // без реконструкции из угаданной суммы в долларах).
+  const coins = currentMode === 'sold' ? amountInputVal : (amountInputVal / buyPrice);
+  const baseValue = coins * buyPrice; // стоимость "тогда" — единая формула для обоих режимов
+  const result = coins * nowPrice;
+  const mult = result / baseValue;
+  const spBuy = interpPrice(SP500, dateStr);
+  const spNow = interpPrice(SP500, '2026-08');
+  const spResult = baseValue * (spNow/spBuy);
+  // В режиме "продал" эмоциональный знак переворачивается: если монета
+  // выросла ПОСЛЕ продажи — это и есть регрет (плохо), а если упала —
+  // значит вышел вовремя (хорошо). Обратная логика по сравнению с режимом
+  // "купил", где чем больше множитель, тем лучше.
+  const isGood = currentMode === 'sold' ? mult <= 1 : mult >= 1;
+  const tier = getTier(currentMode === 'sold' ? (1/mult) : mult);
+  const verb = currentMode === 'sold' ? 'продано' : 'куплено';
+  const rSub = document.getElementById('rSub');
+  rSub.innerHTML = '';
+  rSub.appendChild(makeIconEl(coin.symbol, coin.name, 'r-sub-icon'));
+  rSub.appendChild(document.createTextNode(`${coin.name} · ${verb} в ${dateStr}`));
+  document.getElementById('rInvestedLabel').textContent = currentMode === 'sold' ? 'Стоимость на момент продажи' : 'Вложено';
+  document.getElementById('rBuyPriceLabel').textContent = currentMode === 'sold' ? 'Цена на момент продажи' : 'Цена на момент покупки';
+  document.getElementById('rCoinsQtyLabel').textContent = currentMode === 'sold' ? 'Продано монет' : 'Куплено монет';
+  document.getElementById('rSource').textContent = source==='live' ? '● live-данные coingecko' : '● офлайн демо-данные (api недоступен)';
+  document.getElementById('rSource').className = 'r-source '+source;
+  document.getElementById('rInvested').textContent = fmt(baseValue);
+  document.getElementById('rBuyPrice').textContent = fmt(buyPrice);
+  document.getElementById('rCoinsQty').textContent = fmtCoinsQty(coins, coin.symbol);
+  document.getElementById('rNowPrice').textContent = fmt(nowPrice);
+  document.getElementById('rMult').textContent = 'x'+mult.toFixed(1);
+  document.getElementById('rMult').className = 'r-mult '+(isGood?'pos':'neg');
+  document.getElementById('rResult').className = 'num '+(isGood?'pos':'neg');
+  document.getElementById('rTier').textContent = `${tier.emoji} ${tier.label}`;
+  const aaplBuy = interpPrice(AAPL, dateStr);
+  const aaplNow = interpPrice(AAPL, '2026-08');
+  const aaplResult = baseValue * (aaplNow/aaplBuy);
+  const goldBuy = interpPrice(GOLD, dateStr);
+  const goldNow = interpPrice(GOLD, '2026-08');
+  const goldResult = baseValue * (goldNow/goldBuy);
+  document.getElementById('rCompare').textContent =
+    `Для сравнения: та же сумма сейчас стоила бы ${fmtBig(spResult)} в S&P 500, ${fmtBig(aaplResult)} в акциях Apple (AAPL), или ${fmtBig(goldResult)} в золоте.`;
+  let chartValues = await fetchValueCurve(coin, dateStr, buyPrice, nowPrice, baseValue);
+  if(chartValues){
+    renderValueCurveSvg(chartValues);
+    document.getElementById('rChartCaption').textContent = `Стоимость позиции · ${dateStr} → сегодня`;
+    document.getElementById('rChartWrap').style.display = 'block';
+  } else {
+    document.getElementById('rChartWrap').style.display = 'none';
+  }
+  const yearRows = await fetchYearlyBreakdown(coin, dateStr, buyPrice, nowPrice, baseValue);
+  if(yearRows){
+    renderYearTable(yearRows);
+  } else {
+    document.getElementById('rYearTable').style.display = 'none';
+  }
+  document.getElementById('rStamp').textContent = new Date().toISOString().slice(0,19).replace('T',' ');
+  // показываем инвест-CTA только после первого расчёта, текст зависит от исхода —
+  // на выигрыше бьём в "не упусти следующий раз", на проигрыше — в "начни сейчас".
+  // Биржа для ссылки берётся по кругу из EXCHANGES (Bybit/MEXC/Bitget/BingX), чтобы
+  // трафик распределялся между всеми партнёрками.
+  const ctaInvest = document.getElementById('ctaInvest');
+  const exchange = nextExchange();
+  ctaInvest.href = exchange.url;
+  ctaInvest.style.display = 'block';
+  document.getElementById('investNote').style.display = 'block';
+  document.getElementById('ctaInvestText').textContent = `Хочешь попробовать сам? Начни на ${exchange.name} →`;
+  // контекст для трекинга клика (см. обработчик ниже) — не влияет на сам расчёт
+  ctaInvest.dataset.outcome = isGood ? 'win' : 'loss';
+  ctaInvest.dataset.coin = coin.symbol;
+  ctaInvest.dataset.mult = mult.toFixed(1);
+  ctaInvest.dataset.exchange = exchange.name.toLowerCase();
+  document.getElementById('receipt-holder').style.display='block';
+  animateCount(document.getElementById('rResult'), result, '$');
+  renderLocalCurrency(result);
+  document.getElementById('receipt-holder').scrollIntoView({behavior:'smooth', block:'nearest'});
+  lastResult = {
+    coinName: coin.name,
+    coinSymbol: coin.symbol,
+    dateStr,
+    mode: currentMode,
+    tier,
+    investedFmt: fmt(baseValue),
+    buyPriceFmt: fmt(buyPrice),
+    coinsQtyFmt: fmtCoinsQty(coins, coin.symbol),
+    nowPriceFmt: fmt(nowPrice),
+    resultFmt: fmtBig(result),
+    spResultFmt: fmtBig(spResult),
+    mult,
+    isGood,
+    chartValues,
+    investedRaw: baseValue,
+    resultRaw: result
+  };
+  // reset any previously generated share card since the numbers changed
+  document.getElementById('shareCardWrap').style.display = 'none';
+  precacheShareCard(); // рисуем PNG-карточку в фоне заранее, чтобы она была готова к моменту клика на "Share"
+  precacheShareId(); // заодно запрашиваем короткую ссылку в фоне, по той же логике
+  // "сравнить с другой монетой" имеет смысл только для обычной разовой покупки —
+  // сбрасываем на каждом новом расчёте, показываем переключатель только в режиме "купил"
+  document.getElementById('comparePicker').style.display = 'none';
+  document.getElementById('compareResult').style.display = 'none';
+  document.getElementById('compareResult').innerHTML = '';
+  document.getElementById('compareBlock').style.display = currentMode === 'bought' ? 'block' : 'none';
+  document.getElementById('portfolioPicker').style.display = 'none';
+  document.getElementById('portfolioResult').style.display = 'none';
+  document.getElementById('portfolioResult').innerHTML = '';
+  document.getElementById('portfolioCalcBtn').style.display = 'none';
+  document.getElementById('portfolioBlock').style.display = currentMode === 'bought' ? 'block' : 'none';
+  // делимся анонимной записью в живой ленте — не блокируем интерфейс,
+  // если это не сработает (ошибка сети / лента не настроена), тихо игнорируем
+  fetch('/.netlify/functions/feed', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      coin: coin.symbol,
+      mode: currentMode,
+      mult,
+      tierEmoji: tier.emoji,
+      tierLabel: tier.label,
+      resultFmt: fmtBig(result),
+    }),
+  }).catch(()=>{});
+  calcBtn.disabled = false;
+  calcBtn.textContent = calcBtnLabelForMode();
+}
+// ---- "Покупаю каждый месяц" — усреднение (DCA) ----
+// Запрашивать реальную цену за каждый календарный месяц может означать 100+
+// запросов к CoinGecko для старой даты начала — слишком медленно и большая
+// нагрузка на живом запуске. Вместо этого берём до 24 показательных точек
+// (тот же прокси range.js, просто просим больше точек) и считаем, что каждая
+// точка "представляет" равную часть реальных месяцев между ними — честное
+// приближение, в духе того, как весь калькулятор уже относится к себе как
+// к иллюстрации, а не точному расчёту.
+async function runDcaCalculation(coin){
+  const monthlyAmount = parseFloat(document.getElementById('amount').value) || 0;
+  const dateStr = currentDateStr;
+  calcBtn.innerHTML = '<span class="spin"></span>Считаем историю цен по месяцам…';
+  try{
+    const nowPrice = await fetchCurrentPrice(coin.geckoId);
+    const res = await fetch(`/.netlify/functions/range?coin=${coin.geckoId}&from=${dateStr}&points=24`);
+    if(!res.ok) throw new Error('range proxy failed');
+    const { points } = await res.json();
+    if(!points || points.length < 1) throw new Error('not enough points');
+    points[points.length-1] = { date: points[points.length-1].date, price: nowPrice };
+    const [fy, fm] = dateStr.split('-').map(Number);
+    const now = new Date();
+    const toIdx = now.getFullYear()*12 + now.getMonth();
+    const fromIdx = fy*12 + (fm-1);
+    const totalMonths = Math.max(1, toIdx - fromIdx + 1);
+    const n = points.length;
+    const base = Math.floor(totalMonths / n);
+    const remainder = totalMonths % n;
+    let totalCoins = 0;
+    points.forEach((p, i)=>{
+      const weight = base + (i < remainder ? 1 : 0);
+      totalCoins += (monthlyAmount * weight) / p.price;
+    });
+    const totalInvested = monthlyAmount * totalMonths;
+    const result = totalCoins * nowPrice;
+    const mult = result / totalInvested;
+    const avgPrice = totalInvested / totalCoins;
+    const lumpSumValue = (totalInvested / points[0].price) * nowPrice;
+    const isGood = mult >= 1;
+    const tier = getTier(mult);
+    const rSub = document.getElementById('rSub');
+    rSub.innerHTML = '';
+    rSub.appendChild(makeIconEl(coin.symbol, coin.name, 'r-sub-icon'));
+    rSub.appendChild(document.createTextNode(`${coin.name} · помесячно с ${dateStr}`));
+    document.getElementById('rInvestedLabel').textContent = 'Всего вложено';
+    document.getElementById('rBuyPriceLabel').textContent = 'Средняя цена покупки';
+    document.getElementById('rCoinsQtyLabel').textContent = 'Куплено монет';
+    document.getElementById('rSource').textContent = `● приближённо — усреднено по ${n} точкам`;
+    document.getElementById('rSource').className = 'r-source demo';
+    document.getElementById('rInvested').textContent = fmt(totalInvested);
+    document.getElementById('rBuyPrice').textContent = fmt(avgPrice);
+    document.getElementById('rCoinsQty').textContent = fmtCoinsQty(totalCoins, coin.symbol);
+    document.getElementById('rNowPrice').textContent = fmt(nowPrice);
+    document.getElementById('rMult').textContent = 'x'+mult.toFixed(1);
+    document.getElementById('rMult').className = 'r-mult '+(isGood?'pos':'neg');
+    document.getElementById('rResult').className = 'num '+(isGood?'pos':'neg');
+    document.getElementById('rTier').textContent = `${tier.emoji} ${tier.label}`;
+    const spBuy = interpPrice(SP500, dateStr);
+    const spNow = interpPrice(SP500, '2026-08');
+    const spResult = totalInvested * (spNow/spBuy);
+    const aaplBuy = interpPrice(AAPL, dateStr);
+    const aaplNow = interpPrice(AAPL, '2026-08');
+    const aaplResult = totalInvested * (aaplNow/aaplBuy);
+    const goldBuy = interpPrice(GOLD, dateStr);
+    const goldNow = interpPrice(GOLD, '2026-08');
+    const goldResult = totalInvested * (goldNow/goldBuy);
+    document.getElementById('rCompare').textContent =
+      `Если бы вложил всю эту сумму (${fmt(totalInvested)}) сразу, одним платежом, сегодня было бы ${fmtBig(lumpSumValue)}. Для сравнения: та же сумма в S&P 500 стоила бы ${fmtBig(spResult)}, в акциях Apple (AAPL) — ${fmtBig(aaplResult)}, а в золоте — ${fmtBig(goldResult)}.`;
+    // у DCA нет смысла показывать "кривую одной покупки" — прячем график
+    // и таблицу по годам вместо того, чтобы показывать вводящую в заблуждение картинку
+    document.getElementById('rChartWrap').style.display = 'none';
+    document.getElementById('rYearTable').style.display = 'none';
+    document.getElementById('rStamp').textContent = new Date().toISOString().slice(0,19).replace('T',' ');
+    const ctaInvest = document.getElementById('ctaInvest');
+    const exchange = nextExchange();
+    ctaInvest.href = exchange.url;
+    ctaInvest.style.display = 'block';
+    document.getElementById('investNote').style.display = 'block';
+    document.getElementById('ctaInvestText').textContent = `Хочешь попробовать сам? Начни на ${exchange.name} →`;
+    ctaInvest.dataset.outcome = isGood ? 'win' : 'loss';
+    ctaInvest.dataset.coin = coin.symbol;
+    ctaInvest.dataset.mult = mult.toFixed(1);
+    ctaInvest.dataset.exchange = exchange.name.toLowerCase();
+    document.getElementById('receipt-holder').style.display = 'block';
+    animateCount(document.getElementById('rResult'), result, '$');
+    document.getElementById('receipt-holder').scrollIntoView({behavior:'smooth', block:'nearest'});
+    // текст/карточка для шеринга берутся из lastResult — у DCA нет единой "кривой
+    // стоимости позиции", как у разовой покупки, поэтому chartValues остаётся null,
+    // и существующая проверка в коде отрисовки карточки просто пропускает график
+    lastResult = {
+      coinName: coin.name,
+      coinSymbol: coin.symbol,
+      dateStr,
+      mode: currentMode,
+      tier,
+      investedFmt: fmt(totalInvested),
+      buyPriceFmt: fmt(avgPrice),
+      coinsQtyFmt: fmtCoinsQty(totalCoins, coin.symbol),
+      nowPriceFmt: fmt(nowPrice),
+      resultFmt: fmtBig(result),
+      spResultFmt: fmtBig(spResult),
+      mult,
+      isGood,
+      chartValues: null,
+    };
+    document.getElementById('shareCardWrap').style.display = 'none';
+    precacheShareCard(); // рисуем PNG-карточку в фоне заранее, чтобы она была готова к моменту клика на "Share"
+    precacheShareId(); // заодно запрашиваем короткую ссылку в фоне, по той же логике
+    // сравнение с другой монетой применимо только к разовой покупке, не к DCA
+    document.getElementById('comparePicker').style.display = 'none';
+    document.getElementById('compareResult').style.display = 'none';
+    document.getElementById('compareResult').innerHTML = '';
+    document.getElementById('compareBlock').style.display = 'none';
+    document.getElementById('portfolioPicker').style.display = 'none';
+    document.getElementById('portfolioResult').style.display = 'none';
+    document.getElementById('portfolioResult').innerHTML = '';
+    document.getElementById('portfolioCalcBtn').style.display = 'none';
+    document.getElementById('portfolioBlock').style.display = 'none';
+    fetch('/.netlify/functions/feed', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        coin: coin.symbol,
+        mode: currentMode,
+        mult,
+        tierEmoji: tier.emoji,
+        tierLabel: tier.label,
+        resultFmt: fmtBig(result),
+      }),
+    }).catch(()=>{});
+  }catch(err){
+    alert(`Не смогли получить историю цен по месяцам для ${coin.symbol} — попробуй ещё раз через минуту или выбери другую монету.`);
+  }finally{
+    calcBtn.disabled = false;
+    calcBtn.textContent = calcBtnLabelForMode();
+  }
+}
+// keep the last computed result around so the share card can use it
+let lastResult = null;
+// заранее отрисованная PNG-карточка для текущего lastResult — рисуется в фоне
+// сразу после каждого расчёта, чтобы "Share" не приходилось её ждать (ожидание
+// прямо в обработчике клика рискует тем, что браузер заблокирует открытие
+// окна как не связанное напрямую с кликом)
+let cachedShareCardDataUrl = null;
+async function precacheShareCard(){
+  cachedShareCardDataUrl = null;
+  try{ cachedShareCardDataUrl = await drawShareCard(true); }
+  catch(err){
+    try{ cachedShareCardDataUrl = await drawShareCard(false); }
+    catch(err2){ /* к моменту клика на Share картинки ещё не будет — тогда дорисуем на лету */ }
+  }
+}
+// короткая ссылка "/r/<id>" для ТЕКУЩЕГО lastResult, запрашивается в фоне
+// сразу после каждого расчёта (та же логика, что и с PNG-карточкой выше —
+// никакого ожидания внутри обработчика клика). Если не успела прийти или
+// запрос не удался — buildShareUrl() подставит старую длинную ссылку.
+let cachedShareId = null;
+async function createShortLink(payload){
+  try{
+    const res = await fetch('/.netlify/functions/shorten', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify(payload),
+    });
+    if(!res.ok) return null;
+    const data = await res.json();
+    return (data && data.id) || null;
+  }catch(e){ return null; }
+}
+async function precacheShareId(){
+  cachedShareId = null;
+  const obj = shareParamsObject('ru');
+  if(!obj) return;
+  cachedShareId = await createShortLink(obj);
+}
+function showShareToast(msg){
+  let toast = document.getElementById('shareToast');
+  if(!toast){
+    toast = document.createElement('div');
+    toast.id = 'shareToast';
+    toast.className = 'share-toast';
+    document.body.appendChild(toast);
+  }
+  toast.textContent = msg;
+  toast.classList.add('visible');
+  clearTimeout(toast._hideTimer);
+  toast._hideTimer = setTimeout(()=> toast.classList.remove('visible'), 6000);
+}
+// строит ссылку на netlify/functions/share.js для ТЕКУЩЕГО lastResult — эта
+// страница содержит og:image/twitter:image, указывающие на og-image.js с теми
+// же параметрами, так что превью в Telegram/X показывает картинку именно
+// этого результата, а не общий скриншот; реальный посетитель по клику
+// перенаправляется прямо на калькулятор.
+function shareParamsObject(lang){
+  if(!lastResult) return null;
+  const obj = {
+    s: lastResult.coinSymbol,
+    n: lastResult.coinName,
+    m: lastResult.mode,
+    d: lastResult.dateStr,
+    r: lastResult.resultFmt,
+    mu: lastResult.mult.toFixed(1),
+    tl: lastResult.tier.label,
+    g: lastResult.isGood ? '1' : '0',
+  };
+  if(lastResult.spResultFmt) obj.sp = lastResult.spResultFmt;
+  if(lang === 'ru') obj.lang = 'ru';
+  return obj;
+}
+function buildShareUrl(lang){
+  const obj = shareParamsObject(lang);
+  if(!obj) return 'https://cryptofumble.com/ru';
+  // короткая ссылка (cryptofumble.com/r/<id>), если precacheShareId() успела
+  // отработать; иначе — старая длинная, но полностью самодостаточная ссылка
+  if(cachedShareId) return `https://cryptofumble.com/r/${cachedShareId}`;
+  const params = new URLSearchParams(obj);
+  return `https://cryptofumble.com/.netlify/functions/share?${params.toString()}`;
+}
+async function downloadShareCardAndNotify(msg){
+  let dataUrl = cachedShareCardDataUrl;
+  if(!dataUrl){
+    try{ dataUrl = await drawShareCard(true); }
+    catch(err){
+      try{ dataUrl = await drawShareCard(false); }
+      catch(err2){ return; }
+    }
+  }
+  const a = document.createElement('a');
+  a.href = dataUrl;
+  a.download = 'crypto-regret-card.png';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  showShareToast(msg);
+}
+function roundedZigzagPath(ctx, x, y, w, h, teeth, amp, r){
+  // paper card with a torn/zigzag top and bottom edge, straight sides
+  const toothW = w / teeth;
+  ctx.beginPath();
+  ctx.moveTo(x, y + amp);
+  for(let i=0;i<=teeth;i++){
+    const px = x + i*toothW;
+    ctx.lineTo(px, y + (i%2===0 ? 0 : amp));
+  }
+  ctx.lineTo(x+w, y+h-amp);
+  for(let i=teeth;i>=0;i--){
+    const px = x + i*toothW;
+    ctx.lineTo(px, y+h + (i%2===0 ? 0 : -amp));
+  }
+  ctx.closePath();
+}
+// Грузит картинку для canvas с CORS-заголовком; никогда не бросает ошибку —
+// при любой проблеме (сеть, 404, отсутствие CORS у CDN) просто резолвится в null,
+// и вызывающий код рисует карточку без логотипа вместо падения с ошибкой.
+function loadImageSafe(src){
+  return new Promise((resolve)=>{
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = ()=> resolve(img);
+    img.onerror = ()=> resolve(null);
+    img.src = src;
+  });
+}
+async function drawShareCard(includeLogo){
+  const canvas = document.getElementById('shareCanvas');
+  canvas.width = 640;
+  canvas.height = 818; // + место под график динамики позиции
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+  // ensure custom fonts are actually loaded before canvas text uses them
+  await Promise.all([
+    document.fonts.load('700 46px "IBM Plex Mono"'),
+    document.fonts.load('600 20px "IBM Plex Mono"'),
+    document.fonts.load('400 16px "IBM Plex Mono"'),
+    document.fonts.load('800 26px "Manrope"'),
+  ]);
+  // dark backdrop (so the paper card "pops" like a receipt on a desk)
+  const bg = ctx.createRadialGradient(W/2,60,40, W/2,60,W);
+  bg.addColorStop(0,'#171C24'); bg.addColorStop(1,'#0D1117');
+  ctx.fillStyle = bg; ctx.fillRect(0,0,W,H);
+  // paper card
+  const pad=30, cardTop=60, cardH=H-120;
+  roundedZigzagPath(ctx, pad, cardTop, W-pad*2, cardH, 26, 7);
+  ctx.fillStyle = '#F7F1E3';
+  ctx.shadowColor = 'rgba(0,0,0,0.5)'; ctx.shadowBlur = 40; ctx.shadowOffsetY = 20;
+  ctx.fill();
+  ctx.shadowColor = 'transparent';
+  const ink = '#2A2418';
+  const cx = W/2;
+  let y = 140;
+  ctx.textAlign='center';
+  ctx.fillStyle = 'rgba(42,36,24,0.55)';
+  ctx.font = '600 12px "IBM Plex Mono"';
+  ctx.save(); ctx.letterSpacing='3px';
+  ctx.fillText('— ЧЕК УПУЩЕННОЙ ПРИБЫЛИ —', cx, y);
+  ctx.restore();
+  y += 34;
+  // логотип монеты — best effort, при неудаче (сеть/CORS) просто пропускаем
+  if(includeLogo){
+    const logoImg = await loadImageSafe(iconUrl(lastResult.coinSymbol));
+    if(logoImg){
+      const r = 15;
+      ctx.save();
+      ctx.beginPath();
+      ctx.arc(cx, y, r, 0, Math.PI*2);
+      ctx.closePath();
+      ctx.clip();
+      ctx.drawImage(logoImg, cx-r, y-r, r*2, r*2);
+      ctx.restore();
+      y += 30;
+    }
+  }
+  ctx.fillStyle = 'rgba(42,36,24,0.45)';
+  ctx.font = '400 13px "IBM Plex Mono"';
+  const cardSubtitle = lastResult.mode === 'dca'
+    ? `${lastResult.coinName} · помесячно с ${lastResult.dateStr}`
+    : `${lastResult.coinName} · ${lastResult.mode === 'sold' ? 'продано' : 'куплено'} в ${lastResult.dateStr}`;
+  ctx.fillText(cardSubtitle, cx, y);
+  y += 30;
+  ctx.strokeStyle = 'rgba(42,36,24,0.3)';
+  ctx.setLineDash([5,5]);
+  ctx.beginPath(); ctx.moveTo(pad+30,y); ctx.lineTo(W-pad-30,y); ctx.stroke();
+  function priceRow(label, value){
+    y += 36;
+    ctx.setLineDash([]);
+    ctx.textAlign='left'; ctx.fillStyle=ink; ctx.font='400 14px "IBM Plex Mono"';
+    ctx.fillText(label, pad+30, y);
+    ctx.textAlign='right'; ctx.font='600 14px "IBM Plex Mono"';
+    ctx.fillText(value, W-pad-30, y);
+  }
+  const rowLabels = lastResult.mode === 'dca'
+    ? { invested:'Всего вложено', price:'Средняя цена покупки', coins:'Куплено монет' }
+    : lastResult.mode === 'sold'
+      ? { invested:'Стоимость на момент продажи', price:'Цена на момент продажи', coins:'Продано монет' }
+      : { invested:'Вложено', price:'Цена на момент покупки', coins:'Куплено монет' };
+  priceRow(rowLabels.invested, lastResult.investedFmt);
+  priceRow(rowLabels.price, lastResult.buyPriceFmt);
+  priceRow(rowLabels.coins, lastResult.coinsQtyFmt);
+  priceRow('Цена сейчас', lastResult.nowPriceFmt);
+  y += 30;
+  ctx.setLineDash([5,5]);
+  ctx.beginPath(); ctx.moveTo(pad+30,y); ctx.lineTo(W-pad-30,y); ctx.stroke();
+  ctx.setLineDash([]);
+  y += 38;
+  ctx.textAlign='center';
+  ctx.fillStyle = 'rgba(42,36,24,0.5)';
+  ctx.font = '600 12px "IBM Plex Mono"';
+  ctx.save(); ctx.letterSpacing='2px';
+  ctx.fillText('СТОИЛО БЫ СЕЙЧАС', cx, y);
+  ctx.restore();
+  y += 60;
+  ctx.fillStyle = lastResult.isGood ? '#0F7A50' : '#A82A30';
+  ctx.font = '700 54px "IBM Plex Mono"';
+  ctx.fillText(lastResult.resultFmt, cx, y);
+  y += 42;
+  const badgeText = 'x'+lastResult.mult.toFixed(1);
+  ctx.font = '700 16px "IBM Plex Mono"';
+  const badgeW = ctx.measureText(badgeText).width + 34;
+  ctx.fillStyle = lastResult.isGood ? 'rgba(15,122,80,0.14)' : 'rgba(168,42,48,0.14)';
+  ctx.beginPath();
+  if(ctx.roundRect) ctx.roundRect(cx-badgeW/2, y-24, badgeW, 34, 17); else ctx.rect(cx-badgeW/2, y-24, badgeW, 34);
+  ctx.fill();
+  ctx.fillStyle = lastResult.isGood ? '#0F7A50' : '#A82A30';
+  ctx.fillText(badgeText, cx, y);
+  y += 36;
+  ctx.font = '700 15px "IBM Plex Mono"';
+  ctx.fillStyle = '#B8860B';
+  ctx.save(); ctx.letterSpacing='1px';
+  ctx.fillText(`${lastResult.tier.emoji} ${lastResult.tier.label}`, cx, y);
+  ctx.restore();
+  y += 40;
+  ctx.font = '400 13px "IBM Plex Mono"';
+  ctx.fillStyle = 'rgba(42,36,24,0.6)';
+  wrapText(ctx, `Та же сумма в S&P 500 стоила бы ${lastResult.spResultFmt}`, cx, y, W-pad*2-80, 18);
+  y += 55;
+  if(lastResult.chartValues && lastResult.chartValues.length > 1){
+    drawShareChart(ctx, lastResult.chartValues, cx, y, W-pad*2-80, 70);
+  }
+  // footer / branding — pinned near card bottom, not floating in empty space
+  ctx.font = '600 12px "IBM Plex Mono"';
+  ctx.fillStyle = 'rgba(42,36,24,0.4)';
+  ctx.save(); ctx.letterSpacing='2px';
+  ctx.fillText('CRYPTOFUMBLE.COM/RU · СДЕЛАЙ СВОЙ', cx, cardTop+cardH-24);
+  ctx.restore();
+  return canvas.toDataURL('image/png');
+}
+function wrapText(ctx, text, x, y, maxWidth, lineHeight){
+  const words = text.split(' ');
+  let line = '';
+  const lines = [];
+  words.forEach(w=>{
+    const test = line + w + ' ';
+    if(ctx.measureText(test).width > maxWidth && line !== ''){
+      lines.push(line); line = w + ' ';
+    } else { line = test; }
+  });
+  lines.push(line);
+  const startY = y - (lines.length-1)*lineHeight/2;
+  lines.forEach((l,i)=> ctx.fillText(l.trim(), x, startY + i*lineHeight));
+}
+document.getElementById('shareBtn').addEventListener('click', async ()=>{
+  if(!lastResult){
+    alert('Сначала нажми «Покажи, что я упустил», чтобы посчитать результат.');
+    return;
+  }
+  const shareBtn = document.getElementById('shareBtn');
+  const origLabel = shareBtn.textContent;
+  shareBtn.textContent = 'Рисуем карточку…';
+  shareBtn.disabled = true;
+  let dataUrl;
+  try{
+    dataUrl = await drawShareCard(true);
+  }catch(err){
+    // canvas.toDataURL() мог упасть из-за "tainted canvas" (иконка монеты
+    // подгрузилась без нужных CORS-заголовков) — тихо перерисовываем без логотипа
+    dataUrl = await drawShareCard(false);
+  }
+  const img = document.getElementById('shareCardImg');
+  const dl = document.getElementById('shareDownload');
+  img.src = dataUrl;
+  dl.href = dataUrl;
+  document.getElementById('shareCardWrap').style.display = 'block';
+  document.getElementById('shareCardWrap').scrollIntoView({behavior:'smooth', block:'nearest'});
+  shareBtn.textContent = origLabel;
+  shareBtn.disabled = false;
+});
+// быстрый текстовый шеринг в Telegram — не требует предварительной генерации
+// PNG-карточки, текст сообщения собирается прямо из lastResult
+document.getElementById('shareTgBtn').addEventListener('click', ()=>{
+  if(!lastResult){
+    alert('Сначала нажми «Покажи, что я упустил», чтобы посчитать результат.');
+    return;
+  }
+  const dateHuman = humanDate(lastResult.dateStr);
+  const verb = lastResult.mode === 'sold' ? 'продал' : 'купил';
+  const text = lastResult.mode === 'dca'
+    ? (lastResult.isGood
+        ? `${lastResult.tier.emoji} У меня было бы ${lastResult.resultFmt}, если бы я инвестировал каждый месяц в ${lastResult.coinName} с ${dateHuman}.\n\nПроверь, сколько было бы у тебя →`
+        : `${lastResult.tier.emoji} ${lastResult.tier.label}: у меня было бы ${lastResult.resultFmt}, если бы я инвестировал каждый месяц в ${lastResult.coinName} с ${dateHuman}.\n\nПроверь свой →`)
+    : lastResult.isGood
+      ? `${lastResult.tier.emoji} У меня было бы ${lastResult.resultFmt}, если бы я ${verb} ${lastResult.coinName} в ${dateHuman}.\n\nПроверь, что упустил ты →`
+      : `${lastResult.tier.emoji} ${lastResult.tier.label}: у меня было бы ${lastResult.resultFmt}, если бы я ${verb} ${lastResult.coinName} в ${dateHuman}.\n\nПроверь свой →`;
+  // Ссылка ведёт на netlify/functions/share.js с параметром lang=ru — там
+  // og:image указывает на og-image.js с картинкой именно этого результата
+  // (см. share.js/og-image.js), а не на страницу /ru с одной и той же
+  // статичной картинкой для всех.
+  const shareUrl = buildShareUrl('ru');
+  const intentUrl = `https://t.me/share/url?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(text)}`;
+  window.open(intentUrl, '_blank', 'noopener,noreferrer');
+  if(typeof gtag === 'function'){
+    gtag('event', 'share_tg_click', { outcome: lastResult.isGood?'win':'loss', coin: lastResult.coinSymbol });
+  }
+});
+// ---- "Сравнить с другой монетой" — та же сумма/дата, другая монета (только режим "купил") ----
+const compareToggle = document.getElementById('compareToggle');
+const comparePicker = document.getElementById('comparePicker');
+const compareCoinGrid = document.getElementById('compareCoinGrid');
+const compareResult = document.getElementById('compareResult');
+compareToggle.addEventListener('click', ()=>{
+  const isOpen = comparePicker.style.display !== 'none';
+  if(isOpen){
+    comparePicker.style.display = 'none';
+    return;
+  }
+  renderCompareGrid();
+  comparePicker.style.display = 'block';
+  if(typeof gtag === 'function'){ gtag('event', 'compare_open', { coin: lastResult?.coinSymbol }); }
+});
+function renderCompareGrid(){
+  compareCoinGrid.innerHTML = '';
+  Object.keys(DATA).forEach(sym=>{
+    if(!lastResult || sym === lastResult.coinSymbol) return; // не сравнивать монету саму с собой
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'coin-btn';
+    btn.appendChild(makeIconEl(sym, DATA[sym].name, 'coin-btn-icon'));
+    const label = document.createElement('span');
+    label.textContent = sym;
+    btn.appendChild(label);
+    btn.onclick = ()=> runCompare({ symbol:sym, name:DATA[sym].name, geckoId:GECKO_ID[sym] });
+    compareCoinGrid.appendChild(btn);
+  });
+}
+async function runCompare(coinB){
+  if(!lastResult || lastResult.mode !== 'bought') return;
+  compareResult.style.display = 'block';
+  compareResult.innerHTML = '<span class="spin"></span> Сравниваем…';
+  const dateStr = lastResult.dateStr;
+  const priceData = await getPrices(coinB, dateStr);
+  if(priceData.error){
+    compareResult.textContent = `Не удалось получить данные по ${coinB.symbol} — попробуй другую монету.`;
+    return;
+  }
+  const { buyPrice, nowPrice } = priceData;
+  const coinsB = lastResult.investedRaw / buyPrice;
+  const resultB = coinsB * nowPrice;
+  const multB = resultB / lastResult.investedRaw;
+  const bIsBetter = resultB > lastResult.resultRaw;
+  const diff = Math.abs(resultB - lastResult.resultRaw);
+  compareResult.innerHTML =
+    `Та же сумма <b>${fmt(lastResult.investedRaw)}</b> в <b>${coinB.symbol}</b> ${lastResult.dateStr} сегодня стоила бы <b>${fmtBig(resultB)}</b> (x${multB.toFixed(1)}).<br><br>` +
+    (bIsBetter
+      ? `<span class="cr-win">${coinB.symbol} сработал бы лучше</span>, чем ${lastResult.coinSymbol} — на ${fmtBig(diff)}.`
+      : `<span class="cr-lose">${coinB.symbol} сработал бы хуже</span>, чем ${lastResult.coinSymbol} — на ${fmtBig(diff)}.`);
+  if(typeof gtag === 'function'){
+    gtag('event', 'compare_result', { coin_a: lastResult.coinSymbol, coin_b: coinB.symbol, b_better: bIsBetter });
+  }
+}
+// ---- "Разбить на несколько монет" — мини-портфель (только режим "купил") ----
+const portfolioToggle = document.getElementById('portfolioToggle');
+const portfolioPicker = document.getElementById('portfolioPicker');
+const portfolioCoinGrid = document.getElementById('portfolioCoinGrid');
+const portfolioCalcBtn = document.getElementById('portfolioCalcBtn');
+const portfolioResult = document.getElementById('portfolioResult');
+let portfolioSelection = new Set();
+portfolioToggle.addEventListener('click', ()=>{
+  const isOpen = portfolioPicker.style.display !== 'none';
+  if(isOpen){
+    portfolioPicker.style.display = 'none';
+    return;
+  }
+  renderPortfolioGrid();
+  portfolioPicker.style.display = 'block';
+  if(typeof gtag === 'function'){ gtag('event', 'portfolio_open', {}); }
+});
+function renderPortfolioGrid(){
+  portfolioCoinGrid.innerHTML = '';
+  portfolioSelection = new Set();
+  portfolioResult.style.display = 'none';
+  portfolioResult.innerHTML = '';
+  portfolioCalcBtn.style.display = 'none';
+  Object.keys(DATA).forEach(sym=>{
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'coin-btn';
+    btn.appendChild(makeIconEl(sym, DATA[sym].name, 'coin-btn-icon'));
+    const label = document.createElement('span');
+    label.textContent = sym;
+    btn.appendChild(label);
+    btn.onclick = ()=>{
+      if(portfolioSelection.has(sym)){
+        portfolioSelection.delete(sym);
+        btn.classList.remove('active');
+      } else {
+        if(portfolioSelection.size >= 4) return; // ограничение в 4 монеты — не перегружаем UI и запросы
+        portfolioSelection.add(sym);
+        btn.classList.add('active');
+      }
+      portfolioCalcBtn.style.display = portfolioSelection.size >= 2 ? 'block' : 'none';
+      portfolioResult.style.display = 'none';
+      portfolioResult.innerHTML = '';
+    };
+    portfolioCoinGrid.appendChild(btn);
+  });
+}
+portfolioCalcBtn.addEventListener('click', async ()=>{
+  if(!lastResult || portfolioSelection.size < 2) return;
+  portfolioCalcBtn.disabled = true;
+  portfolioResult.style.display = 'block';
+  portfolioResult.innerHTML = '<span class="spin"></span> Считаем разбивку…';
+  const dateStr = lastResult.dateStr;
+  const legs = Array.from(portfolioSelection);
+  const perCoinInvested = lastResult.investedRaw / legs.length;
+  try{
+    const rows = await Promise.all(legs.map(async sym=>{
+      const coin = { symbol: sym, name: DATA[sym].name, geckoId: GECKO_ID[sym] };
+      const priceData = await getPrices(coin, dateStr);
+      if(priceData.error) throw new Error(sym);
+      const coins = perCoinInvested / priceData.buyPrice;
+      const value = coins * priceData.nowPrice;
+      return { sym, value };
+    }));
+    const total = rows.reduce((s,r)=>s+r.value, 0);
+    const mult = total / lastResult.investedRaw;
+    const rowsHtml = rows.map(r=>
+      `<div class="r-line"><span>${r.sym} (${fmt(perCoinInvested)})</span><span>${fmtBig(r.value)}</span></div>`
+    ).join('');
+    const splitBeatsSingle = total > lastResult.resultRaw;
+    const diff = Math.abs(total - lastResult.resultRaw);
+    portfolioResult.innerHTML =
+      `Если бы ты разбил <b>${fmt(lastResult.investedRaw)}</b> поровну между <b>${legs.join(' + ')}</b> ${dateStr}, сегодня это стоило бы <b>${fmtBig(total)}</b> (x${mult.toFixed(1)}).<br><br>` +
+      rowsHtml + `<br><br>` +
+      (splitBeatsSingle
+        ? `<span class="cr-win">Такая разбивка обошла бы</span> вложение всей суммы в один ${lastResult.coinSymbol} — на ${fmtBig(diff)}.`
+        : `<span class="cr-lose">Такая разбивка сработала бы хуже</span>, чем вложение всей суммы в один ${lastResult.coinSymbol} — на ${fmtBig(diff)}.`);
+    if(typeof gtag === 'function'){
+      gtag('event', 'portfolio_result', { legs: legs.join(','), better_than_single: splitBeatsSingle });
+    }
+  }catch(err){
+    portfolioResult.innerHTML = `Не удалось получить данные по одной из выбранных монет — попробуй другую комбинацию.`;
+  }
+  portfolioCalcBtn.disabled = false;
+});
+// трекинг клика по инвест-CTA — не мешает переходу по ссылке (открывается в новой
+// вкладке), просто параллельно шлёт событие в GA, если аналитика подключена и не
+// заблокирована адблоком (typeof-проверка защищает от ошибки в этом случае)
+document.getElementById('ctaInvest').addEventListener('click', function(){
+  if(typeof gtag === 'function'){
+    gtag('event', 'click_invest_cta', {
+      outcome: this.dataset.outcome,
+      coin: this.dataset.coin,
+      multiplier: this.dataset.mult,
+      exchange: this.dataset.exchange
+    });
+  }
+});
+// PWA: регистрируем service worker, чтобы сайт можно было "установить"
+// (Фаза 1, быстрая победа). Регистрация best-effort — если не сработает
+// (старый браузер, заблокировано настройками приватности), сайт просто
+// работает как обычная страница, ничего от этого не зависит.
+if('serviceWorker' in navigator){
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js').catch(()=>{});
+  });
+}
+
+// ---- «Мой портфель» — ручной журнал покупок, только localStorage (без аккаунтов) ----
+// MVP-версия фичи, которую напрямую попросил владелец сайта: учитывать реальные
+// покупки (монета, дата, количество, потрачено USDT), автоматически считать
+// среднюю цену покупки и живую прибыль/убыток по каждой монете. Пока сознательно
+// только локально — без входа, без хранения на сервере — чтобы проверить, будут
+// ли этим реально пользоваться, прежде чем строить настоящие аккаунты + базу данных.
+document.getElementById('pageTabs').addEventListener('click', (e)=>{
+  const btn = e.target.closest('.page-tab');
+  if(!btn) return;
+  document.querySelectorAll('#pageTabs .page-tab').forEach(b=>b.classList.toggle('active', b===btn));
+  const view = btn.getAttribute('data-view');
+  document.getElementById('calcView').style.display = view === 'calc' ? '' : 'none';
+  document.getElementById('portfolioView').style.display = view === 'portfolio' ? '' : 'none';
+  if(view === 'portfolio') pfRender();
+});
+
+const PF_KEY = 'cf_portfolio_v1';
+function pfLoad(){
+  try{ return JSON.parse(localStorage.getItem(PF_KEY)) || []; }catch(e){ return []; }
+}
+function pfSave(entries){
+  try{ localStorage.setItem(PF_KEY, JSON.stringify(entries)); }catch(e){}
+}
+let pfEntries = pfLoad();
+let pfSelectedCoin = { symbol:'BTC', name:'Bitcoin', geckoId:'bitcoin' };
+
+// свой отдельный выбор монеты — не пересекается с выбором в самом калькуляторе
+const pfGrid = document.getElementById('pfCoinGrid');
+const pfSelectedLabel = document.getElementById('pfSelectedCoinLabel');
+function pfRenderQuickPicks(){
+  pfGrid.innerHTML = '';
+  Object.keys(DATA).forEach(sym=>{
+    const btn=document.createElement('button');
+    btn.className='coin-btn'+(sym===pfSelectedCoin.symbol && pfSelectedCoin.geckoId===GECKO_ID[sym] ?' active':'');
+    btn.appendChild(makeIconEl(sym, DATA[sym].name, 'coin-btn-icon'));
+    const label = document.createElement('span');
+    label.textContent = sym;
+    btn.appendChild(label);
+    btn.onclick=()=>{
+      pfSelectedCoin = { symbol:sym, name:DATA[sym].name, geckoId:GECKO_ID[sym] };
+      pfRenderQuickPicks();
+      pfUpdateSelectedUI();
+    };
+    pfGrid.appendChild(btn);
+  });
+}
+function pfUpdateSelectedUI(){
+  pfSelectedLabel.innerHTML = '';
+  pfSelectedLabel.appendChild(makeIconEl(pfSelectedCoin.symbol, pfSelectedCoin.name, 'selected-coin-icon'));
+  const text = document.createElement('span');
+  text.innerHTML = `Выбрано: <b>${pfSelectedCoin.symbol}</b> · ${pfSelectedCoin.name}`;
+  pfSelectedLabel.appendChild(text);
+}
+pfRenderQuickPicks();
+pfUpdateSelectedUI();
+
+const pfSearchInput = document.getElementById('pfCoinSearch');
+const pfDropdown = document.getElementById('pfCoinDropdown');
+let pfSearchDebounce = null;
+pfSearchInput.addEventListener('input', ()=>{
+  const q = pfSearchInput.value.trim();
+  clearTimeout(pfSearchDebounce);
+  if(q.length < 2){ pfDropdown.classList.remove('open'); return; }
+  pfDropdown.innerHTML = '<div class="loading">ищем…</div>';
+  pfDropdown.classList.add('open');
+  pfSearchDebounce = setTimeout(()=>pfRunCoinSearch(q), 350);
+});
+document.addEventListener('click', (e)=>{
+  if(!e.target.closest('#pfCoinSearch') && !e.target.closest('#pfCoinDropdown')) pfDropdown.classList.remove('open');
+});
+async function pfRunCoinSearch(q){
+  let coins = [];
+  let offline = false;
+  try{
+    try{
+      const res = await fetch(`/.netlify/functions/search?query=${encodeURIComponent(q)}`);
+      if(!res.ok) throw new Error('proxy search failed');
+      const json = await res.json();
+      coins = json.coins || [];
+    }catch(proxyErr){
+      const res = await fetch(`https://api.coingecko.com/api/v3/search?query=${encodeURIComponent(q)}`);
+      if(!res.ok) throw new Error('search failed');
+      const json = await res.json();
+      coins = (json.coins || []).slice(0, 8);
+    }
+  }catch(err){
+    coins = searchOffline(q);
+    offline = true;
+  }
+  if(coins.length === 0){
+    pfDropdown.innerHTML = offline
+      ? '<div class="empty">Не нашли офлайн — попробуй быстрый выбор ниже, или дождись сети для полного поиска</div>'
+      : '<div class="empty">Ничего не нашлось</div>';
+    return;
+  }
+  pfDropdown.innerHTML = '';
+  if(offline){
+    const note = document.createElement('div');
+    note.className = 'coin-dropdown-note';
+    note.textContent = 'офлайн-поиск (нет сети) · ограниченный список';
+    pfDropdown.appendChild(note);
+  }
+  coins.forEach(c=>{
+    const opt = document.createElement('div');
+    opt.className = 'coin-opt';
+    if(c.thumb){
+      const img = document.createElement('img');
+      img.src = c.thumb; img.alt = '';
+      img.onerror = ()=>{
+        const fb = document.createElement('div');
+        fb.className = 'co-avatar';
+        fb.textContent = c.symbol.charAt(0).toUpperCase();
+        img.replaceWith(fb);
+      };
+      opt.appendChild(img);
+    } else {
+      opt.appendChild(makeIconEl(c.symbol, c.name, 'co-avatar-sized'));
+    }
+    const info = document.createElement('div');
+    info.innerHTML = `<div class="co-sym">${c.symbol.toUpperCase()}</div><div class="co-name">${c.name}</div>`;
+    opt.appendChild(info);
+    opt.onclick = ()=>{
+      pfSelectedCoin = { symbol:c.symbol.toUpperCase(), name:c.name, geckoId:c.id };
+      pfSearchInput.value = '';
+      pfDropdown.classList.remove('open');
+      pfRenderQuickPicks();
+      pfUpdateSelectedUI();
+    };
+    pfDropdown.appendChild(opt);
+  });
+}
+
+// предпросмотр «≈ $X за монету» пока вводятся количество/сумма
+function pfUpdateComputedPrice(){
+  const qty = parseFloat(document.getElementById('pfQty').value);
+  const spent = parseFloat(document.getElementById('pfSpent').value);
+  const el = document.getElementById('pfComputedPrice');
+  if(qty > 0 && spent > 0){
+    el.innerHTML = `≈ <b>${fmt(spent/qty)}</b> за монету`;
+  } else {
+    el.textContent = '';
+  }
+}
+document.getElementById('pfQty').addEventListener('input', pfUpdateComputedPrice);
+document.getElementById('pfSpent').addEventListener('input', pfUpdateComputedPrice);
+// Дата покупки в портфеле — то же самое колесо-пикер, что и в калькуляторе
+// (см. dateSheetTarget выше), а не обычный <input type="month">, который в
+// части браузеров вообще не даёт удобно выбрать месяц/год. В отличие от
+// калькулятора (месяц-уровень, как и его исторические данные), у реальной
+// покупки есть точный день, поэтому в пикере портфеля показывается третье
+// колесо «день», которое калькулятор у себя держит скрытым.
+let pfPickedMonth = PICKER_MAX_MONTH_IN_MAX_YEAR;
+let pfPickedYear = PICKER_MAX_YEAR;
+let pfPickedDay = PICKER_MAX_DAY_IN_MAX_MONTH;
+let pfDateStr = `${pfPickedYear}-${String(pfPickedMonth).padStart(2,'0')}-${String(pfPickedDay).padStart(2,'0')}`;
+const pfDateTrigger = document.getElementById('pfDateTrigger');
+function updatePfDateTriggerLabel(){
+  pfDateTrigger.textContent = `${pfPickedDay} ${MONTH_NAMES_GEN[pfPickedMonth-1]} ${pfPickedYear}`;
+  pfDateStr = `${pfPickedYear}-${String(pfPickedMonth).padStart(2,'0')}-${String(pfPickedDay).padStart(2,'0')}`;
+}
+updatePfDateTriggerLabel();
+pfDateTrigger.addEventListener('click', ()=>{
+  dateSheetTarget = 'portfolio';
+  pickedMonth = pfPickedMonth;
+  pickedYear = pfPickedYear;
+  pickedDay = pfPickedDay;
+  openDateSheet();
+});
+
+document.getElementById('pfAddBtn').addEventListener('click', ()=>{
+  const qty = parseFloat(document.getElementById('pfQty').value);
+  const spent = parseFloat(document.getElementById('pfSpent').value);
+  const dateVal = pfDateStr;
+  if(!qty || qty <= 0 || !spent || spent <= 0){
+    alert('Укажи количество и потраченную сумму — оба значения больше нуля.');
+    return;
+  }
+  if(!dateVal){
+    alert('Выбери дату покупки.');
+    return;
+  }
+  pfEntries.push({
+    id: Date.now() + Math.random(),
+    symbol: pfSelectedCoin.symbol,
+    name: pfSelectedCoin.name,
+    geckoId: pfSelectedCoin.geckoId,
+    dateStr: dateVal,
+    qty, spent,
+  });
+  pfSave(pfEntries);
+  document.getElementById('pfQty').value = '';
+  document.getElementById('pfSpent').value = '';
+  document.getElementById('pfComputedPrice').textContent = '';
+  pfRender();
+  if(typeof gtag === 'function') gtag('event', 'portfolio_entry_added', { coin: pfSelectedCoin.symbol });
+});
+
+function pfFmtQty(n){
+  if(n >= 1000) return n.toLocaleString('en-US', {maximumFractionDigits: 2});
+  return parseFloat(n.toFixed(6)).toString();
+}
+
+async function pfRender(){
+  const container = document.getElementById('pfContent');
+  if(pfEntries.length === 0){
+    container.innerHTML = '<div class="pf-empty">📓 Пока нет ни одной записи.<br>Добавь первую покупку выше — увидишь, сколько реально заплатил, и как меняется настоящая прибыль или убыток по живым ценам.</div>';
+    return;
+  }
+  container.innerHTML = '<div class="pf-empty"><span class="spin"></span> Загружаем живые цены…</div>';
+  const groups = {};
+  pfEntries.forEach(e=>{
+    if(!groups[e.geckoId]) groups[e.geckoId] = { symbol:e.symbol, name:e.name, geckoId:e.geckoId, entries:[] };
+    groups[e.geckoId].entries.push(e);
+  });
+  const geckoIds = Object.keys(groups);
+  const prices = await Promise.all(geckoIds.map(id => fetchCurrentPrice(id).catch(()=>null)));
+  const priceMap = {};
+  geckoIds.forEach((id, i)=> priceMap[id] = prices[i]);
+
+  let totalSpentAll = 0, totalValueAll = 0, anyPriceMissing = false;
+  const cardsHtml = geckoIds.map(id=>{
+    const g = groups[id];
+    const totalQty = g.entries.reduce((s,e)=>s+e.qty, 0);
+    const totalSpent = g.entries.reduce((s,e)=>s+e.spent, 0);
+    const avgPrice = totalSpent / totalQty;
+    const curPrice = priceMap[id];
+    totalSpentAll += totalSpent;
+    let pnlBlock;
+    if(curPrice){
+      const curValue = totalQty * curPrice;
+      totalValueAll += curValue;
+      const pnlAbs = curValue - totalSpent;
+      const pnlPct = (curValue/totalSpent - 1) * 100;
+      const isGood = pnlAbs >= 0;
+      pnlBlock = `<div class="pf-pnl">
+        <span style="font-family:var(--mono); font-size:11px; color:var(--muted); text-transform:uppercase;">Сейчас стоит ${fmt(curValue)}</span>
+        <span class="pf-pnl-val ${isGood?'pos':'neg'}">${isGood?'+':''}${fmt(pnlAbs)} (${isGood?'+':''}${pnlPct.toFixed(1)}%)</span>
+      </div>`;
+    } else {
+      anyPriceMissing = true;
+      pnlBlock = `<div class="pf-pnl"><span style="font-family:var(--mono); font-size:11px; color:var(--muted);">Живая цена сейчас недоступна</span></div>`;
+    }
+    const entriesHtml = g.entries.map(e => `
+      <div class="pf-entry-row" data-id="${e.id}">
+        <span>${e.dateStr} · ${pfFmtQty(e.qty)} @ ${fmt(e.spent/e.qty)}</span>
+        <span>${fmt(e.spent)} <button type="button" class="pf-entry-del" data-id="${e.id}" title="Удалить">✕</button></span>
+      </div>`).join('');
+    return `<div class="pf-coin-card" data-geckoid="${id}">
+      <div class="pf-coin-head">
+        <span class="pf-coin-icon-slot" data-symbol="${g.symbol}" data-name="${String(g.name).replace(/"/g,'&quot;')}"></span>
+        <div><div class="pf-coin-name">${g.name}</div><div class="pf-coin-sym">${g.symbol}</div></div>
+      </div>
+      <div class="pf-coin-stats">
+        <div><div class="pf-stat-label">Куплено</div><div class="pf-stat-val">${pfFmtQty(totalQty)}</div></div>
+        <div><div class="pf-stat-label">Средняя цена</div><div class="pf-stat-val">${fmt(avgPrice)}</div></div>
+        <div><div class="pf-stat-label">Всего вложено</div><div class="pf-stat-val">${fmt(totalSpent)}</div></div>
+        <div><div class="pf-stat-label">Цена сейчас</div><div class="pf-stat-val">${curPrice ? fmt(curPrice) : '—'}</div></div>
+      </div>
+      ${pnlBlock}
+      <button type="button" class="pf-entries-toggle" data-toggle="${id}">Показать ${g.entries.length} ${g.entries.length===1?'покупку':g.entries.length<5?'покупки':'покупок'} ▾</button>
+      <div class="pf-entries-list" data-list="${id}" style="display:none; margin-top:8px;">${entriesHtml}</div>
+    </div>`;
+  }).join('');
+
+  const overallPnl = totalValueAll - totalSpentAll;
+  const overallPct = totalSpentAll > 0 ? (totalValueAll/totalSpentAll - 1) * 100 : 0;
+  const overallGood = overallPnl >= 0;
+  const totalsHtml = `<div class="pf-totals">
+    <div class="pf-tot-item"><div class="pf-tot-label">Всего вложено</div><div class="pf-tot-val">${fmt(totalSpentAll)}</div></div>
+    <div class="pf-tot-item"><div class="pf-tot-label">Стоит сейчас</div><div class="pf-tot-val">${fmt(totalValueAll)}</div></div>
+    <div class="pf-tot-item"><div class="pf-tot-label">Прибыль/убыток</div><div class="pf-tot-val ${overallGood?'pos':'neg'}">${overallGood?'+':''}${overallPct.toFixed(1)}%</div></div>
+  </div>`;
+
+  container.innerHTML = (anyPriceMissing ? '' : totalsHtml) + cardsHtml;
+
+  container.querySelectorAll('.pf-coin-icon-slot').forEach(slot=>{
+    const sym = slot.getAttribute('data-symbol');
+    const name = slot.getAttribute('data-name');
+    slot.replaceWith(makeIconEl(sym, name, 'pf-coin-head-icon'));
+  });
+  container.querySelectorAll('.pf-entries-toggle').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const id = btn.getAttribute('data-toggle');
+      const list = container.querySelector(`.pf-entries-list[data-list="${id}"]`);
+      const isOpen = list.style.display !== 'none';
+      list.style.display = isOpen ? 'none' : 'block';
+      const count = groups[id].entries.length;
+      const word = count===1?'покупку':count<5?'покупки':'покупок';
+      btn.textContent = isOpen ? `Показать ${count} ${word} ▾` : `Скрыть покупки ▴`;
+    });
+  });
+  container.querySelectorAll('.pf-entry-del').forEach(btn=>{
+    btn.addEventListener('click', (ev)=>{
+      ev.stopPropagation();
+      const id = btn.getAttribute('data-id');
+      pfEntries = pfEntries.filter(e => String(e.id) !== String(id));
+      pfSave(pfEntries);
+      pfRender();
+    });
+  });
+}
+</script>
+</body>
+</html>
