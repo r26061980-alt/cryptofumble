@@ -1228,6 +1228,15 @@ const SP500 = [
   ['2020-12',3760],['2021-11',4700],['2022-12',3850],['2023-12',4770],['2024-12',6000],
   ['2025-06',6300],['2026-08',6850]
 ];
+// Приблизительные опорные точки спотовой цены золота (USD/унция) — та же идея
+// «скучной альтернативы», что и SP500/AAPL выше, тот же метод (грубые опорные
+// точки + лог-интерполяция). Фаза 4: переиспользуем готовую инфраструктуру,
+// просто новый набор точек, без новой логики расчёта.
+const GOLD = [
+  ['2013-01',1671],['2015-01',1218],['2017-01',1151],['2019-01',1287],['2020-01',1560],
+  ['2020-12',1895],['2021-11',1790],['2022-12',1824],['2023-12',2063],['2024-12',2641],
+  ['2025-06',3300],['2026-08',3500]
+];
 function monthToTs(m){ const [y,mo]=m.split('-').map(Number); return y*12+mo; }
 function interpPrice(points, dateStr){
   const t = monthToTs(dateStr);
@@ -2172,8 +2181,11 @@ async function runLumpSumCalculation(coin){
   const aaplBuy = interpPrice(AAPL, dateStr);
   const aaplNow = interpPrice(AAPL, '2026-08');
   const aaplResult = baseValue * (aaplNow/aaplBuy);
+  const goldBuy = interpPrice(GOLD, dateStr);
+  const goldNow = interpPrice(GOLD, '2026-08');
+  const goldResult = baseValue * (goldNow/goldBuy);
   document.getElementById('rCompare').textContent =
-    `Для сравнения: та же сумма сейчас стоила бы ${fmtBig(spResult)} в S&P 500, или ${fmtBig(aaplResult)} в акциях Apple (AAPL).`;
+    `Для сравнения: та же сумма сейчас стоила бы ${fmtBig(spResult)} в S&P 500, ${fmtBig(aaplResult)} в акциях Apple (AAPL), или ${fmtBig(goldResult)} в золоте.`;
   let chartValues = await fetchValueCurve(coin, dateStr, buyPrice, nowPrice, baseValue);
   if(chartValues){
     renderValueCurveSvg(chartValues);
@@ -2320,8 +2332,11 @@ async function runDcaCalculation(coin){
     const aaplBuy = interpPrice(AAPL, dateStr);
     const aaplNow = interpPrice(AAPL, '2026-08');
     const aaplResult = totalInvested * (aaplNow/aaplBuy);
+    const goldBuy = interpPrice(GOLD, dateStr);
+    const goldNow = interpPrice(GOLD, '2026-08');
+    const goldResult = totalInvested * (goldNow/goldBuy);
     document.getElementById('rCompare').textContent =
-      `Если бы вложил всю эту сумму (${fmt(totalInvested)}) сразу, одним платежом, сегодня было бы ${fmtBig(lumpSumValue)}. Для сравнения: та же сумма в S&P 500 стоила бы ${fmtBig(spResult)}, а в акциях Apple (AAPL) — ${fmtBig(aaplResult)}.`;
+      `Если бы вложил всю эту сумму (${fmt(totalInvested)}) сразу, одним платежом, сегодня было бы ${fmtBig(lumpSumValue)}. Для сравнения: та же сумма в S&P 500 стоила бы ${fmtBig(spResult)}, в акциях Apple (AAPL) — ${fmtBig(aaplResult)}, а в золоте — ${fmtBig(goldResult)}.`;
     // у DCA нет смысла показывать "кривую одной покупки" — прячем график
     // и таблицу по годам вместо того, чтобы показывать вводящую в заблуждение картинку
     document.getElementById('rChartWrap').style.display = 'none';
