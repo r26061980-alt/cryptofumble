@@ -907,6 +907,110 @@
   .r-year-row:last-child{border-bottom:none;}
   .r-year-row .ry-year{font-weight:700;}
   .r-year-row .ry-val{font-weight:600;}
+
+  /* ═══ Page-level tabs: Calculator vs My Portfolio ═══ */
+  .page-tabs{
+    display:flex; gap:8px; margin-bottom:22px;
+    background:var(--field-bg); border:1px solid var(--panel-border);
+    border-radius:var(--r-md); padding:4px;
+  }
+  .page-tab{
+    flex:1; background:transparent; border:none; color:var(--muted);
+    font-family:var(--sans); font-weight:700; font-size:13px;
+    padding:11px; border-radius:10px; cursor:pointer;
+    transition:background .2s var(--ease), color .2s var(--ease);
+  }
+  .page-tab:hover{color:var(--text);}
+  .page-tab.active{
+    background:rgba(240,185,11,0.13); color:var(--gold);
+    box-shadow:0 1px 0 rgba(255,255,255,0.05) inset;
+  }
+  /* ═══ My Portfolio tab ═══ */
+  #pfCoinSearch{
+    width:100%; background:var(--field-bg); border:1px solid var(--panel-border);
+    color:var(--text); font-family:var(--sans); font-size:15px;
+    padding:13px 16px; border-radius:var(--r-md); outline:none;
+    transition:border-color .2s var(--ease), box-shadow .2s var(--ease);
+  }
+  #pfCoinSearch:focus{border-color:var(--gold); box-shadow:0 0 0 4px rgba(240,185,11,0.12);}
+  .pf-note{
+    font-size:12px; color:var(--muted); text-align:center;
+    margin:0 0 20px; line-height:1.6;
+  }
+  .pf-add-btn{
+    width:100%; background:var(--gold); color:#1C1503; border:none;
+    font-family:var(--sans); font-weight:800; font-size:15px;
+    padding:14px; border-radius:var(--r-md); cursor:pointer;
+    transition:filter .2s var(--ease); margin-top:4px;
+  }
+  .pf-add-btn:hover{filter:brightness(1.08);}
+  .pf-add-btn:disabled{opacity:0.5; cursor:not-allowed;}
+  .pf-computed-price{
+    font-family:var(--mono); font-size:12px; color:var(--muted);
+    margin-top:8px; min-height:16px;
+  }
+  .pf-computed-price b{color:var(--gold);}
+  .pf-empty{
+    text-align:center; color:var(--muted); font-size:13px;
+    padding:30px 10px; line-height:1.7;
+  }
+  .pf-totals{
+    display:flex; justify-content:space-around; text-align:center;
+    background:var(--panel); border:1px solid var(--panel-border);
+    border-radius:var(--r-lg); padding:20px 12px; margin-bottom:20px;
+    box-shadow:var(--shadow-2);
+  }
+  .pf-totals .pf-tot-item{flex:1;}
+  .pf-totals .pf-tot-label{
+    font-family:var(--mono); font-size:10px; letter-spacing:0.08em;
+    text-transform:uppercase; color:var(--muted); margin-bottom:8px;
+  }
+  .pf-totals .pf-tot-val{font-family:var(--mono); font-weight:700; font-size:19px;}
+  .pf-totals .pf-tot-val.pos{color:#16C784;}
+  .pf-totals .pf-tot-val.neg{color:#EA3943;}
+  .pf-coin-card{
+    background:var(--panel); border:1px solid var(--panel-border);
+    border-radius:var(--r-lg); padding:18px 20px; margin-bottom:14px;
+    box-shadow:var(--shadow-1);
+  }
+  .pf-coin-head{display:flex; align-items:center; gap:10px; margin-bottom:14px;}
+  .pf-coin-head img, .pf-coin-head .avatar-fallback{width:28px; height:28px; border-radius:50%;}
+  .pf-coin-head .avatar-fallback{
+    background:rgba(240,185,11,0.15); color:var(--gold);
+    display:flex; align-items:center; justify-content:center;
+    font-family:var(--mono); font-weight:700; font-size:13px;
+  }
+  .pf-coin-head .pf-coin-name{font-weight:700; font-size:15px;}
+  .pf-coin-head .pf-coin-sym{font-family:var(--mono); font-size:11px; color:var(--muted);}
+  .pf-coin-stats{
+    display:grid; grid-template-columns:1fr 1fr; gap:10px 16px;
+    font-family:var(--mono); font-size:12.5px; margin-bottom:12px;
+  }
+  .pf-coin-stats .pf-stat-label{color:var(--muted); margin-bottom:3px; font-size:10.5px; text-transform:uppercase; letter-spacing:0.05em;}
+  .pf-coin-stats .pf-stat-val{color:var(--text); font-weight:600;}
+  .pf-pnl{
+    display:flex; justify-content:space-between; align-items:center;
+    padding-top:12px; border-top:1px dashed var(--panel-border-soft);
+  }
+  .pf-pnl-val{font-family:var(--mono); font-weight:700; font-size:16px;}
+  .pf-pnl-val.pos{color:#16C784;}
+  .pf-pnl-val.neg{color:#EA3943;}
+  .pf-entries-toggle{
+    font-family:var(--mono); font-size:11px; color:var(--muted);
+    background:none; border:none; cursor:pointer; padding:0; margin-top:12px;
+    text-decoration:underline; text-underline-offset:2px;
+  }
+  .pf-entries-toggle:hover{color:var(--gold);}
+  .pf-entry-row{
+    display:flex; justify-content:space-between; align-items:center;
+    font-size:12px; padding:8px 0; border-top:1px dashed var(--panel-border-soft);
+    color:var(--muted);
+  }
+  .pf-entry-row .pf-entry-del{
+    background:none; border:none; color:var(--muted); cursor:pointer;
+    font-size:14px; padding:2px 6px; line-height:1;
+  }
+  .pf-entry-row .pf-entry-del:hover{color:#EA3943;}
 </style>
 <!-- FAQPage structured data — mirrors the FAQ accordion below word-for-word,
      so Google can show these as an expandable rich snippet under the search
@@ -975,6 +1079,11 @@
 </script>
 
 <div class="wrap">
+  <div class="page-tabs" id="pageTabs">
+    <button type="button" class="page-tab active" data-view="calc">🧮 Calculator</button>
+    <button type="button" class="page-tab" data-view="portfolio">📓 My Portfolio</button>
+  </div>
+  <div id="calcView">
   <div class="layout-grid">
   <div class="main-col">
   <div class="eyebrow">live prices · coingecko</div>
@@ -1115,6 +1224,41 @@
     <div class="live-feed-list" id="liveFeedList"></div>
   </div>
   </div>
+  </div>
+  </div>
+  <div id="portfolioView" style="display:none;">
+    <div class="panel">
+      <div class="field">
+        <label>Coin</label>
+        <div class="coin-search-wrap">
+          <input type="text" id="pfCoinSearch" placeholder="Search any coin: solana, pepe, ton…" autocomplete="off">
+          <div class="coin-dropdown" id="pfCoinDropdown"></div>
+        </div>
+        <div style="font-size:11px; color:var(--muted); margin-bottom:8px;">or quick pick:</div>
+        <div class="coin-grid" id="pfCoinGrid"></div>
+        <div class="selected-coin" id="pfSelectedCoinLabel"></div>
+      </div>
+      <div class="row">
+        <div class="field">
+          <label>Quantity bought</label>
+          <input type="number" id="pfQty" placeholder="0.00" min="0" step="any">
+        </div>
+        <div class="field">
+          <label>Spent (USDT)</label>
+          <input type="number" id="pfSpent" placeholder="0" min="0" step="any">
+        </div>
+      </div>
+      <div class="field">
+        <label>Purchase date</label>
+        <input type="month" id="pfDate">
+      </div>
+      <div class="pf-computed-price" id="pfComputedPrice"></div>
+      <div class="field" style="margin-top:4px;">
+        <button type="button" class="pf-add-btn" id="pfAddBtn">Add to portfolio →</button>
+      </div>
+    </div>
+    <p class="pf-note">Stored only in this browser, on this device — clear your browser data and it's gone. Not synced anywhere, not investment advice.</p>
+    <div id="pfContent"></div>
   </div>
   <div class="faq">
     <div class="faq-title">❓ FAQ</div>
@@ -2883,6 +3027,293 @@ document.getElementById('ctaInvest').addEventListener('click', function(){
 if('serviceWorker' in navigator){
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('/sw.js').catch(()=>{});
+  });
+}
+
+// ---- "My Portfolio" tab — manual purchase log, localStorage only (no accounts yet) ----
+// MVP version of a feature requested directly by the site owner: track real
+// purchases (coin, date, quantity, USDT spent), auto-compute the average price
+// paid and live profit/loss per coin. Deliberately local-only for now — no
+// login, no server-side storage — to validate whether people actually use
+// this before building real accounts + a database (see growth-plan ledger).
+document.getElementById('pageTabs').addEventListener('click', (e)=>{
+  const btn = e.target.closest('.page-tab');
+  if(!btn) return;
+  document.querySelectorAll('#pageTabs .page-tab').forEach(b=>b.classList.toggle('active', b===btn));
+  const view = btn.getAttribute('data-view');
+  document.getElementById('calcView').style.display = view === 'calc' ? '' : 'none';
+  document.getElementById('portfolioView').style.display = view === 'portfolio' ? '' : 'none';
+  if(view === 'portfolio') pfRender();
+});
+
+const PF_KEY = 'cf_portfolio_v1';
+function pfLoad(){
+  try{ return JSON.parse(localStorage.getItem(PF_KEY)) || []; }catch(e){ return []; }
+}
+function pfSave(entries){
+  try{ localStorage.setItem(PF_KEY, JSON.stringify(entries)); }catch(e){}
+}
+let pfEntries = pfLoad();
+let pfSelectedCoin = { symbol:'BTC', name:'Bitcoin', geckoId:'bitcoin' };
+
+// coin picker — a separate instance from the calculator's own picker above,
+// with its own state, so selecting a coin here never affects the calculator.
+const pfGrid = document.getElementById('pfCoinGrid');
+const pfSelectedLabel = document.getElementById('pfSelectedCoinLabel');
+function pfRenderQuickPicks(){
+  pfGrid.innerHTML = '';
+  Object.keys(DATA).forEach(sym=>{
+    const btn=document.createElement('button');
+    btn.className='coin-btn'+(sym===pfSelectedCoin.symbol && pfSelectedCoin.geckoId===GECKO_ID[sym] ?' active':'');
+    btn.appendChild(makeIconEl(sym, DATA[sym].name, 'coin-btn-icon'));
+    const label = document.createElement('span');
+    label.textContent = sym;
+    btn.appendChild(label);
+    btn.onclick=()=>{
+      pfSelectedCoin = { symbol:sym, name:DATA[sym].name, geckoId:GECKO_ID[sym] };
+      pfRenderQuickPicks();
+      pfUpdateSelectedUI();
+    };
+    pfGrid.appendChild(btn);
+  });
+}
+function pfUpdateSelectedUI(){
+  pfSelectedLabel.innerHTML = '';
+  pfSelectedLabel.appendChild(makeIconEl(pfSelectedCoin.symbol, pfSelectedCoin.name, 'selected-coin-icon'));
+  const text = document.createElement('span');
+  text.innerHTML = `Selected: <b>${pfSelectedCoin.symbol}</b> · ${pfSelectedCoin.name}`;
+  pfSelectedLabel.appendChild(text);
+}
+pfRenderQuickPicks();
+pfUpdateSelectedUI();
+
+const pfSearchInput = document.getElementById('pfCoinSearch');
+const pfDropdown = document.getElementById('pfCoinDropdown');
+let pfSearchDebounce = null;
+pfSearchInput.addEventListener('input', ()=>{
+  const q = pfSearchInput.value.trim();
+  clearTimeout(pfSearchDebounce);
+  if(q.length < 2){ pfDropdown.classList.remove('open'); return; }
+  pfDropdown.innerHTML = '<div class="loading">searching…</div>';
+  pfDropdown.classList.add('open');
+  pfSearchDebounce = setTimeout(()=>pfRunCoinSearch(q), 350);
+});
+document.addEventListener('click', (e)=>{
+  if(!e.target.closest('#pfCoinSearch') && !e.target.closest('#pfCoinDropdown')) pfDropdown.classList.remove('open');
+});
+async function pfRunCoinSearch(q){
+  let coins = [];
+  let offline = false;
+  try{
+    try{
+      const res = await fetch(`/.netlify/functions/search?query=${encodeURIComponent(q)}`);
+      if(!res.ok) throw new Error('proxy search failed');
+      const json = await res.json();
+      coins = json.coins || [];
+    }catch(proxyErr){
+      const res = await fetch(`https://api.coingecko.com/api/v3/search?query=${encodeURIComponent(q)}`);
+      if(!res.ok) throw new Error('search failed');
+      const json = await res.json();
+      coins = (json.coins || []).slice(0, 8);
+    }
+  }catch(err){
+    coins = searchOffline(q);
+    offline = true;
+  }
+  if(coins.length === 0){
+    pfDropdown.innerHTML = offline
+      ? '<div class="empty">No offline matches — try a quick pick below, or wait for network for full search</div>'
+      : '<div class="empty">No results found</div>';
+    return;
+  }
+  pfDropdown.innerHTML = '';
+  if(offline){
+    const note = document.createElement('div');
+    note.className = 'coin-dropdown-note';
+    note.textContent = 'offline search (no network) · limited list';
+    pfDropdown.appendChild(note);
+  }
+  coins.forEach(c=>{
+    const opt = document.createElement('div');
+    opt.className = 'coin-opt';
+    if(c.thumb){
+      const img = document.createElement('img');
+      img.src = c.thumb; img.alt = '';
+      img.onerror = ()=>{
+        const fb = document.createElement('div');
+        fb.className = 'co-avatar';
+        fb.textContent = c.symbol.charAt(0).toUpperCase();
+        img.replaceWith(fb);
+      };
+      opt.appendChild(img);
+    } else {
+      opt.appendChild(makeIconEl(c.symbol, c.name, 'co-avatar-sized'));
+    }
+    const info = document.createElement('div');
+    info.innerHTML = `<div class="co-sym">${c.symbol.toUpperCase()}</div><div class="co-name">${c.name}</div>`;
+    opt.appendChild(info);
+    opt.onclick = ()=>{
+      pfSelectedCoin = { symbol:c.symbol.toUpperCase(), name:c.name, geckoId:c.id };
+      pfSearchInput.value = '';
+      pfDropdown.classList.remove('open');
+      pfRenderQuickPicks();
+      pfUpdateSelectedUI();
+    };
+    pfDropdown.appendChild(opt);
+  });
+}
+
+// live "≈ $X per coin" preview while typing quantity/spent
+function pfUpdateComputedPrice(){
+  const qty = parseFloat(document.getElementById('pfQty').value);
+  const spent = parseFloat(document.getElementById('pfSpent').value);
+  const el = document.getElementById('pfComputedPrice');
+  if(qty > 0 && spent > 0){
+    el.innerHTML = `≈ <b>${fmt(spent/qty)}</b> per coin`;
+  } else {
+    el.textContent = '';
+  }
+}
+document.getElementById('pfQty').addEventListener('input', pfUpdateComputedPrice);
+document.getElementById('pfSpent').addEventListener('input', pfUpdateComputedPrice);
+// default the date picker to the current month, same PICKER_MAX used by the calculator's own wheel picker
+(function(){
+  const y = PICKER_MAX_YEAR, m = String(PICKER_MAX_MONTH_IN_MAX_YEAR).padStart(2,'0');
+  document.getElementById('pfDate').value = `${y}-${m}`;
+  document.getElementById('pfDate').max = `${y}-${m}`;
+})();
+
+document.getElementById('pfAddBtn').addEventListener('click', ()=>{
+  const qty = parseFloat(document.getElementById('pfQty').value);
+  const spent = parseFloat(document.getElementById('pfSpent').value);
+  const dateVal = document.getElementById('pfDate').value;
+  if(!qty || qty <= 0 || !spent || spent <= 0){
+    alert('Enter a quantity and an amount spent, both greater than zero.');
+    return;
+  }
+  if(!dateVal){
+    alert('Pick a purchase date.');
+    return;
+  }
+  pfEntries.push({
+    id: Date.now() + Math.random(),
+    symbol: pfSelectedCoin.symbol,
+    name: pfSelectedCoin.name,
+    geckoId: pfSelectedCoin.geckoId,
+    dateStr: dateVal,
+    qty, spent,
+  });
+  pfSave(pfEntries);
+  document.getElementById('pfQty').value = '';
+  document.getElementById('pfSpent').value = '';
+  document.getElementById('pfComputedPrice').textContent = '';
+  pfRender();
+  if(typeof gtag === 'function') gtag('event', 'portfolio_entry_added', { coin: pfSelectedCoin.symbol });
+});
+
+function pfFmtQty(n){
+  // coin quantities can be tiny (0.00003 BTC) or big (100000 DOGE) — trim to
+  // sensible precision instead of showing a wall of trailing zeros/decimals
+  if(n >= 1000) return n.toLocaleString('en-US', {maximumFractionDigits: 2});
+  return parseFloat(n.toFixed(6)).toString();
+}
+
+async function pfRender(){
+  const container = document.getElementById('pfContent');
+  if(pfEntries.length === 0){
+    container.innerHTML = '<div class="pf-empty">📓 No purchases logged yet.<br>Add your first one above — track what you actually paid, and see your real profit or loss update with live prices.</div>';
+    return;
+  }
+  container.innerHTML = '<div class="pf-empty"><span class="spin"></span> Loading live prices…</div>';
+  const groups = {};
+  pfEntries.forEach(e=>{
+    if(!groups[e.geckoId]) groups[e.geckoId] = { symbol:e.symbol, name:e.name, geckoId:e.geckoId, entries:[] };
+    groups[e.geckoId].entries.push(e);
+  });
+  const geckoIds = Object.keys(groups);
+  const prices = await Promise.all(geckoIds.map(id => fetchCurrentPrice(id).catch(()=>null)));
+  const priceMap = {};
+  geckoIds.forEach((id, i)=> priceMap[id] = prices[i]);
+
+  let totalSpentAll = 0, totalValueAll = 0, anyPriceMissing = false;
+  const cardsHtml = geckoIds.map(id=>{
+    const g = groups[id];
+    const totalQty = g.entries.reduce((s,e)=>s+e.qty, 0);
+    const totalSpent = g.entries.reduce((s,e)=>s+e.spent, 0);
+    const avgPrice = totalSpent / totalQty;
+    const curPrice = priceMap[id];
+    totalSpentAll += totalSpent;
+    let pnlBlock;
+    if(curPrice){
+      const curValue = totalQty * curPrice;
+      totalValueAll += curValue;
+      const pnlAbs = curValue - totalSpent;
+      const pnlPct = (curValue/totalSpent - 1) * 100;
+      const isGood = pnlAbs >= 0;
+      pnlBlock = `<div class="pf-pnl">
+        <span style="font-family:var(--mono); font-size:11px; color:var(--muted); text-transform:uppercase;">Now worth ${fmt(curValue)}</span>
+        <span class="pf-pnl-val ${isGood?'pos':'neg'}">${isGood?'+':''}${fmt(pnlAbs)} (${isGood?'+':''}${pnlPct.toFixed(1)}%)</span>
+      </div>`;
+    } else {
+      anyPriceMissing = true;
+      pnlBlock = `<div class="pf-pnl"><span style="font-family:var(--mono); font-size:11px; color:var(--muted);">Live price unavailable right now</span></div>`;
+    }
+    const entriesHtml = g.entries.map(e => `
+      <div class="pf-entry-row" data-id="${e.id}">
+        <span>${e.dateStr} · ${pfFmtQty(e.qty)} @ ${fmt(e.spent/e.qty)}</span>
+        <span>${fmt(e.spent)} <button type="button" class="pf-entry-del" data-id="${e.id}" title="Delete">✕</button></span>
+      </div>`).join('');
+    return `<div class="pf-coin-card" data-geckoid="${id}">
+      <div class="pf-coin-head">
+        <span class="pf-coin-icon-slot" data-symbol="${g.symbol}" data-name="${String(g.name).replace(/"/g,'&quot;')}"></span>
+        <div><div class="pf-coin-name">${g.name}</div><div class="pf-coin-sym">${g.symbol}</div></div>
+      </div>
+      <div class="pf-coin-stats">
+        <div><div class="pf-stat-label">Quantity held</div><div class="pf-stat-val">${pfFmtQty(totalQty)}</div></div>
+        <div><div class="pf-stat-label">Avg. price paid</div><div class="pf-stat-val">${fmt(avgPrice)}</div></div>
+        <div><div class="pf-stat-label">Total invested</div><div class="pf-stat-val">${fmt(totalSpent)}</div></div>
+        <div><div class="pf-stat-label">Current price</div><div class="pf-stat-val">${curPrice ? fmt(curPrice) : '—'}</div></div>
+      </div>
+      ${pnlBlock}
+      <button type="button" class="pf-entries-toggle" data-toggle="${id}">Show ${g.entries.length} purchase${g.entries.length>1?'s':''} ▾</button>
+      <div class="pf-entries-list" data-list="${id}" style="display:none; margin-top:8px;">${entriesHtml}</div>
+    </div>`;
+  }).join('');
+
+  const overallPnl = totalValueAll - totalSpentAll;
+  const overallPct = totalSpentAll > 0 ? (totalValueAll/totalSpentAll - 1) * 100 : 0;
+  const overallGood = overallPnl >= 0;
+  const totalsHtml = `<div class="pf-totals">
+    <div class="pf-tot-item"><div class="pf-tot-label">Total invested</div><div class="pf-tot-val">${fmt(totalSpentAll)}</div></div>
+    <div class="pf-tot-item"><div class="pf-tot-label">Worth now</div><div class="pf-tot-val">${fmt(totalValueAll)}</div></div>
+    <div class="pf-tot-item"><div class="pf-tot-label">P/L</div><div class="pf-tot-val ${overallGood?'pos':'neg'}">${overallGood?'+':''}${overallPct.toFixed(1)}%</div></div>
+  </div>`;
+
+  container.innerHTML = (anyPriceMissing ? '' : totalsHtml) + cardsHtml;
+
+  container.querySelectorAll('.pf-coin-icon-slot').forEach(slot=>{
+    const sym = slot.getAttribute('data-symbol');
+    const name = slot.getAttribute('data-name');
+    slot.replaceWith(makeIconEl(sym, name, 'pf-coin-head-icon'));
+  });
+  container.querySelectorAll('.pf-entries-toggle').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const id = btn.getAttribute('data-toggle');
+      const list = container.querySelector(`.pf-entries-list[data-list="${id}"]`);
+      const isOpen = list.style.display !== 'none';
+      list.style.display = isOpen ? 'none' : 'block';
+      const count = groups[id].entries.length;
+      btn.textContent = isOpen ? `Show ${count} purchase${count>1?'s':''} ▾` : `Hide purchases ▴`;
+    });
+  });
+  container.querySelectorAll('.pf-entry-del').forEach(btn=>{
+    btn.addEventListener('click', (ev)=>{
+      ev.stopPropagation();
+      const id = btn.getAttribute('data-id');
+      pfEntries = pfEntries.filter(e => String(e.id) !== String(id));
+      pfSave(pfEntries);
+      pfRender();
+    });
   });
 }
 </script>
