@@ -279,3 +279,25 @@
   from = "/ru/dogecoin-2021/"
   to = "/ru/ru-dogecoin-2021.html"
   status = 200
+
+# Фаза 3 — встраиваемый виджет для крипто-медиа. Тоже плоские файлы в корне
+# (widget-en.html, widget-ru.html), без папок — по той же причине, что и выше.
+[[redirects]]
+  from = "/widget"
+  to = "/widget-en.html"
+  status = 200
+
+[[redirects]]
+  from = "/widget/"
+  to = "/widget-en.html"
+  status = 200
+
+[[redirects]]
+  from = "/ru/widget"
+  to = "/widget-ru.html"
+  status = 200
+
+[[redirects]]
+  from = "/ru/widget/"
+  to = "/widget-ru.html"
+  status = 200
