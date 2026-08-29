@@ -1140,24 +1140,6 @@
       <button class="cta" id="calcBtn">Show me what I missed →</button>
     </div>
   </div>
-  <!-- Custom date wheel-picker (native mobile-app style) -->
-  <div class="date-sheet-overlay" id="dateSheetOverlay">
-    <div class="date-sheet">
-      <div class="date-sheet-header">
-        <button type="button" id="dateCancel">Cancel</button>
-        <span>Purchase date</span>
-        <button type="button" id="dateDone">Done</button>
-      </div>
-      <div class="wheel-wrap">
-        <div class="wheel-highlight"></div>
-        <div class="wheel-fade wheel-fade-top"></div>
-        <div class="wheel-fade wheel-fade-bottom"></div>
-        <div class="wheel-col" id="monthWheel"></div>
-        <div class="wheel-col" id="yearWheel"></div>
-      </div>
-      <div class="date-sheet-hint" id="dateSheetHint"></div>
-    </div>
-  </div>
   <div id="receipt-holder">
     <div class="receipt">
       <div class="r-title" id="rTitle">— receipt of regret —</div>
@@ -1226,6 +1208,24 @@
   </div>
   </div>
   </div>
+  <!-- Custom date wheel-picker (native mobile-app style) -->
+  <div class="date-sheet-overlay" id="dateSheetOverlay">
+    <div class="date-sheet">
+      <div class="date-sheet-header">
+        <button type="button" id="dateCancel">Cancel</button>
+        <span>Purchase date</span>
+        <button type="button" id="dateDone">Done</button>
+      </div>
+      <div class="wheel-wrap">
+        <div class="wheel-highlight"></div>
+        <div class="wheel-fade wheel-fade-top"></div>
+        <div class="wheel-fade wheel-fade-bottom"></div>
+        <div class="wheel-col" id="monthWheel"></div>
+        <div class="wheel-col" id="yearWheel"></div>
+      </div>
+      <div class="date-sheet-hint" id="dateSheetHint"></div>
+    </div>
+  </div>
   <div id="portfolioView" style="display:none;">
     <div class="panel">
       <div class="field">
@@ -1250,7 +1250,7 @@
       </div>
       <div class="field">
         <label>Purchase date</label>
-        <input type="month" id="pfDate">
+        <button type="button" class="date-trigger" id="pfDateTrigger">Aug 2026</button>
       </div>
       <div class="pf-computed-price" id="pfComputedPrice"></div>
       <div class="field" style="margin-top:4px;">
@@ -1607,7 +1607,19 @@ function updateDateTriggerLabel(){
 }
 initWheels();
 updateDateTriggerLabel();
-dateTrigger.addEventListener('click', openDateSheet);
+// The same wheel-picker sheet is shared between the calculator's date field
+// and the Portfolio tab's date field — only one can be open at a time, so we
+// just track which field is currently being edited and route "Done" there.
+let dateSheetTarget = 'calc';
+dateTrigger.addEventListener('click', ()=>{
+  dateSheetTarget = 'calc';
+  // re-sync the shared wheel state to the calculator's own current value —
+  // it may currently hold the Portfolio tab's date instead, since both
+  // triggers drive the same pickedMonth/pickedYear while their sheet is open
+  const [y, m] = currentDateStr.split('-').map(Number);
+  pickedYear = y; pickedMonth = m;
+  openDateSheet();
+});
 document.getElementById('dateCancel').addEventListener('click', closeDateSheet);
 dateSheetOverlay.addEventListener('click', (e)=>{ if(e.target===dateSheetOverlay) closeDateSheet(); });
 document.getElementById('dateDone').addEventListener('click', ()=>{
@@ -1623,8 +1635,14 @@ document.getElementById('dateDone').addEventListener('click', ()=>{
     refreshMonthDisabledState();
     return;
   }
-  updateDateTriggerLabel();
-  document.querySelectorAll('.period-btn').forEach(b=>b.classList.remove('active'));
+  if(dateSheetTarget === 'portfolio'){
+    pfPickedMonth = pickedMonth;
+    pfPickedYear = pickedYear;
+    updatePfDateTriggerLabel();
+  } else {
+    updateDateTriggerLabel();
+    document.querySelectorAll('.period-btn').forEach(b=>b.classList.remove('active'));
+  }
   closeDateSheet();
 });
 // CoinGecko coin ids for live lookups
@@ -3176,17 +3194,29 @@ function pfUpdateComputedPrice(){
 }
 document.getElementById('pfQty').addEventListener('input', pfUpdateComputedPrice);
 document.getElementById('pfSpent').addEventListener('input', pfUpdateComputedPrice);
-// default the date picker to the current month, same PICKER_MAX used by the calculator's own wheel picker
-(function(){
-  const y = PICKER_MAX_YEAR, m = String(PICKER_MAX_MONTH_IN_MAX_YEAR).padStart(2,'0');
-  document.getElementById('pfDate').value = `${y}-${m}`;
-  document.getElementById('pfDate').max = `${y}-${m}`;
-})();
+// Portfolio's own date field — reuses the calculator's wheel-picker sheet
+// (see dateSheetTarget above) instead of a plain <input type="month">, which
+// some browsers render with no usable UI at all for picking month/year.
+let pfPickedMonth = PICKER_MAX_MONTH_IN_MAX_YEAR;
+let pfPickedYear = PICKER_MAX_YEAR;
+let pfDateStr = `${pfPickedYear}-${String(pfPickedMonth).padStart(2,'0')}`;
+const pfDateTrigger = document.getElementById('pfDateTrigger');
+function updatePfDateTriggerLabel(){
+  pfDateTrigger.textContent = `${MONTH_NAMES[pfPickedMonth-1]} ${pfPickedYear}`;
+  pfDateStr = `${pfPickedYear}-${String(pfPickedMonth).padStart(2,'0')}`;
+}
+updatePfDateTriggerLabel();
+pfDateTrigger.addEventListener('click', ()=>{
+  dateSheetTarget = 'portfolio';
+  pickedMonth = pfPickedMonth;
+  pickedYear = pfPickedYear;
+  openDateSheet();
+});
 
 document.getElementById('pfAddBtn').addEventListener('click', ()=>{
   const qty = parseFloat(document.getElementById('pfQty').value);
   const spent = parseFloat(document.getElementById('pfSpent').value);
-  const dateVal = document.getElementById('pfDate').value;
+  const dateVal = pfDateStr;
   if(!qty || qty <= 0 || !spent || spent <= 0){
     alert('Enter a quantity and an amount spent, both greater than zero.');
     return;
