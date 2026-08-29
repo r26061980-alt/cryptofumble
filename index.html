@@ -15,6 +15,12 @@
 <link rel="icon" href="/favicon.ico" sizes="any">
 <link rel="icon" href="/favicon-32.png" type="image/png">
 <link rel="apple-touch-icon" href="/favicon-180.png">
+<!-- PWA: lets phones offer "Add to Home Screen" (Phase 1 quick win) -->
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#0A0B10">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="CryptoFumble">
 <title>CryptoFumble — What Could You Have Made?</title>
 <meta name="description" content="See exactly what your money would be worth today if you'd bought any crypto, any amount, on any date. Free calculator with live prices — brutally honest, oddly satisfying.">
 <link rel="canonical" href="https://cryptofumble.com/">
@@ -698,6 +704,13 @@
   }
   .r-big .num.pos{color:#0F7A50;}
   .r-big .num.neg{color:#A82A30;}
+  .r-local-currency{
+    text-align:center;
+    font-family:var(--mono);
+    font-size:12px;
+    opacity:0.5;
+    margin-top:2px;
+  }
   .r-mult{
     text-align:center;
     font-size:13px;
@@ -893,6 +906,41 @@
   .r-year-row .ry-year{font-weight:700;}
   .r-year-row .ry-val{font-weight:600;}
 </style>
+<!-- FAQPage structured data — mirrors the FAQ accordion below word-for-word,
+     so Google can show these as an expandable rich snippet under the search
+     result instead of just the plain title+description. -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "Where does the price data come from?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Live prices come from CoinGecko, through our own caching proxy. If the live API is briefly unavailable, the calculator falls back to an approximate historical dataset for a handful of major coins — clearly marked \"OFFLINE DEMO DATA\" right on the receipt, so you always know which one you're looking at."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Is this financial advice?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "No. CryptoFumble is for fun and reflection, not investment advice. It shows a hypothetical outcome based on historical prices — not a prediction or a recommendation. Crypto is volatile and you can lose money. Always do your own research before investing."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Why does it sometimes say \"offline demo data\"?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "That means the live CoinGecko API was temporarily unreachable (rate limits, a network hiccup), so the receipt used an approximate backup dataset instead of exact historical prices. It only covers BTC, ETH, SOL, DOGE, ADA, XRP and BNB — for any other coin, if live data fails you'll see an error instead of a wrong number."
+      }
+    }
+  ]
+}
+</script>
 </head>
 <body>
 <!-- ═══ Product Hunt launch banner — add ONLY after the launch goes live (after 15:01 Beijing time / 00:01 PDT on Aug 28), right after <body> ═══ -->
@@ -1013,6 +1061,7 @@
       <div class="r-big">
         <div class="label">Would be worth now</div>
         <div class="num" id="rResult">$0</div>
+        <div class="r-local-currency" id="rLocalCurrency" style="display:none;"></div>
       </div>
       <div class="r-tier" id="rTier"></div>
       <div class="r-mult-wrap"><span class="r-mult" id="rMult">x1.0</span></div>
@@ -1193,6 +1242,54 @@ function fmt(n){
 }
 function fmtBig(n){
   return '$'+Math.round(n).toLocaleString('en-US');
+}
+// ---- Local-currency line under the result (Phase 1 quick win) ----
+// Static approximate rates (units per 1 USD), snapshot ~Aug 2026 — this is
+// deliberately NOT a live FX API call (no new backend dependency, no extra
+// cost/latency for a number that's already labeled "approximate"). Update
+// this table by hand every few months to keep it in the right ballpark.
+const FX_RATES = {
+  RUB: 86, EUR: 0.87, GBP: 0.74, INR: 95, BRL: 5.1, TRY: 48,
+  UAH: 45, KZT: 468, IDR: 17900, NGN: 1360, PHP: 61, VND: 26200,
+  PKR: 278, ARS: 1500, MXN: 17.2, JPY: 158, CNY: 6.75, KRW: 1424,
+  AUD: 1.42, CAD: 1.4, ZAR: 16.4,
+};
+// Maps a browser locale to a currency code. Checks the region suffix first
+// (ru-KZ -> KZT takes priority over the blanket ru -> RUB), then falls back
+// to the base language. Returns null for locales close enough to the USD
+// default (en-US, no region, etc.) — no point echoing the same number twice.
+function guessCurrency(lang){
+  if(!lang) return null;
+  const l = lang.toLowerCase();
+  const REGION_MAP = {
+    'kz':'KZT', 'ua':'UAH', 'br':'BRL', 'in':'INR', 'tr':'TRY', 'id':'IDR',
+    'ng':'NGN', 'ph':'PHP', 'vn':'VND', 'pk':'PKR', 'ar':'ARS', 'mx':'MXN',
+    'za':'ZAR', 'gb':'GBP', 'au':'AUD', 'ca':'CAD', 'jp':'JPY', 'cn':'CNY', 'kr':'KRW',
+  };
+  const region = l.split('-')[1];
+  if(region && REGION_MAP[region]) return REGION_MAP[region];
+  const BASE_MAP = {
+    'ru':'RUB', 'tr':'TRY', 'ja':'JPY', 'zh':'CNY', 'ko':'KRW', 'vi':'VND',
+    'id':'IDR', 'ur':'PKR', 'pt':'BRL', 'de':'EUR', 'fr':'EUR', 'it':'EUR',
+    'nl':'EUR', 'pl':'EUR', 'es':'EUR',
+  };
+  const base = l.split('-')[0];
+  return BASE_MAP[base] || null;
+}
+function renderLocalCurrency(resultRaw){
+  const el = document.getElementById('rLocalCurrency');
+  if(!el) return;
+  const code = guessCurrency(navigator.language);
+  const rate = code && FX_RATES[code];
+  if(!rate){ el.style.display = 'none'; return; }
+  try{
+    const converted = resultRaw * rate;
+    const formatted = new Intl.NumberFormat(navigator.language, {
+      style: 'currency', currency: code, maximumFractionDigits: 0,
+    }).format(converted);
+    el.textContent = '≈ ' + formatted + ' (approx.)';
+    el.style.display = 'block';
+  }catch(err){ el.style.display = 'none'; }
 }
 function fmtCoinsQty(qty, symbol){
   // for cheap coins (DOGE, SHIB, etc.) the raw coin count is part of the joke,
@@ -1380,11 +1477,27 @@ const EXCHANGES = [
   { name:'Bitget', url:'https://www.krbitget.com/ru/referral/register?clacCode=T0NB6A61&from=%2Fru%2Fevents%2Freferral-all-program&source=events&utmSource=PremierInviter' },
   { name:'BingX',  url:'https://bingxdao.com/invite/RIBWB2/' }
 ];
+// Geo-adaptive rotation order (Phase 1 quick win): Bitget's referral link
+// already points at a localized /ru/ page (see the URL above), so it's a
+// concrete, verifiable reason to show it first more often for ru-locale
+// visitors — everyone else keeps the original order. This is a starting
+// point, not a measured result: `click_invest_cta` events already log which
+// exchange was clicked (see the listener near the bottom of this file), so
+// once there's enough GA data broken down by country, replace this guess
+// with whatever the real numbers say converts best per region.
+function localizedExchangeOrder(){
+  const lang = (navigator.language || '').toLowerCase();
+  if(lang.startsWith('ru')){
+    return [EXCHANGES[2], EXCHANGES[0], EXCHANGES[1], EXCHANGES[3]]; // Bitget first
+  }
+  return EXCHANGES;
+}
 function nextExchange(){
+  const order = localizedExchangeOrder();
   let idx = parseInt(localStorage.getItem('cf_exchange_idx'), 10);
-  if(isNaN(idx)) idx = Math.floor(Math.random()*EXCHANGES.length);
-  const exchange = EXCHANGES[idx % EXCHANGES.length];
-  try{ localStorage.setItem('cf_exchange_idx', String((idx+1) % EXCHANGES.length)); }catch(err){
+  if(isNaN(idx)) idx = Math.floor(Math.random()*order.length);
+  const exchange = order[idx % order.length];
+  try{ localStorage.setItem('cf_exchange_idx', String((idx+1) % order.length)); }catch(err){
     // localStorage может быть недоступен в некоторых приватных режимах — не критично,
     // просто в этом браузере ротация не будет "запоминаться" между визитами
   }
@@ -2056,6 +2169,7 @@ async function runLumpSumCalculation(coin){
   ctaInvest.dataset.exchange = exchange.name.toLowerCase();
   document.getElementById('receipt-holder').style.display='block';
   animateCount(document.getElementById('rResult'), result, '$');
+  renderLocalCurrency(result);
   document.getElementById('receipt-holder').scrollIntoView({behavior:'smooth', block:'nearest'});
   lastResult = {
     coinName: coin.name,
@@ -2709,6 +2823,15 @@ document.getElementById('ctaInvest').addEventListener('click', function(){
     });
   }
 });
+// PWA: register the service worker so the site is installable (Phase 1
+// quick win). Registration is best-effort — if it fails (unsupported
+// browser, blocked by a privacy setting), the site just works as a normal
+// page, nothing depends on it.
+if('serviceWorker' in navigator){
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js').catch(()=>{});
+  });
+}
 </script>
 </body>
 </html>
