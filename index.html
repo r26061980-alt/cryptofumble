@@ -1216,11 +1216,12 @@
         <span>Purchase date</span>
         <button type="button" id="dateDone">Done</button>
       </div>
-      <div class="wheel-wrap">
+      <div class="wheel-wrap" id="wheelWrap">
         <div class="wheel-highlight"></div>
         <div class="wheel-fade wheel-fade-top"></div>
         <div class="wheel-fade wheel-fade-bottom"></div>
         <div class="wheel-col" id="monthWheel"></div>
+        <div class="wheel-col" id="dayWheel"></div>
         <div class="wheel-col" id="yearWheel"></div>
       </div>
       <div class="date-sheet-hint" id="dateSheetHint"></div>
@@ -1484,12 +1485,18 @@ const PICKER_MIN_YEAR = 2013;
 const _now = new Date();
 const PICKER_MAX_YEAR = _now.getFullYear();
 const PICKER_MAX_MONTH_IN_MAX_YEAR = _now.getMonth() + 1; // getMonth() is 0-indexed, so +1
+const PICKER_MAX_DAY_IN_MAX_MONTH = _now.getDate();
 let pickedMonth = 3;   // 1-12, starting value = March
 let pickedYear = 2020;
+let pickedDay = 15;    // only shown/used by the Portfolio tab's date field — the
+                        // calculator itself stays month-level, matching its
+                        // monthly historical-price data
 let currentDateStr = '2020-03'; // source of truth for calculation, synced on "Done"
 const dateTrigger = document.getElementById('dateTrigger');
 const dateSheetOverlay = document.getElementById('dateSheetOverlay');
+const wheelWrap = document.getElementById('wheelWrap');
 const monthWheel = document.getElementById('monthWheel');
+const dayWheel = document.getElementById('dayWheel');
 const yearWheel = document.getElementById('yearWheel');
 const dateSheetHint = document.getElementById('dateSheetHint');
 const ROW_H = 44;
@@ -1525,14 +1532,37 @@ function highlightPicked(container){
 }
 function clampFutureAndRefresh(){
   // if a month/year past "now" (2026-08) was picked — softly clamp back to the max
+  let clamped = false;
   if(pickedYear > PICKER_MAX_YEAR || (pickedYear===PICKER_MAX_YEAR && pickedMonth>PICKER_MAX_MONTH_IN_MAX_YEAR)){
-    dateSheetHint.textContent = 'Can\'t pick the future — snapped to the latest available month';
     pickedYear = PICKER_MAX_YEAR;
     pickedMonth = PICKER_MAX_MONTH_IN_MAX_YEAR;
+    clamped = true;
+  }
+  // the day wheel only matters for the Portfolio tab, but the check is harmless
+  // to run either way — the calculator never lets pickedDay drift out of range
+  if(pickedYear===PICKER_MAX_YEAR && pickedMonth===PICKER_MAX_MONTH_IN_MAX_YEAR && pickedDay>PICKER_MAX_DAY_IN_MAX_MONTH){
+    pickedDay = PICKER_MAX_DAY_IN_MAX_MONTH;
+    clamped = true;
+  }
+  if(clamped){
+    dateSheetHint.textContent = 'Can\'t pick the future — snapped to the latest available date';
     return true;
   }
   dateSheetHint.textContent = '';
   return false;
+}
+function daysInMonth(year, month){
+  return new Date(year, month, 0).getDate();
+}
+function isDayDisabled(v){
+  return pickedYear===PICKER_MAX_YEAR && pickedMonth===PICKER_MAX_MONTH_IN_MAX_YEAR && v>PICKER_MAX_DAY_IN_MAX_MONTH;
+}
+function buildDayWheel(){
+  const n = daysInMonth(pickedYear, pickedMonth);
+  if(pickedDay > n) pickedDay = n;
+  const dayItems = [];
+  for(let d=1; d<=n; d++) dayItems.push({label:String(d), value:d});
+  buildWheel(dayWheel, dayItems, isDayDisabled);
 }
 function initWheels(){
   const monthItems = MONTH_NAMES.map((name,i)=>({label:name, value:i+1}));
@@ -1540,8 +1570,13 @@ function initWheels(){
   for(let y=PICKER_MIN_YEAR; y<=PICKER_MAX_YEAR; y++) years.push({label:String(y), value:y});
   buildWheel(monthWheel, monthItems, (v)=> pickedYear===PICKER_MAX_YEAR && v>PICKER_MAX_MONTH_IN_MAX_YEAR);
   buildWheel(yearWheel, years);
+  buildDayWheel();
   attachWheelScroll(monthWheel, (idx)=>{ pickedMonth = monthItems[idx] ? monthItems[idx].value : pickedMonth; });
   attachWheelScroll(yearWheel, (idx)=>{ pickedYear = years[idx] ? years[idx].value : pickedYear; });
+  attachWheelScroll(dayWheel, (idx)=>{
+    const el = dayWheel.querySelectorAll('.wheel-item')[idx];
+    if(el) pickedDay = parseInt(el.dataset.value, 10);
+  });
 }
 function attachWheelScroll(container, onPick){
   let scrollTimer = null;
@@ -1557,6 +1592,11 @@ function attachWheelScroll(container, onPick){
       if(container===monthWheel || container===yearWheel){
         // if the year hit the max — redraw months reflecting the disabled state
         if(container===yearWheel) refreshMonthDisabledState();
+        // days-in-month (and which days are "in the future") can change
+        // whenever month or year changes — rebuild the day wheel to match
+        buildDayWheel();
+        scrollWheelTo(dayWheel, pickedDay-1, false);
+        highlightPicked(dayWheel);
       }
     }, 120);
   }, { passive:true });
@@ -1586,14 +1626,20 @@ function refreshMonthDisabledState(){
 }
 function openDateSheet(){
   dateSheetOverlay.classList.add('open');
+  // the day wheel only makes sense for the Portfolio tab's exact-purchase-date
+  // field — the calculator stays month-level, matching its monthly data
+  dayWheel.style.display = dateSheetTarget === 'portfolio' ? '' : 'none';
+  buildDayWheel();
   // set the wheels to the current value without animation
   const monthIdx = pickedMonth - 1;
   const yearIdx = pickedYear - PICKER_MIN_YEAR;
   requestAnimationFrame(()=>{
     scrollWheelTo(monthWheel, monthIdx, false);
     scrollWheelTo(yearWheel, yearIdx, false);
+    scrollWheelTo(dayWheel, pickedDay-1, false);
     highlightPicked(monthWheel);
     highlightPicked(yearWheel);
+    highlightPicked(dayWheel);
     refreshMonthDisabledState();
   });
   dateSheetHint.textContent = '';
@@ -1630,14 +1676,18 @@ document.getElementById('dateDone').addEventListener('click', ()=>{
     // It will close on the next "Done" tap (which will already be valid).
     scrollWheelTo(monthWheel, pickedMonth-1, true);
     scrollWheelTo(yearWheel, pickedYear-PICKER_MIN_YEAR, true);
+    buildDayWheel();
+    scrollWheelTo(dayWheel, pickedDay-1, true);
     highlightPicked(monthWheel);
     highlightPicked(yearWheel);
+    highlightPicked(dayWheel);
     refreshMonthDisabledState();
     return;
   }
   if(dateSheetTarget === 'portfolio'){
     pfPickedMonth = pickedMonth;
     pfPickedYear = pickedYear;
+    pfPickedDay = pickedDay;
     updatePfDateTriggerLabel();
   } else {
     updateDateTriggerLabel();
@@ -3196,20 +3246,25 @@ document.getElementById('pfQty').addEventListener('input', pfUpdateComputedPrice
 document.getElementById('pfSpent').addEventListener('input', pfUpdateComputedPrice);
 // Portfolio's own date field — reuses the calculator's wheel-picker sheet
 // (see dateSheetTarget above) instead of a plain <input type="month">, which
-// some browsers render with no usable UI at all for picking month/year.
+// some browsers render with no usable UI at all for picking month/year. Unlike
+// the calculator (month-level, matching its monthly historical-price data),
+// a real logged purchase has an exact day, so the portfolio's sheet shows a
+// third "day" wheel that the calculator's own date field keeps hidden.
 let pfPickedMonth = PICKER_MAX_MONTH_IN_MAX_YEAR;
 let pfPickedYear = PICKER_MAX_YEAR;
-let pfDateStr = `${pfPickedYear}-${String(pfPickedMonth).padStart(2,'0')}`;
+let pfPickedDay = PICKER_MAX_DAY_IN_MAX_MONTH;
+let pfDateStr = `${pfPickedYear}-${String(pfPickedMonth).padStart(2,'0')}-${String(pfPickedDay).padStart(2,'0')}`;
 const pfDateTrigger = document.getElementById('pfDateTrigger');
 function updatePfDateTriggerLabel(){
-  pfDateTrigger.textContent = `${MONTH_NAMES[pfPickedMonth-1]} ${pfPickedYear}`;
-  pfDateStr = `${pfPickedYear}-${String(pfPickedMonth).padStart(2,'0')}`;
+  pfDateTrigger.textContent = `${MONTH_NAMES[pfPickedMonth-1]} ${pfPickedDay}, ${pfPickedYear}`;
+  pfDateStr = `${pfPickedYear}-${String(pfPickedMonth).padStart(2,'0')}-${String(pfPickedDay).padStart(2,'0')}`;
 }
 updatePfDateTriggerLabel();
 pfDateTrigger.addEventListener('click', ()=>{
   dateSheetTarget = 'portfolio';
   pickedMonth = pfPickedMonth;
   pickedYear = pfPickedYear;
+  pickedDay = pfPickedDay;
   openDateSheet();
 });
 
