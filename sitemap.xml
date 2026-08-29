@@ -17,4 +17,196 @@
     <xhtml:link rel="alternate" hreflang="ru" href="https://cryptofumble.com/ru/"/>
     <xhtml:link rel="alternate" hreflang="x-default" href="https://cryptofumble.com/"/>
   </url>
+  <url>
+    <loc>https://cryptofumble.com/bitcoin-2013/</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://cryptofumble.com/bitcoin-2013/"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://cryptofumble.com/ru/bitcoin-2013/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://cryptofumble.com/bitcoin-2013/"/>
+  </url>
+  <url>
+    <loc>https://cryptofumble.com/ru/bitcoin-2013/</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://cryptofumble.com/bitcoin-2013/"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://cryptofumble.com/ru/bitcoin-2013/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://cryptofumble.com/bitcoin-2013/"/>
+  </url>
+  <url>
+    <loc>https://cryptofumble.com/bitcoin-2017/</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://cryptofumble.com/bitcoin-2017/"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://cryptofumble.com/ru/bitcoin-2017/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://cryptofumble.com/bitcoin-2017/"/>
+  </url>
+  <url>
+    <loc>https://cryptofumble.com/ru/bitcoin-2017/</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://cryptofumble.com/bitcoin-2017/"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://cryptofumble.com/ru/bitcoin-2017/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://cryptofumble.com/bitcoin-2017/"/>
+  </url>
+  <url>
+    <loc>https://cryptofumble.com/bitcoin-2020/</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://cryptofumble.com/bitcoin-2020/"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://cryptofumble.com/ru/bitcoin-2020/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://cryptofumble.com/bitcoin-2020/"/>
+  </url>
+  <url>
+    <loc>https://cryptofumble.com/ru/bitcoin-2020/</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://cryptofumble.com/bitcoin-2020/"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://cryptofumble.com/ru/bitcoin-2020/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://cryptofumble.com/bitcoin-2020/"/>
+  </url>
+  <url>
+    <loc>https://cryptofumble.com/ethereum-2016/</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://cryptofumble.com/ethereum-2016/"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://cryptofumble.com/ru/ethereum-2016/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://cryptofumble.com/ethereum-2016/"/>
+  </url>
+  <url>
+    <loc>https://cryptofumble.com/ru/ethereum-2016/</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://cryptofumble.com/ethereum-2016/"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://cryptofumble.com/ru/ethereum-2016/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://cryptofumble.com/ethereum-2016/"/>
+  </url>
+  <url>
+    <loc>https://cryptofumble.com/ethereum-2017/</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://cryptofumble.com/ethereum-2017/"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://cryptofumble.com/ru/ethereum-2017/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://cryptofumble.com/ethereum-2017/"/>
+  </url>
+  <url>
+    <loc>https://cryptofumble.com/ru/ethereum-2017/</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://cryptofumble.com/ethereum-2017/"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://cryptofumble.com/ru/ethereum-2017/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://cryptofumble.com/ethereum-2017/"/>
+  </url>
+  <url>
+    <loc>https://cryptofumble.com/ethereum-2020/</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://cryptofumble.com/ethereum-2020/"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://cryptofumble.com/ru/ethereum-2020/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://cryptofumble.com/ethereum-2020/"/>
+  </url>
+  <url>
+    <loc>https://cryptofumble.com/ru/ethereum-2020/</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://cryptofumble.com/ethereum-2020/"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://cryptofumble.com/ru/ethereum-2020/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://cryptofumble.com/ethereum-2020/"/>
+  </url>
+  <url>
+    <loc>https://cryptofumble.com/solana-2020/</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://cryptofumble.com/solana-2020/"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://cryptofumble.com/ru/solana-2020/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://cryptofumble.com/solana-2020/"/>
+  </url>
+  <url>
+    <loc>https://cryptofumble.com/ru/solana-2020/</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://cryptofumble.com/solana-2020/"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://cryptofumble.com/ru/solana-2020/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://cryptofumble.com/solana-2020/"/>
+  </url>
+  <url>
+    <loc>https://cryptofumble.com/solana-2021/</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://cryptofumble.com/solana-2021/"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://cryptofumble.com/ru/solana-2021/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://cryptofumble.com/solana-2021/"/>
+  </url>
+  <url>
+    <loc>https://cryptofumble.com/ru/solana-2021/</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://cryptofumble.com/solana-2021/"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://cryptofumble.com/ru/solana-2021/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://cryptofumble.com/solana-2021/"/>
+  </url>
+  <url>
+    <loc>https://cryptofumble.com/solana-2022/</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://cryptofumble.com/solana-2022/"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://cryptofumble.com/ru/solana-2022/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://cryptofumble.com/solana-2022/"/>
+  </url>
+  <url>
+    <loc>https://cryptofumble.com/ru/solana-2022/</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://cryptofumble.com/solana-2022/"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://cryptofumble.com/ru/solana-2022/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://cryptofumble.com/solana-2022/"/>
+  </url>
+  <url>
+    <loc>https://cryptofumble.com/dogecoin-2018/</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://cryptofumble.com/dogecoin-2018/"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://cryptofumble.com/ru/dogecoin-2018/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://cryptofumble.com/dogecoin-2018/"/>
+  </url>
+  <url>
+    <loc>https://cryptofumble.com/ru/dogecoin-2018/</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://cryptofumble.com/dogecoin-2018/"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://cryptofumble.com/ru/dogecoin-2018/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://cryptofumble.com/dogecoin-2018/"/>
+  </url>
+  <url>
+    <loc>https://cryptofumble.com/dogecoin-2020/</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://cryptofumble.com/dogecoin-2020/"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://cryptofumble.com/ru/dogecoin-2020/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://cryptofumble.com/dogecoin-2020/"/>
+  </url>
+  <url>
+    <loc>https://cryptofumble.com/ru/dogecoin-2020/</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://cryptofumble.com/dogecoin-2020/"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://cryptofumble.com/ru/dogecoin-2020/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://cryptofumble.com/dogecoin-2020/"/>
+  </url>
+  <url>
+    <loc>https://cryptofumble.com/dogecoin-2021/</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://cryptofumble.com/dogecoin-2021/"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://cryptofumble.com/ru/dogecoin-2021/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://cryptofumble.com/dogecoin-2021/"/>
+  </url>
+  <url>
+    <loc>https://cryptofumble.com/ru/dogecoin-2021/</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://cryptofumble.com/dogecoin-2021/"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://cryptofumble.com/ru/dogecoin-2021/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://cryptofumble.com/dogecoin-2021/"/>
+  </url>
 </urlset>

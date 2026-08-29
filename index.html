@@ -1129,6 +1129,17 @@
       <p>That means the live CoinGecko API was temporarily unreachable (rate limits, a network hiccup), so the receipt used an approximate backup dataset instead of exact historical prices. It only covers BTC, ETH, SOL, DOGE, ADA, XRP and BNB — for any other coin, if live data fails you'll see an error instead of a wrong number.</p>
     </details>
   </div>
+  <div class="scenario-links" style="max-width:480px;margin:40px auto 0;padding-top:28px;border-top:1px solid var(--panel-border-soft);">
+    <div style="font-family:var(--mono);font-size:10px;letter-spacing:0.1em;color:var(--muted);text-align:center;margin-bottom:16px;text-transform:uppercase;">📈 popular scenarios</div>
+    <div style="display:flex;flex-wrap:wrap;gap:8px;justify-content:center;">
+      <a href="/bitcoin-2013/" style="padding:8px 14px;background:var(--panel);border:1px solid var(--panel-border);border-radius:999px;text-decoration:none;font-size:12px;font-family:var(--mono);color:var(--gold-soft);">Bitcoin in 2013</a>
+      <a href="/bitcoin-2017/" style="padding:8px 14px;background:var(--panel);border:1px solid var(--panel-border);border-radius:999px;text-decoration:none;font-size:12px;font-family:var(--mono);color:var(--gold-soft);">Bitcoin in 2017</a>
+      <a href="/ethereum-2016/" style="padding:8px 14px;background:var(--panel);border:1px solid var(--panel-border);border-radius:999px;text-decoration:none;font-size:12px;font-family:var(--mono);color:var(--gold-soft);">Ethereum in 2016</a>
+      <a href="/solana-2021/" style="padding:8px 14px;background:var(--panel);border:1px solid var(--panel-border);border-radius:999px;text-decoration:none;font-size:12px;font-family:var(--mono);color:var(--gold-soft);">Solana in 2021</a>
+      <a href="/dogecoin-2021/" style="padding:8px 14px;background:var(--panel);border:1px solid var(--panel-border);border-radius:999px;text-decoration:none;font-size:12px;font-family:var(--mono);color:var(--gold-soft);">Dogecoin in 2021</a>
+      <a href="/solana-2022/" style="padding:8px 14px;background:var(--panel);border:1px solid var(--panel-border);border-radius:999px;text-decoration:none;font-size:12px;font-family:var(--mono);color:var(--gold-soft);">Solana in 2022</a>
+    </div>
+  </div>
 </div>
 <script>
 // ---- Approximate historical price anchors (log-interpolated between points) ----
@@ -1717,6 +1728,31 @@ function updateSelectedUI(){
   starBtn.onclick = ()=>{ toggleFavorite(currentCoin); updateSelectedUI(); };
   selectedLabel.appendChild(starBtn);
 }
+// ---- Deep-link support for SEO landing pages (Phase 2) ----
+// ?coin=BTC&date=2013-01 preselects the coin and month/year so a landing
+// page's "calculate your own" link drops the visitor into a calculator
+// that's already primed for their scenario instead of a blank form. Malformed
+// or missing params just fall through to the normal hardcoded defaults.
+(function applyDeepLinkParams(){
+  try{
+    const params = new URLSearchParams(location.search);
+    const coinParam = (params.get('coin') || '').toUpperCase();
+    if(coinParam && DATA[coinParam] && GECKO_ID[coinParam]){
+      currentCoin = { symbol: coinParam, name: DATA[coinParam].name, geckoId: GECKO_ID[coinParam] };
+    }
+    const dateParam = params.get('date') || '';
+    const m = dateParam.match(/^(\d{4})-(\d{2})$/);
+    if(m){
+      const y = parseInt(m[1], 10), mo = parseInt(m[2], 10);
+      if(y >= PICKER_MIN_YEAR && y <= PICKER_MAX_YEAR && mo >= 1 && mo <= 12){
+        pickedYear = y;
+        pickedMonth = mo;
+        currentDateStr = dateParam;
+        dateTrigger.textContent = `${MONTH_NAMES[mo-1]} ${y}`;
+      }
+    }
+  }catch(err){ /* malformed params — just use the normal defaults */ }
+})();
 renderQuickPicks();
 renderFavorites();
 updateSelectedUI();
