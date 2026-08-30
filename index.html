@@ -995,6 +995,13 @@
   }
   .pf-coin-head .pf-coin-name{font-weight:700; font-size:15px;}
   .pf-coin-head .pf-coin-sym{font-family:var(--mono); font-size:11px; color:var(--muted);}
+  .pf-coin-head-info{flex:1;}
+  .pf-coin-del{
+    background:none; border:none; color:var(--muted); cursor:pointer;
+    font-size:15px; padding:4px 8px; line-height:1; border-radius:6px;
+    margin-left:auto;
+  }
+  .pf-coin-del:hover{color:#EA3943; background:rgba(234,57,67,0.08);}
   .pf-coin-stats{
     display:grid; grid-template-columns:1fr 1fr; gap:10px 16px;
     font-family:var(--mono); font-size:12.5px; margin-bottom:12px;
@@ -3429,7 +3436,8 @@ async function pfRender(){
     return `<div class="pf-coin-card" data-geckoid="${id}">
       <div class="pf-coin-head">
         <span class="pf-coin-icon-slot" data-symbol="${g.symbol}" data-name="${String(g.name).replace(/"/g,'&quot;')}"></span>
-        <div><div class="pf-coin-name">${g.name}</div><div class="pf-coin-sym">${g.symbol}</div></div>
+        <div class="pf-coin-head-info"><div class="pf-coin-name">${g.name}</div><div class="pf-coin-sym">${g.symbol}</div></div>
+        <button type="button" class="pf-coin-del" data-geckoid="${id}" title="Remove ${String(g.name).replace(/"/g,'&quot;')} from portfolio">🗑</button>
       </div>
       <div class="pf-coin-stats">
         <div><div class="pf-stat-label">Quantity held</div><div class="pf-stat-val">${pfFmtQty(totalQty)}</div></div>
@@ -3474,6 +3482,20 @@ async function pfRender(){
       ev.stopPropagation();
       const id = btn.getAttribute('data-id');
       pfEntries = pfEntries.filter(e => String(e.id) !== String(id));
+      pfSave(pfEntries);
+      pfRender();
+    });
+  });
+  container.querySelectorAll('.pf-coin-del').forEach(btn=>{
+    btn.addEventListener('click', (ev)=>{
+      ev.stopPropagation();
+      const gid = btn.getAttribute('data-geckoid');
+      const g = groups[gid];
+      const count = g ? g.entries.length : 0;
+      const label = g ? `${g.name} (${g.symbol})` : 'this coin';
+      const msg = `Remove ${label} and ${count} purchase${count>1?'s':''} from your portfolio? This can't be undone.`;
+      if(!confirm(msg)) return;
+      pfEntries = pfEntries.filter(e => String(e.geckoId) !== String(gid));
       pfSave(pfEntries);
       pfRender();
     });
