@@ -18,6 +18,13 @@ const COIN_LIST = Object.keys(SYMBOL_TO_GECKO).join(', ');
 // в рантайме функций; запасной вариант на случай локального запуска.
 const SITE_URL = process.env.URL || 'https://cryptofumble.com';
 
+// Тот же Upstash Redis, что уже используется в feed.js и telegram-link.js —
+// сюда сайт кладёт временный код + снимок портфеля (см. telegram-link.js),
+// а здесь бот его читает по команде /connect и привязывает к chat_id.
+function upstashHeaders(token) {
+  return { Authorization: `Bearer ${token}` };
+}
+
 function isRu(languageCode) {
   return typeof languageCode === 'string' && languageCode.toLowerCase().startsWith('ru');
 }
@@ -28,8 +35,8 @@ function fmtMoney(n) {
 
 const TEXT = {
   start: {
-    ru: `👋 Привет! Я бот CryptoFumble.\n\nСчитаю, сколько бы у тебя было денег, если бы ты купил крипту раньше 😅\n\nКоманда:\n/calc <монета> <сумма> <год-месяц>\n\nПример:\n/calc btc 100 2020-01\n\nДоступные монеты: ${COIN_LIST}\n\nПолный калькулятор и портфель — на cryptofumble.com`,
-    en: `👋 Hey! I'm the CryptoFumble bot.\n\nI calculate how much money you'd have now if you'd bought crypto earlier 😅\n\nCommand:\n/calc <coin> <amount> <year-month>\n\nExample:\n/calc btc 100 2020-01\n\nAvailable coins: ${COIN_LIST}\n\nFull calculator & portfolio tracker: cryptofumble.com`,
+    ru: `👋 Привет! Я бот CryptoFumble.\n\nСчитаю, сколько бы у тебя было денег, если бы ты купил крипту раньше 😅\n\nКоманда:\n/calc <монета> <сумма> <год-месяц>\n\nПример:\n/calc btc 100 2020-01\n\nДоступные монеты: ${COIN_LIST}\n\nЕсть портфель на сайте? Подключи его командой /connect <код> (код показывает вкладка «Портфель») — раз в неделю пришлю апдейт по прибыли/убытку.\n\nПолный калькулятор и портфель — на cryptofumble.com`,
+    en: `👋 Hey! I'm the CryptoFumble bot.\n\nI calculate how much money you'd have now if you'd bought crypto earlier 😅\n\nCommand:\n/calc <coin> <amount> <year-month>\n\nExample:\n/calc btc 100 2020-01\n\nAvailable coins: ${COIN_LIST}\n\nGot a portfolio on the site? Connect it with /connect <code> (the code shows up in the Portfolio tab) — I'll send you a weekly profit/loss update.\n\nFull calculator & portfolio tracker: cryptofumble.com`,
   },
   usage: {
     ru: `Формат: /calc <монета> <сумма> <год-месяц>\nПример: /calc eth 500 2021-06`,
@@ -58,6 +65,26 @@ const TEXT = {
   unknown: {
     ru: `Не понял 🙃 Напиши /start чтобы увидеть команды.`,
     en: `Didn't get that 🙃 Type /start to see commands.`,
+  },
+  connectUsage: {
+    ru: `Формат: /connect <код>\nКод показывает сайт на вкладке «Портфель» после нажатия «Подключить уведомления в Telegram».`,
+    en: `Format: /connect <code>\nGet the code from the site's Portfolio tab after clicking "Connect Telegram notifications".`,
+  },
+  connectBadCode: {
+    ru: `Похоже, код неверный. Проверь и попробуй снова.`,
+    en: `That code doesn't look right. Double-check and try again.`,
+  },
+  connectNotFound: {
+    ru: `Код не найден или уже истёк (действует 15 минут). Сгенерируй новый на сайте.`,
+    en: `Code not found or expired (codes last 15 minutes). Generate a new one on the site.`,
+  },
+  connectError: {
+    ru: `Не получилось подключить портфель 😕 Попробуй ещё раз через минуту.`,
+    en: `Couldn't connect the portfolio 😕 Try again in a minute.`,
+  },
+  connectNotConfigured: {
+    ru: `Привязка портфеля пока не настроена на сервере. Попробуй позже.`,
+    en: `Portfolio linking isn't configured on the server yet. Try again later.`,
   },
 };
 
@@ -132,7 +159,51 @@ async function handleCalc(args, ru) {
       : `\n\nFull breakdown & portfolio: cryptofumble.com`;
     return moneyLine + linkLine;
   } catch (err) {
+    console.error('handleCalc price fetch failed', String(err && err.message || err));
     return t('priceError', ru);
+  }
+}
+
+async function handleConnect(rawCode, chatId, ru) {
+  const REST_URL = process.env.UPSTASH_REDIS_REST_URL;
+  const REST_TOKEN = process.env.UPSTASH_REDIS_REST_TOKEN;
+  if (!REST_URL || !REST_TOKEN) return t('connectNotConfigured', ru);
+
+  const code = String(rawCode || '').trim().toUpperCase();
+  if (!/^[A-Z0-9]{4,12}$/.test(code)) return t('connectBadCode', ru);
+
+  try {
+    const headers = upstashHeaders(REST_TOKEN);
+    const getRes = await fetch(`${REST_URL}/get/tglink:${code}`, { headers });
+    if (!getRes.ok) throw new Error(`upstash get ${getRes.status}`);
+    const getJson = await getRes.json();
+    if (!getJson || !getJson.result) return t('connectNotFound', ru);
+
+    let entries;
+    try {
+      entries = JSON.parse(getJson.result);
+    } catch (parseErr) {
+      return t('connectNotFound', ru);
+    }
+    if (!Array.isArray(entries) || entries.length === 0) return t('connectNotFound', ru);
+
+    // привязываем снимок портфеля к chat_id постоянно, регистрируем chat_id
+    // в множестве подписчиков (для будущей еженедельной рассылки), запоминаем
+    // язык, и удаляем одноразовый код — использованный код больше не годится
+    await Promise.all([
+      fetch(`${REST_URL}/set/portfolio:${chatId}`, { method: 'POST', headers, body: JSON.stringify(entries) }),
+      fetch(`${REST_URL}/sadd/tg:subscribers/${chatId}`, { headers }),
+      fetch(`${REST_URL}/set/lang:${chatId}/${ru ? 'ru' : 'en'}`, { headers }),
+    ]);
+    await fetch(`${REST_URL}/del/tglink:${code}`, { headers });
+
+    const coinCount = new Set(entries.map((e) => e.geckoId)).size;
+    return ru
+      ? `✅ Портфель подключен (монет: ${coinCount})! Раз в неделю пришлю апдейт по прибыли/убытку. Чтобы обновить портфель — сгенерируй новый код на сайте и пришли его снова через /connect.`
+      : `✅ Portfolio connected (${coinCount} coin${coinCount === 1 ? '' : 's'})! I'll send you a weekly profit/loss update. To refresh it later, generate a new code on the site and send it again via /connect.`;
+  } catch (err) {
+    console.error('handleConnect failed', String(err && err.message || err));
+    return t('connectError', ru);
   }
 }
 
@@ -143,9 +214,18 @@ exports.handler = async (event) => {
     // пробел/обрезанное значение). Открывается в браузере как обычная
     // страница — просто GET-запрос, без побочных эффектов.
     const token = process.env.TELEGRAM_BOT_TOKEN || '';
+    let priceCheck;
+    try {
+      const testUrl = `${SITE_URL}/.netlify/functions/price?type=current&coin=bitcoin`;
+      const testRes = await fetch(testUrl);
+      const testBody = await testRes.text();
+      priceCheck = `url=${testUrl} status=${testRes.status} body=${testBody.slice(0, 200)}`;
+    } catch (err) {
+      priceCheck = `threw: ${String(err && err.message || err)}`;
+    }
     return {
       statusCode: 200,
-      body: `CryptoFumble Telegram webhook is alive. token_set=${!!token} token_length=${token.length}`,
+      body: `CryptoFumble Telegram webhook is alive. token_set=${!!token} token_length=${token.length} SITE_URL=${SITE_URL} price_check: ${priceCheck}`,
     };
   }
 
@@ -172,6 +252,14 @@ exports.handler = async (event) => {
       const args = text.split(/\s+/).slice(1);
       const reply = await handleCalc(args, ru);
       await sendMessage(chatId, reply);
+    } else if (text === '/connect' || text.startsWith('/connect ')) {
+      const args = text.split(/\s+/).slice(1);
+      if (args.length !== 1) {
+        await sendMessage(chatId, t('connectUsage', ru));
+      } else {
+        const reply = await handleConnect(args[0], chatId, ru);
+        await sendMessage(chatId, reply);
+      }
     } else {
       await sendMessage(chatId, t('unknown', ru));
     }
