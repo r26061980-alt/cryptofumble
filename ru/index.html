@@ -944,6 +944,19 @@
   }
   .pf-add-btn:hover{filter:brightness(1.08);}
   .pf-add-btn:disabled{opacity:0.5; cursor:not-allowed;}
+  .pf-tg-connect{ margin:0 0 20px; text-align:center; }
+  .pf-tg-btn{
+    background:transparent; border:1px solid var(--panel-border); color:var(--text);
+    font-family:var(--sans); font-weight:700; font-size:13px;
+    padding:10px 18px; border-radius:var(--r-md); cursor:pointer;
+    transition:border-color .2s var(--ease), filter .2s var(--ease);
+  }
+  .pf-tg-btn:hover{ border-color:var(--gold); }
+  .pf-tg-status{
+    font-size:12px; color:var(--muted); margin-top:10px; line-height:1.6;
+  }
+  .pf-tg-status b{ color:var(--text); font-family:var(--mono); letter-spacing:0.04em; }
+  .pf-tg-status a{ color:var(--gold); }
   .pf-computed-price{
     font-family:var(--mono); font-size:12px; color:var(--muted);
     margin-top:8px; min-height:16px;
@@ -1257,6 +1270,10 @@
       </div>
     </div>
     <p class="pf-note">Хранится только в этом браузере, на этом устройстве — очистишь данные браузера, и записи пропадут. Нигде не синхронизируется, это не инвестиционный совет.</p>
+    <div class="pf-tg-connect">
+      <button type="button" class="pf-tg-btn" id="pfTgConnectBtn">📲 Подключить уведомления в Telegram</button>
+      <div class="pf-tg-status" id="pfTgStatus"></div>
+    </div>
     <div id="pfContent"></div>
   </div>
   <div class="faq">
@@ -3323,6 +3340,40 @@ document.getElementById('pfAddBtn').addEventListener('click', ()=>{
   document.getElementById('pfComputedPrice').textContent = '';
   pfRender();
   if(typeof gtag === 'function') gtag('event', 'portfolio_entry_added', { coin: pfSelectedCoin.symbol });
+});
+
+// «Подключить уведомления в Telegram» — снимает снимок текущего портфеля во
+// временный код через Upstash (см. netlify/functions/telegram-link.js);
+// пользователь присылает /connect <код> боту @CryptoFumble_bot, который
+// читает снимок и привязывает его к chat_id насовсем (telegram-webhook.js).
+// Повторное нажатие кнопки и отправка нового кода — это же способ обновить
+// уже привязанный портфель позже, отдельная кнопка «синхронизировать» не нужна.
+const PF_TG_CODE_ALPHABET = '23456789ABCDEFGHJKMNPQRSTUVWXYZ'; // без 0/O/1/I/L — легче набрать в Telegram
+function pfMakeTgCode(len){
+  let out = '';
+  for(let i=0;i<len;i++) out += PF_TG_CODE_ALPHABET[Math.floor(Math.random()*PF_TG_CODE_ALPHABET.length)];
+  return out;
+}
+document.getElementById('pfTgConnectBtn').addEventListener('click', async ()=>{
+  const statusEl = document.getElementById('pfTgStatus');
+  if(pfEntries.length === 0){
+    statusEl.textContent = 'Сначала добавь хотя бы одну покупку.';
+    return;
+  }
+  statusEl.textContent = 'Генерирую код…';
+  const code = pfMakeTgCode(6);
+  try{
+    const res = await fetch('/.netlify/functions/telegram-link', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ code, portfolio: pfEntries }),
+    });
+    if(!res.ok) throw new Error('link failed');
+    statusEl.innerHTML = `Открой <a href="https://t.me/CryptoFumble_bot" target="_blank" rel="noopener">@CryptoFumble_bot</a> в Telegram и отправь:<br><b>/connect ${code}</b><br>Код действует 15 минут.`;
+    if(typeof gtag === 'function') gtag('event', 'telegram_connect_code_generated');
+  }catch(err){
+    statusEl.textContent = 'Не получилось сгенерировать код — попробуй через минуту.';
+  }
 });
 
 function pfFmtQty(n){
