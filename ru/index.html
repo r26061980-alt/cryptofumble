@@ -1199,9 +1199,9 @@
   <p class="disclaimer">Цены идут через собственный кэширующий прокси (Netlify function → CoinGecko), с fallback на прямой запрос и на демо-данные, если всё недоступно. Источник виден на чеке.</p>
   </div>
   <div class="side-col">
-  <div class="live-feed" id="liveFeed" style="display:none;">
-    <div class="live-feed-title">🌍 ПОСЛЕДНИЕ РЕГРЕТЫ СО ВСЕГО МИРА</div>
-    <div class="live-feed-list" id="liveFeedList"></div>
+  <div class="live-feed" id="marketTicker" style="display:none;">
+    <div class="live-feed-title">📊 ТОП-10 ПО КАПИТАЛИЗАЦИИ</div>
+    <div class="live-feed-list" id="marketTickerList"></div>
   </div>
   </div>
   </div>
@@ -2031,21 +2031,14 @@ async function loadDailyRegret(){
   }
 }
 loadDailyRegret();
-// ---- Live feed of anonymous receipts from other visitors ----
-function timeAgo(ts){
-  const sec = Math.floor((Date.now()-ts)/1000);
-  if(sec < 60) return 'только что';
-  const min = Math.floor(sec/60);
-  if(min < 60) return `${min} мин назад`;
-  const hr = Math.floor(min/60);
-  if(hr < 24) return `${hr} ч назад`;
-  return `${Math.floor(hr/24)} дн назад`;
-}
-async function loadLiveFeed(){
+// ---- Счётчик "N человек проверили свой регрет сегодня" ----
+// (это реальное число обращений к калькулятору — в отличие от старой ленты
+// ниже, здесь не выдаём чужие гипотетические расчёты за похожее на рыночные данные)
+async function loadRegretCounter(){
   try{
     const res = await fetch('/.netlify/functions/feed');
-    if(!res.ok) return; // лента не настроена или временно недоступна — просто не показываем блок
-    const { entries, count } = await res.json();
+    if(!res.ok) return; // счётчик не настроен или временно недоступен — просто не показываем блок
+    const { count } = await res.json();
     if(typeof count === 'number' && count > 0){
       const counterEl = document.getElementById('regretCounter');
       const countWord = pluralForm(count, ['человек', 'человека', 'человек']);
@@ -2053,26 +2046,59 @@ async function loadLiveFeed(){
       counterEl.innerHTML = `🔥 <b>${count.toLocaleString('ru-RU')}</b> ${countWord} уже ${countVerb} свой регрет сегодня`;
       counterEl.style.display = 'block';
     }
-    if(!entries || entries.length === 0) return;
-    const list = document.getElementById('liveFeedList');
-    list.innerHTML = '';
-    entries.forEach(e=>{
-      const row = document.createElement('div');
-      row.className = 'live-feed-row';
-      // "проверил покупку/продажу" вместо прямого "купил/продал" — на самом
-      // деле никто ничего не покупал и не продавал, просто прогнали калькулятор
-      const verb = e.mode === 'sold' ? 'проверил продажу' : e.mode === 'dca' ? 'проверил усреднение' : 'проверил покупку';
-      const entryIsGood = e.mode === 'sold' ? e.mult <= 1 : e.mult >= 1;
-      row.innerHTML = `<span>${e.tierEmoji} Кто-то ${verb} <b>${e.coin}</b> · ${timeAgo(e.ts)}</span>
-        <span class="fr-mult ${entryIsGood?'pos':'neg'}">x${e.mult.toFixed(1)}</span>`;
-      list.appendChild(row);
-    });
-    document.getElementById('liveFeed').style.display = 'block';
   }catch(err){
-    // тихо ничего не показываем — лента опциональная фича, не должна ничего ломать
+    // тихо ничего не показываем — счётчик опциональный, не должен ничего ломать
   }
 }
-loadLiveFeed();
+loadRegretCounter();
+// ---- Живой тикер топ-10 монет по капитализации в сайдбаре ----
+// Заменяет старую ленту "регретов со всего мира": та лента выглядела как
+// реальная торговая история, а на самом деле показывала чужие гипотетические
+// прогоны калькулятора — что читалось как обман. Вместо этого — настоящий
+// топ-10 по капитализации (тот же рейтинг, что показывает CoinMarketCap),
+// данные берём у CoinGecko — сайт и так работает через неё, отдельный API
+// с отдельным ключом ради того же самого числа не нужен.
+function makeTickerIconEl(imageUrl, symbol){
+  const img = document.createElement('img');
+  img.src = imageUrl || '';
+  img.alt = '';
+  img.className = 'coin-btn-icon';
+  img.onerror = ()=>{
+    const fallback = document.createElement('div');
+    fallback.className = 'coin-btn-icon avatar-fallback';
+    fallback.textContent = (symbol||'?').charAt(0).toUpperCase();
+    img.replaceWith(fallback);
+  };
+  return img;
+}
+async function loadMarketTicker(){
+  try{
+    const res = await fetch('/.netlify/functions/price?type=top10');
+    if(!res.ok) throw new Error('top10 fetch failed');
+    const { coins } = await res.json();
+    if(!coins || coins.length === 0) return; // всё недоступно — тихо остаёмся скрытыми
+    const list = document.getElementById('marketTickerList');
+    list.innerHTML = coins.map(c=>{
+      const chg = c.change24h;
+      const chgHtml = (chg === null || chg === undefined) ? '' :
+        `<span class="fr-mult ${chg>=0?'pos':'neg'}">${chg>=0?'+':''}${chg.toFixed(1)}%</span>`;
+      const imgAttr = c.image ? String(c.image).replace(/"/g,'&quot;') : '';
+      return `<div class="live-feed-row">
+        <span class="ticker-icon-slot" data-image="${imgAttr}" data-symbol="${c.symbol}"></span>
+        <span><b>${c.symbol}</b> ${fmt(c.price)}</span>
+        ${chgHtml}
+      </div>`;
+    }).join('');
+    list.querySelectorAll('.ticker-icon-slot').forEach(slot=>{
+      slot.replaceWith(makeTickerIconEl(slot.dataset.image, slot.dataset.symbol));
+    });
+    document.getElementById('marketTicker').style.display = 'block';
+  }catch(err){
+    // тихо ничего не показываем — тикер опциональная фича, не должен ничего ломать
+  }
+}
+loadMarketTicker();
+setInterval(loadMarketTicker, 60000); // держим цены свежими, пока страница открыта
 // ---- Free-text coin search via CoinGecko /search ----
 const searchInput = document.getElementById('coinSearch');
 const dropdown = document.getElementById('coinDropdown');
