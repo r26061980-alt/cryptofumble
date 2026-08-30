@@ -77,12 +77,20 @@ async function fetchPrice(type, geckoId, date) {
 
 async function sendMessage(chatId, text) {
   const token = process.env.TELEGRAM_BOT_TOKEN;
-  if (!token) return; // токен ещё не настроен — молча выходим, не роняем функцию
-  await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
+  if (!token) {
+    console.error('TELEGRAM_BOT_TOKEN is not set — cannot reply to Telegram');
+    return; // токен ещё не настроен — молча выходим, не роняем функцию
+  }
+  const res = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ chat_id: chatId, text, disable_web_page_preview: true }),
   });
+  if (!res.ok) {
+    // не палим сам токен в логах — только код ошибки и ответ Telegram
+    const body = await res.text().catch(() => '');
+    console.error('telegram sendMessage failed', res.status, body);
+  }
 }
 
 async function handleCalc(args, ru) {
@@ -130,7 +138,15 @@ async function handleCalc(args, ru) {
 
 exports.handler = async (event) => {
   if (event.httpMethod !== 'POST') {
-    return { statusCode: 200, body: 'CryptoFumble Telegram webhook is alive' };
+    // Диагностика без утечки самого токена: только факт, что переменная
+    // окружения дошла до функции, и её длина (чтобы заметить случайный
+    // пробел/обрезанное значение). Открывается в браузере как обычная
+    // страница — просто GET-запрос, без побочных эффектов.
+    const token = process.env.TELEGRAM_BOT_TOKEN || '';
+    return {
+      statusCode: 200,
+      body: `CryptoFumble Telegram webhook is alive. token_set=${!!token} token_length=${token.length}`,
+    };
   }
 
   let update;
