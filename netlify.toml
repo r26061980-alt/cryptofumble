@@ -6,6 +6,12 @@
   node_bundler = "esbuild"
   external_node_modules = ["sharp"]
 
+# Еженедельная рассылка по прибыли/убытку всем, кто подключил портфель через
+# Telegram-бота (см. netlify/functions/telegram-digest.js) — понедельник,
+# 9:00 UTC (12:00 по Москве). Расписание у Netlify — всегда в UTC.
+[functions."telegram-digest"]
+  schedule = "0 9 * * 1"
+
 # Красивые пути: фронт зовёт /api/price и /api/search,
 # Netlify тихо проксирует на реальные функции.
 [[redirects]]
