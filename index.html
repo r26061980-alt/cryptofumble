@@ -1520,6 +1520,51 @@ const dateTrigger = document.getElementById('dateTrigger');
 const dateSheetOverlay = document.getElementById('dateSheetOverlay');
 const wheelWrap = document.getElementById('wheelWrap');
 const monthWheel = document.getElementById('monthWheel');
+// ---- Tiny synthesized "click" — mimics the iOS date-wheel tick/haptic feel
+// on the date/month/year picker and on preset selections (period, coin quick
+// picks, search results). Fully synthesized noise burst (no audio file, no
+// third-party sound asset) so there's nothing to load and nothing borrowed.
+// Browsers only allow audio to start from a real user gesture — clicks are
+// fine on their own, but the wheel's own "scroll" events aren't reliably
+// treated as a gesture, so we prime the AudioContext on the click that opens
+// the date sheet, and the wheel-scroll ticks ride on that already-running context.
+let cfAudioCtx = null;
+function cfEnsureAudioCtx(){
+  try{
+    if(!cfAudioCtx) cfAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    if(cfAudioCtx.state === 'suspended') cfAudioCtx.resume().catch(()=>{});
+    return cfAudioCtx;
+  }catch(e){ return null; }
+}
+function cfPlayTick(volume){
+  const ctx = cfEnsureAudioCtx();
+  if(!ctx) return;
+  try{
+    const dur = 0.02;
+    const bufferSize = Math.max(1, Math.floor(ctx.sampleRate * dur));
+    const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+    const data = buffer.getChannelData(0);
+    for(let i=0;i<bufferSize;i++) data[i] = Math.random()*2-1;
+    const noise = ctx.createBufferSource();
+    noise.buffer = buffer;
+    const bandpass = ctx.createBiquadFilter();
+    bandpass.type = 'bandpass';
+    bandpass.frequency.value = 2600;
+    bandpass.Q.value = 1.1;
+    const gain = ctx.createGain();
+    gain.gain.setValueAtTime(volume || 0.16, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + dur);
+    noise.connect(bandpass).connect(gain).connect(ctx.destination);
+    noise.start();
+    noise.stop(ctx.currentTime + dur + 0.005);
+  }catch(e){}
+}
+// Preset-style selections (period quick-picks, coin quick-picks/favorites,
+// search-result rows) all end up as a real click on one of these — one
+// delegated listener covers the calculator and the Portfolio tab alike.
+document.addEventListener('click', (e)=>{
+  if(e.target.closest('.period-btn, .coin-btn, .coin-opt')) cfPlayTick();
+});
 const dayWheel = document.getElementById('dayWheel');
 const yearWheel = document.getElementById('yearWheel');
 const dateSheetHint = document.getElementById('dateSheetHint');
@@ -1541,7 +1586,16 @@ function buildWheel(container, items, isDisabled){
   spacer2.style.height = (ROW_H*PAD_ROWS)+'px';
   container.appendChild(spacer2);
 }
-function scrollWheelTo(container, index, smooth){
+function scrollWheelTo(container, index, smooth, silent){
+  // "silent" marks a programmatic reposition (opening the sheet, resyncing the
+  // day wheel after month/year changed, clamping a future date) so it doesn't
+  // play the tick sound below — the tick is only for a row the user actually
+  // scrolled or stepped past themselves.
+  if(silent){
+    container._cfSuppressTick = true;
+    clearTimeout(container._cfSuppressTimer);
+    container._cfSuppressTimer = setTimeout(()=>{ container._cfSuppressTick = false; }, smooth ? 450 : 30);
+  }
   container.scrollTo({ top: index*ROW_H, behavior: smooth ? 'smooth' : 'auto' });
 }
 function getSelectedIndex(container){
@@ -1604,8 +1658,13 @@ function initWheels(){
 }
 function attachWheelScroll(container, onPick){
   let scrollTimer = null;
+  let lastTickIdx = getSelectedIndex(container); // baseline — no click just from opening the sheet
   container.addEventListener('scroll', ()=>{
-    highlightPicked(container); // instant visual feedback while scrolling
+    const liveIdx = highlightPicked(container); // instant visual feedback while scrolling
+    if(liveIdx !== lastTickIdx){
+      if(!container._cfSuppressTick) cfPlayTick();
+      lastTickIdx = liveIdx;
+    }
     clearTimeout(scrollTimer);
     scrollTimer = setTimeout(()=>{
       const idx = getSelectedIndex(container);
@@ -1619,7 +1678,7 @@ function attachWheelScroll(container, onPick){
         // days-in-month (and which days are "in the future") can change
         // whenever month or year changes — rebuild the day wheel to match
         buildDayWheel();
-        scrollWheelTo(dayWheel, pickedDay-1, false);
+        scrollWheelTo(dayWheel, pickedDay-1, false, true);
         highlightPicked(dayWheel);
       }
     }, 120);
@@ -1658,9 +1717,9 @@ function openDateSheet(){
   const monthIdx = pickedMonth - 1;
   const yearIdx = pickedYear - PICKER_MIN_YEAR;
   requestAnimationFrame(()=>{
-    scrollWheelTo(monthWheel, monthIdx, false);
-    scrollWheelTo(yearWheel, yearIdx, false);
-    scrollWheelTo(dayWheel, pickedDay-1, false);
+    scrollWheelTo(monthWheel, monthIdx, false, true);
+    scrollWheelTo(yearWheel, yearIdx, false, true);
+    scrollWheelTo(dayWheel, pickedDay-1, false, true);
     highlightPicked(monthWheel);
     highlightPicked(yearWheel);
     highlightPicked(dayWheel);
@@ -1682,6 +1741,7 @@ updateDateTriggerLabel();
 // just track which field is currently being edited and route "Done" there.
 let dateSheetTarget = 'calc';
 dateTrigger.addEventListener('click', ()=>{
+  cfEnsureAudioCtx();
   dateSheetTarget = 'calc';
   // re-sync the shared wheel state to the calculator's own current value —
   // it may currently hold the Portfolio tab's date instead, since both
@@ -1698,10 +1758,10 @@ document.getElementById('dateDone').addEventListener('click', ()=>{
     // user scrolled into the future — don't close the sheet silently, instead
     // snap the wheels to the latest available date and let them see the hint.
     // It will close on the next "Done" tap (which will already be valid).
-    scrollWheelTo(monthWheel, pickedMonth-1, true);
-    scrollWheelTo(yearWheel, pickedYear-PICKER_MIN_YEAR, true);
+    scrollWheelTo(monthWheel, pickedMonth-1, true, true);
+    scrollWheelTo(yearWheel, pickedYear-PICKER_MIN_YEAR, true, true);
     buildDayWheel();
-    scrollWheelTo(dayWheel, pickedDay-1, true);
+    scrollWheelTo(dayWheel, pickedDay-1, true, true);
     highlightPicked(monthWheel);
     highlightPicked(yearWheel);
     highlightPicked(dayWheel);
@@ -3312,6 +3372,7 @@ function updatePfDateTriggerLabel(){
 }
 updatePfDateTriggerLabel();
 pfDateTrigger.addEventListener('click', ()=>{
+  cfEnsureAudioCtx();
   dateSheetTarget = 'portfolio';
   pickedMonth = pfPickedMonth;
   pickedYear = pfPickedYear;
