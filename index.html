@@ -1275,9 +1275,14 @@
 </script>
 
 <div class="wrap">
-  <div class="page-tabs" id="pageTabs">
-    <button type="button" class="page-tab active" data-view="calc">🧮 Calculator</button>
-    <button type="button" class="page-tab" data-view="portfolio">📓 My Portfolio</button>
+  <div style="display:flex; align-items:center; gap:8px; margin-bottom:22px;">
+    <div class="page-tabs" id="pageTabs" style="margin-bottom:0; flex:1;">
+      <button type="button" class="page-tab active" data-view="calc">🧮 Calculator</button>
+      <button type="button" class="page-tab" data-view="portfolio">📓 My Portfolio</button>
+    </div>
+    <a href="/ru/" class="page-tabs" style="margin-bottom:0; flex:0 0 auto; text-decoration:none;" title="Русская версия сайта" aria-label="Switch to Russian">
+      <span class="page-tab" style="white-space:nowrap;">🇷🇺 RU</span>
+    </a>
   </div>
   <div id="calcView">
   <div class="layout-grid">
