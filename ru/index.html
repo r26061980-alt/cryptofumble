@@ -1061,6 +1061,7 @@
   .pf-totals .pf-tot-val{font-family:var(--mono); font-weight:700; font-size:19px; overflow-wrap:anywhere;}
   .pf-totals .pf-tot-val.pos{color:#16C784;}
   .pf-totals .pf-tot-val.neg{color:#EA3943;}
+  .pf-share-btn{margin-bottom:20px;}
   .pf-coin-card{
     background:var(--panel); border:1px solid var(--panel-border);
     border-radius:var(--r-lg); padding:18px 20px; margin-bottom:14px;
@@ -1487,6 +1488,11 @@
       <div class="pf-tg-status" id="pfTgStatus"></div>
     </div>
     <div id="pfContent"></div>
+    <div id="pfShareWrap" style="display:none; margin-top:14px; text-align:center;">
+      <canvas id="pfShareCanvas" width="640" height="860" style="display:none;"></canvas>
+      <img id="pfShareCardImg" style="width:100%; border-radius:14px; box-shadow:0 12px 40px rgba(0,0,0,0.5);">
+      <a id="pfShareDownload" class="share-cta" style="display:block; text-decoration:none; margin-top:10px; box-sizing:border-box;" download="cryptofumble-portfolio.png">⬇️ Скачать PNG</a>
+    </div>
   </div>
   <div class="faq">
     <div class="faq-title">❓ Частые вопросы</div>
@@ -3385,6 +3391,128 @@ async function drawShareCard(includeLogo){
   ctx.restore();
   return canvas.toDataURL('image/png');
 }
+// ---- Карточка для шеринга портфеля («моя реальная прибыль/убыток», не гипотеза) ----
+// Та же визуальная «бумага-чек», что и в drawShareCard выше, для единого
+// стиля — но цифры здесь настоящие, из логированных покупок (pfLastSummary,
+// собран в pfRender), а не расчёт «что если бы». Показывает реальные суммы
+// вложено/стоит сейчас по умолчанию (решение Руслана — см. реестр роста,
+// Фаза 12): это чужие деньги на карточке, которую человек сам решает постить,
+// а не цифра, которую выбрали за него мы.
+async function drawPortfolioShareCard(){
+  const s = pfLastSummary;
+  const canvas = document.getElementById('pfShareCanvas');
+  const W = canvas.width, H = canvas.height;
+  const ctx = canvas.getContext('2d');
+  await Promise.all([
+    document.fonts.load('700 46px "IBM Plex Mono"'),
+    document.fonts.load('600 20px "IBM Plex Mono"'),
+    document.fonts.load('400 16px "IBM Plex Mono"'),
+    document.fonts.load('800 26px "Manrope"'),
+  ]);
+  const bg = ctx.createRadialGradient(W/2,60,40, W/2,60,W);
+  bg.addColorStop(0,'#171C24'); bg.addColorStop(1,'#0D1117');
+  ctx.fillStyle = bg; ctx.fillRect(0,0,W,H);
+  const pad=30, cardTop=60, cardH=H-120;
+  roundedZigzagPath(ctx, pad, cardTop, W-pad*2, cardH, 26, 7);
+  ctx.fillStyle = '#F7F1E3';
+  ctx.shadowColor = 'rgba(0,0,0,0.5)'; ctx.shadowBlur = 40; ctx.shadowOffsetY = 20;
+  ctx.fill();
+  ctx.shadowColor = 'transparent';
+  const ink = '#2A2418';
+  const cx = W/2;
+  let y = 140;
+  ctx.textAlign='center';
+  ctx.fillStyle = 'rgba(42,36,24,0.55)';
+  ctx.font = '600 12px "IBM Plex Mono"';
+  ctx.save(); ctx.letterSpacing='3px';
+  ctx.fillText('— МОЙ ПОРТФЕЛЬ —', cx, y);
+  ctx.restore();
+  y += 34;
+  ctx.fillStyle = 'rgba(42,36,24,0.45)';
+  ctx.font = '400 13px "IBM Plex Mono"';
+  const n = s.coins.length;
+  const coinWord = n===1?'монета':n<5?'монеты':'монет';
+  // "с {месяц}" требует родительного падежа ("с августа", не "с Август") —
+  // используем готовый MONTH_NAMES_GEN вместо humanDate (тот в именительном).
+  const [sinceY, sinceM] = s.earliestDateStr.split('-');
+  const sinceText = `${MONTH_NAMES_GEN[parseInt(sinceM,10)-1]} ${sinceY}`;
+  ctx.fillText(`${n} ${coinWord} · в портфеле с ${sinceText}`, cx, y);
+  y += 30;
+  ctx.strokeStyle = 'rgba(42,36,24,0.3)';
+  ctx.setLineDash([5,5]);
+  ctx.beginPath(); ctx.moveTo(pad+30,y); ctx.lineTo(W-pad-30,y); ctx.stroke();
+  function row(label, value, color){
+    y += 36;
+    ctx.setLineDash([]);
+    ctx.textAlign='left'; ctx.fillStyle=ink; ctx.font='400 14px "IBM Plex Mono"';
+    ctx.fillText(label, pad+30, y);
+    ctx.textAlign='right'; ctx.font='600 14px "IBM Plex Mono"';
+    ctx.fillStyle = color || ink;
+    ctx.fillText(value, W-pad-30, y);
+  }
+  row('Всего вложено', fmt(s.totalSpentAll));
+  row('Стоит сейчас', fmt(s.totalValueAll));
+  y += 30;
+  ctx.setLineDash([5,5]);
+  ctx.beginPath(); ctx.moveTo(pad+30,y); ctx.lineTo(W-pad-30,y); ctx.stroke();
+  ctx.setLineDash([]);
+  y += 38;
+  ctx.textAlign='center';
+  ctx.fillStyle = 'rgba(42,36,24,0.5)';
+  ctx.font = '600 12px "IBM Plex Mono"';
+  ctx.save(); ctx.letterSpacing='2px';
+  ctx.fillText('ОБЩАЯ ПРИБЫЛЬ / УБЫТОК', cx, y);
+  ctx.restore();
+  y += 60;
+  const pnlColor = s.overallGood ? '#0F7A50' : '#A82A30';
+  ctx.fillStyle = pnlColor;
+  ctx.font = '700 50px "IBM Plex Mono"';
+  ctx.fillText(`${s.overallGood?'+':''}${fmt(s.overallPnl)}`, cx, y);
+  y += 42;
+  const pctText = `${s.overallGood?'+':''}${s.overallPct.toFixed(1)}%`;
+  ctx.font = '700 16px "IBM Plex Mono"';
+  const pctW = ctx.measureText(pctText).width + 34;
+  ctx.fillStyle = s.overallGood ? 'rgba(15,122,80,0.14)' : 'rgba(168,42,48,0.14)';
+  ctx.beginPath();
+  if(ctx.roundRect) ctx.roundRect(cx-pctW/2, y-24, pctW, 34, 17); else ctx.rect(cx-pctW/2, y-24, pctW, 34);
+  ctx.fill();
+  ctx.fillStyle = pnlColor;
+  ctx.fillText(pctText, cx, y);
+  y += 50;
+  ctx.setLineDash([5,5]);
+  ctx.strokeStyle = 'rgba(42,36,24,0.3)';
+  ctx.beginPath(); ctx.moveTo(pad+30,y); ctx.lineTo(W-pad-30,y); ctx.stroke();
+  ctx.setLineDash([]);
+  y += 34;
+  ctx.textAlign='center';
+  ctx.fillStyle = 'rgba(42,36,24,0.5)';
+  ctx.font = '600 12px "IBM Plex Mono"';
+  ctx.save(); ctx.letterSpacing='2px';
+  ctx.fillText('ПО МОНЕТАМ', cx, y);
+  ctx.restore();
+  const shown = s.coins.slice(0, 4);
+  shown.forEach(c=>{
+    y += 34;
+    ctx.textAlign='left'; ctx.fillStyle=ink; ctx.font='600 14px "IBM Plex Mono"';
+    ctx.fillText(c.symbol, pad+30, y);
+    ctx.textAlign='right'; ctx.font='600 14px "IBM Plex Mono"';
+    ctx.fillStyle = c.isGood ? '#0F7A50' : '#A82A30';
+    ctx.fillText(`${c.isGood?'+':''}${c.pnlPct.toFixed(1)}%`, W-pad-30, y);
+  });
+  if(s.coins.length > shown.length){
+    y += 30;
+    ctx.textAlign='center'; ctx.font='400 12px "IBM Plex Mono"';
+    ctx.fillStyle = 'rgba(42,36,24,0.45)';
+    ctx.fillText(`+ ещё ${s.coins.length - shown.length}`, cx, y);
+  }
+  ctx.textAlign='center';
+  ctx.font = '600 12px "IBM Plex Mono"';
+  ctx.fillStyle = 'rgba(42,36,24,0.4)';
+  ctx.save(); ctx.letterSpacing='2px';
+  ctx.fillText('CRYPTOFUMBLE.COM/RU · ВЕДИ СВОЙ БЕСПЛАТНО', cx, cardTop+cardH-24);
+  ctx.restore();
+  return canvas.toDataURL('image/png');
+}
 function wrapText(ctx, text, x, y, maxWidth, lineHeight){
   const words = text.split(' ');
   let line = '';
@@ -4193,6 +4321,11 @@ function pfSave(entries){
 }
 let pfEntries = pfLoad();
 let pfSelectedCoin = { symbol:'BTC', name:'Bitcoin', geckoId:'bitcoin' };
+// Снимок итогов/цифр по монетам из последнего успешного pfRender() — карточка
+// для шеринга (drawPortfolioShareCard) рисует по нему, а не пересчитывает
+// заново, так что на карточке всегда то же самое, что и на экране. Сбрасывается
+// в null всякий раз, когда цифры могли устареть (см. pfRender).
+let pfLastSummary = null;
 
 // Подсказка «а ещё можно вести настоящий портфель» под шапкой — есть смысл
 // показывать только тому, кто портфель ещё не нашёл: прячется сразу, если
@@ -4493,6 +4626,11 @@ function pfFmtQty(n){
 
 async function pfRender(){
   const container = document.getElementById('pfContent');
+  // Цифры вот-вот изменятся (или портфель только что опустел) — любая ранее
+  // нарисованная карточка для шеринга покажет устаревшие цифры, так что прячем
+  // её, пока пользователь не запросит новую с актуальными данными.
+  document.getElementById('pfShareWrap').style.display = 'none';
+  pfLastSummary = null;
   if(pfEntries.length === 0){
     container.innerHTML = '<div class="pf-empty">📓 Пока нет ни одной записи.<br>Добавь первую покупку выше — увидишь, сколько реально заплатил, и как меняется настоящая прибыль или убыток по живым ценам.</div>';
     return;
@@ -4509,6 +4647,10 @@ async function pfRender(){
   geckoIds.forEach((id, i)=> priceMap[id] = prices[i]);
 
   let totalSpentAll = 0, totalValueAll = 0, anyPriceMissing = false;
+  // Цифры по каждой монете ниже питают и карточки на странице, И карточку для
+  // шеринга (drawPortfolioShareCard) — собраны здесь один раз, а не пересчитаны
+  // заново, чтобы эти два места никогда тихо не разошлись.
+  const coinSummaries = [];
   const cardsHtml = geckoIds.map(id=>{
     const g = groups[id];
     const totalQty = g.entries.reduce((s,e)=>s+e.qty, 0);
@@ -4523,6 +4665,7 @@ async function pfRender(){
       const pnlAbs = curValue - totalSpent;
       const pnlPct = (curValue/totalSpent - 1) * 100;
       const isGood = pnlAbs >= 0;
+      coinSummaries.push({ symbol:g.symbol, name:g.name, totalSpent, curValue, pnlPct, isGood });
       pnlBlock = `<div class="pf-pnl">
         <span style="font-family:var(--mono); font-size:11px; color:var(--muted); text-transform:uppercase;">Сейчас стоит ${fmt(curValue)}</span>
         <span class="pf-pnl-val ${isGood?'pos':'neg'}">${isGood?'+':''}${fmt(pnlAbs)} (${isGood?'+':''}${pnlPct.toFixed(1)}%)</span>
@@ -4569,7 +4712,17 @@ async function pfRender(){
     <div class="pf-tot-item"><div class="pf-tot-label">Всего вложено</div><div class="pf-tot-val">${fmt(totalSpentAll)}</div></div>
     <div class="pf-tot-item"><div class="pf-tot-label">Стоит сейчас</div><div class="pf-tot-val">${fmt(totalValueAll)}</div></div>
     <div class="pf-tot-item"><div class="pf-tot-label">Прибыль/убыток</div><div class="pf-tot-val ${overallGood?'pos':'neg'}">${overallGood?'+':''}${overallPct.toFixed(1)}%</div></div>
-  </div>`;
+  </div>
+  <button type="button" class="share-cta pf-share-btn" id="pfShareBtn">📸 Поделиться результатом</button>`;
+
+  // Карточке для шеринга нужен стабильный полный снимок — как и плашке с
+  // итогами выше, пропускаем её полностью, если у какой-то монеты не
+  // загрузилась живая цена (карточка с дырой в сумме хуже, чем никакой).
+  pfLastSummary = anyPriceMissing ? null : {
+    totalSpentAll, totalValueAll, overallPnl, overallPct, overallGood,
+    earliestDateStr: pfEntries.reduce((min,e)=> e.dateStr < min ? e.dateStr : min, pfEntries[0].dateStr),
+    coins: coinSummaries.slice().sort((a,b)=> b.curValue - a.curValue)
+  };
 
   container.innerHTML = (anyPriceMissing ? '' : totalsHtml) + cardsHtml;
 
@@ -4578,6 +4731,28 @@ async function pfRender(){
     const name = slot.getAttribute('data-name');
     slot.replaceWith(makeIconEl(sym, name, 'pf-coin-head-icon'));
   });
+  // Пересоздаётся заново при каждом рендере (часть totalsHtml), поэтому
+  // обработчик нужно вешать каждый раз заново — кнопка вообще есть, только
+  // когда есть и плашка с итогами (т.е. когда загрузились все цены).
+  const shareBtn = container.querySelector('#pfShareBtn');
+  if(shareBtn){
+    shareBtn.addEventListener('click', async ()=>{
+      if(!pfLastSummary) return;
+      const origLabel = shareBtn.textContent;
+      shareBtn.textContent = 'Рисуем карточку…';
+      shareBtn.disabled = true;
+      try{
+        const dataUrl = await drawPortfolioShareCard();
+        document.getElementById('pfShareCardImg').src = dataUrl;
+        document.getElementById('pfShareDownload').href = dataUrl;
+        document.getElementById('pfShareWrap').style.display = 'block';
+        if(typeof gtag === 'function') gtag('event', 'portfolio_share_card', { coins: pfLastSummary.coins.length });
+      } finally {
+        shareBtn.textContent = origLabel;
+        shareBtn.disabled = false;
+      }
+    });
+  }
   container.querySelectorAll('.pf-entries-toggle').forEach(btn=>{
     btn.addEventListener('click', ()=>{
       const id = btn.getAttribute('data-toggle');
