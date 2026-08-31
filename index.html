@@ -3238,20 +3238,41 @@ async function drawCertificateCard(includeLogo, opts){
     document.fonts.load('600 13px "IBM Plex Mono"'),
     document.fonts.load('400 16px "IBM Plex Mono"'),
   ]);
-  const ink = '#2A2418';
-  const inkSoft = 'rgba(42,36,24,0.6)';
-  const inkFaint = 'rgba(42,36,24,0.4)';
-  const gold = '#B8860B';
+  // opts.dark switches to the premium "black card" theme (dark surface,
+  // brighter gold, light ink) instead of the free parchment-diploma look —
+  // deliberately a different-looking object, not the same design with a
+  // watermark stripped off, so the paid version reads as an upgrade at a
+  // glance rather than "same thing, minus a logo".
+  const isDark = !!opts.dark;
+  const ink = isDark ? '#F5F1E6' : '#2A2418';
+  const inkSoft = isDark ? 'rgba(245,241,230,0.68)' : 'rgba(42,36,24,0.6)';
+  const inkFaint = isDark ? 'rgba(245,241,230,0.42)' : 'rgba(42,36,24,0.4)';
+  const gold = isDark ? '#F0B90B' : '#B8860B';
+  const dividerColor = isDark ? 'rgba(245,241,230,0.24)' : 'rgba(42,36,24,0.25)';
+  const underlineColor = isDark ? 'rgba(245,241,230,0.38)' : 'rgba(42,36,24,0.4)';
+  const goodColor = isDark ? '#34C77B' : '#0F7A50';
+  const badColor = isDark ? '#FF6E62' : '#A82A30';
   const cx = W/2;
 
-  // parchment background fills the whole canvas (unlike the receipt card,
-  // which floats on a dark backdrop) — this one is meant to look like a full
-  // printable page, not a screenshot of a card
-  const bg = ctx.createRadialGradient(cx, H*0.35, 60, cx, H*0.35, W*0.9);
-  bg.addColorStop(0, '#FBF6EA');
-  bg.addColorStop(1, '#EFE7D2');
-  ctx.fillStyle = bg;
-  ctx.fillRect(0, 0, W, H);
+  if(isDark){
+    // "black card" surface — a lighter charcoal center fading to near-black
+    // edges, so the gold trim and light ink still read as a distinct card
+    // rather than flat black
+    const bg = ctx.createRadialGradient(cx, H*0.35, 60, cx, H*0.4, W*0.95);
+    bg.addColorStop(0, '#1D2029');
+    bg.addColorStop(1, '#0A0B10');
+    ctx.fillStyle = bg;
+    ctx.fillRect(0, 0, W, H);
+  } else {
+    // parchment background fills the whole canvas (unlike the receipt card,
+    // which floats on a dark backdrop) — this one is meant to look like a full
+    // printable page, not a screenshot of a card
+    const bg = ctx.createRadialGradient(cx, H*0.35, 60, cx, H*0.35, W*0.9);
+    bg.addColorStop(0, '#FBF6EA');
+    bg.addColorStop(1, '#EFE7D2');
+    ctx.fillStyle = bg;
+    ctx.fillRect(0, 0, W, H);
+  }
 
   // double border frame + corner flourishes, classic diploma look
   ctx.strokeStyle = gold;
@@ -3309,7 +3330,7 @@ async function drawCertificateCard(includeLogo, opts){
   wrapText(ctx, declaration, cx, y, W-200, 30);
 
   y += 110;
-  ctx.fillStyle = lastResult.isGood ? '#0F7A50' : '#A82A30';
+  ctx.fillStyle = lastResult.isGood ? goodColor : badColor;
   ctx.font = '700 68px "IBM Plex Mono"';
   ctx.fillText(lastResult.resultFmt, cx, y);
 
@@ -3324,7 +3345,9 @@ async function drawCertificateCard(includeLogo, opts){
   const sealY = y + sealR;
   ctx.fillStyle = gold;
   ctx.beginPath(); ctx.arc(cx, sealY, sealR, 0, Math.PI*2); ctx.fill();
-  ctx.strokeStyle = ink; ctx.lineWidth = 2;
+  // this inner ring sits on top of the gold fill itself, not the page
+  // background, so it stays a fixed dark tone in both themes for contrast
+  ctx.strokeStyle = '#2A2418'; ctx.lineWidth = 2;
   ctx.beginPath(); ctx.arc(cx, sealY, sealR-6, 0, Math.PI*2); ctx.stroke();
   ctx.fillStyle = gold;
   ctx.beginPath();
@@ -3358,7 +3381,7 @@ async function drawCertificateCard(includeLogo, opts){
 
   // footer: certificate number / issue date on the left, "signature" on the right
   const footerY = H - 130;
-  ctx.strokeStyle = 'rgba(42,36,24,0.25)';
+  ctx.strokeStyle = dividerColor;
   ctx.setLineDash([5,5]);
   ctx.beginPath(); ctx.moveTo(80, footerY); ctx.lineTo(W-80, footerY); ctx.stroke();
   ctx.setLineDash([]);
@@ -3376,7 +3399,7 @@ async function drawCertificateCard(includeLogo, opts){
   ctx.fillStyle = ink;
   ctx.font = '700 30px "Dancing Script"';
   ctx.fillText('The Regret Dept.', W-80, footerY+32);
-  ctx.strokeStyle = 'rgba(42,36,24,0.4)'; ctx.lineWidth = 1;
+  ctx.strokeStyle = underlineColor; ctx.lineWidth = 1;
   ctx.beginPath(); ctx.moveTo(W-260, footerY+44); ctx.lineTo(W-80, footerY+44); ctx.stroke();
   ctx.fillStyle = inkFaint;
   ctx.font = '600 11px "IBM Plex Mono"';
@@ -3466,9 +3489,9 @@ function updatePremiumUI(){
 async function generatePremiumExport(){
   let certDataUrl;
   try{
-    certDataUrl = await drawCertificateCard(true, { scale: 2, hideWatermark: true });
+    certDataUrl = await drawCertificateCard(true, { scale: 2, hideWatermark: true, dark: true });
   }catch(err){
-    certDataUrl = await drawCertificateCard(false, { scale: 2, hideWatermark: true });
+    certDataUrl = await drawCertificateCard(false, { scale: 2, hideWatermark: true, dark: true });
   }
   const certImg = await loadImageSafe(certDataUrl);
   const storyCanvas = document.getElementById('storyCanvas');
