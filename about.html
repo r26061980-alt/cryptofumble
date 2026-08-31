@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-83PMW2GVF7"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-83PMW2GVF7');
+</script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="icon" href="/favicon-32.png" type="image/png">
+<link rel="apple-touch-icon" href="/favicon-180.png">
+<title>About — CryptoFumble</title>
+<meta name="description" content="What CryptoFumble is, who built it, and where the numbers come from.">
+<link rel="canonical" href="https://cryptofumble.com/about.html">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0A0B10;
+    --panel:#12161D;
+    --panel-border:rgba(255,255,255,0.08);
+    --panel-border-soft:rgba(255,255,255,0.06);
+    --gold:#F0B90B;
+    --gold-soft:#FFD65C;
+    --text:#F3F2EE;
+    --muted:#98A0AC;
+    --mono:'IBM Plex Mono', monospace;
+    --sans:'Manrope', sans-serif;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--text);
+    font-family:var(--sans);
+    line-height:1.7;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{ max-width:640px; margin:0 auto; padding:56px 20px 100px; }
+  .brand{
+    display:flex; align-items:center; gap:10px; margin-bottom:36px;
+    text-decoration:none;
+  }
+  .brand .coin{
+    width:34px; height:34px; border-radius:50%;
+    background:linear-gradient(145deg,#F0B90B,#caa106);
+    display:flex; align-items:center; justify-content:center;
+    font-family:var(--mono); font-weight:700; font-size:16px; color:#0A0B10;
+  }
+  .brand .name{ font-size:18px; font-weight:800; color:var(--text); }
+  .brand .name span{ color:var(--gold); }
+  h1{ font-size:32px; margin:0 0 6px; letter-spacing:-0.01em; }
+  .eyebrow{
+    font-family:var(--mono); font-size:11px; letter-spacing:0.12em;
+    color:var(--muted); text-transform:uppercase; margin:0 0 28px;
+  }
+  p{ color:rgba(243,242,238,0.85); margin:0 0 18px; }
+  h2{ font-size:18px; margin:36px 0 12px; color:var(--text); }
+  a{ color:var(--gold-soft); }
+  .card{
+    background:var(--panel); border:1px solid var(--panel-border);
+    border-radius:14px; padding:20px 22px; margin:24px 0;
+  }
+  .card p:last-child{ margin-bottom:0; }
+  code{
+    font-family:var(--mono); font-size:0.9em; background:var(--panel);
+    border:1px solid var(--panel-border); border-radius:4px; padding:1px 6px;
+  }
+  footer{
+    margin-top:56px; padding-top:20px; border-top:1px solid var(--panel-border-soft);
+    font-size:12.5px; color:var(--muted); font-family:var(--mono);
+  }
+  footer a{ color:var(--muted); text-decoration:underline; text-underline-offset:2px; }
+  footer a:hover{ color:var(--gold-soft); }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <a class="brand" href="/">
+      <div class="coin">₿</div>
+      <div class="name">Crypto<span>Fumble</span></div>
+    </a>
+
+    <p class="eyebrow">About</p>
+    <h1>What is this thing?</h1>
+    <p>CryptoFumble answers one question: what would your money be worth today if you'd bought, sold, or slowly stacked a coin at some point in the past? Pick a coin, an amount, and a date — it does the math against real historical prices. Sometimes the answer is thrilling. Usually it's a little painful. That's the point.</p>
+
+    <div class="card">
+      <p>It's for fun and reflection, not investment advice. It shows a hypothetical outcome based on historical prices — never a prediction, never a recommendation. Crypto is volatile and you can lose money. Always do your own research before investing anything.</p>
+    </div>
+
+    <h2>Track your real portfolio, not just hypotheticals</h2>
+    <p>The calculator is for "what if" scenarios. "My Portfolio" is for real ones: log your actual purchases — coin, date, quantity, amount spent — and it tracks your real profit or loss against live prices, coin by coin and in total. Average price is worked out automatically from what you spent and how much you got, so it can't quietly drift out of sync.</p>
+
+    <h2>A Telegram bot that keeps tabs on it for you</h2>
+    <p>Connect your portfolio to <a href="https://t.me/CryptoFumble_bot" target="_blank" rel="noopener">@CryptoFumble_bot</a> — one button on the site, one code sent to the bot, no separate account — and it sends a weekly digest straight to Telegram: how your portfolio moved, without you having to open the site to check. The bot can also run a calculation right inside the chat with <code>/calc &lt;coin&gt; &lt;amount&gt; &lt;year-month&gt;</code>, e.g. <code>/calc btc 100 2020-01</code>.</p>
+
+    <h2>Who built it</h2>
+    <p>CryptoFumble is an independent, one-person side project — not a company, not a fund, not a trading desk. It started from wanting to know exactly how much money past self left on the table, and turned into a small tool other people seem to enjoy torturing themselves with too.</p>
+
+    <h2>Where the numbers come from</h2>
+    <p>Live and historical prices come from <a href="https://www.coingecko.com/" target="_blank" rel="noopener">CoinGecko</a>, through a caching proxy so the site isn't hammering their API directly. If that's briefly unreachable, the calculator falls back to an approximate historical dataset for a handful of major coins — always clearly labeled "OFFLINE DEMO DATA" right on the result, so you know exactly what you're looking at. Numbers are rounded and illustrative; they won't match a trading terminal to the cent.</p>
+
+    <h2>How it makes money</h2>
+    <p>Some links to exchanges (like the "Start on an exchange" button after a result) are affiliate links — CryptoFumble may earn a small commission if you sign up through them, at no extra cost to you. That's disclosed right next to the link, not hidden in fine print. The calculator itself is, and will stay, free.</p>
+
+    <h2>Questions or feedback</h2>
+    <p>Message <a href="https://t.me/CryptoFumble_bot" target="_blank" rel="noopener">@CryptoFumble_bot</a> on Telegram or find CryptoFumble on X. Bug reports and "you should really add..." ideas are both welcome.</p>
+
+    <footer>
+      <a href="/">← Back to the calculator</a> · <a href="/privacy.html">Privacy</a>
+    </footer>
+  </div>
+</body>
+</html>
