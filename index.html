@@ -1063,11 +1063,36 @@
     font-size:12px; padding:8px 0; border-top:1px dashed var(--panel-border-soft);
     color:var(--muted);
   }
-  .pf-entry-row .pf-entry-del{
+  .pf-entry-row .pf-entry-del, .pf-entry-row .pf-entry-edit{
     background:none; border:none; color:var(--muted); cursor:pointer;
     font-size:14px; padding:2px 6px; line-height:1;
   }
   .pf-entry-row .pf-entry-del:hover{color:#EA3943;}
+  .pf-entry-row .pf-entry-edit:hover{color:var(--gold);}
+  /* Inline edit form for a single purchase entry — lets someone who sold
+     part of a coin correct the remaining quantity (and, if relevant, the
+     amount spent) on that exact entry, instead of deleting and re-adding it
+     from scratch. Deliberately just two raw number fields, same as the "add
+     a purchase" form above — no separate "record a sale" object or realized
+     P/L tracking, matching the portfolio's existing minimal scope. */
+  .pf-entry-edit-form{
+    display:flex; align-items:center; gap:6px; flex-wrap:wrap;
+    padding:8px 0; border-top:1px dashed var(--panel-border-soft);
+  }
+  .pf-entry-edit-form input{
+    width:84px; font-family:var(--mono); font-size:12px;
+    background:var(--field-bg); color:var(--text);
+    border:1px solid var(--panel-border); border-radius:6px; padding:6px 8px;
+  }
+  .pf-entry-edit-form input:focus{border-color:var(--gold); outline:none;}
+  .pf-entry-edit-form label{font-size:10.5px; color:var(--muted); margin-right:-2px;}
+  .pf-edit-save, .pf-edit-cancel{
+    background:none; border:none; cursor:pointer; font-size:15px;
+    padding:2px 7px; line-height:1; margin-left:auto;
+  }
+  .pf-edit-save{color:#16C784;}
+  .pf-edit-cancel{color:var(--muted); margin-left:2px;}
+  .pf-edit-cancel:hover{color:#EA3943;}
   /* ═══ Mobile compactness pass ═══ */
   /* On a real phone with a real long chart history, the space ABOVE the
      receipt (hero text + daily-regret box + the calculator panel itself)
@@ -4377,7 +4402,15 @@ async function pfRender(){
     const entriesHtml = g.entries.map(e => `
       <div class="pf-entry-row" data-id="${e.id}">
         <span>${e.dateStr} · ${pfFmtQty(e.qty)} @ ${fmt(e.spent/e.qty)}</span>
-        <span>${fmt(e.spent)} <button type="button" class="pf-entry-del" data-id="${e.id}" title="Delete">✕</button></span>
+        <span>${fmt(e.spent)} <button type="button" class="pf-entry-edit" data-id="${e.id}" title="Edit">✎</button> <button type="button" class="pf-entry-del" data-id="${e.id}" title="Delete">✕</button></span>
+      </div>
+      <div class="pf-entry-edit-form" data-edit-id="${e.id}" style="display:none;">
+        <label>Qty</label>
+        <input type="number" class="pf-edit-qty" min="0" step="any" value="${e.qty}">
+        <label>Spent</label>
+        <input type="number" class="pf-edit-spent" min="0" step="any" value="${e.spent}">
+        <button type="button" class="pf-edit-save" data-id="${e.id}" title="Save">✓</button>
+        <button type="button" class="pf-edit-cancel" data-id="${e.id}" title="Cancel">✕</button>
       </div>`).join('');
     return `<div class="pf-coin-card" data-geckoid="${id}">
       <div class="pf-coin-head">
@@ -4428,6 +4461,46 @@ async function pfRender(){
       ev.stopPropagation();
       const id = btn.getAttribute('data-id');
       pfEntries = pfEntries.filter(e => String(e.id) !== String(id));
+      pfSave(pfEntries);
+      pfRender();
+    });
+  });
+  // Edit an existing purchase in place — the main use case is fixing the
+  // remaining quantity after selling part of a position, without deleting
+  // and re-adding the whole entry.
+  container.querySelectorAll('.pf-entry-edit').forEach(btn=>{
+    btn.addEventListener('click', (ev)=>{
+      ev.stopPropagation();
+      const id = btn.getAttribute('data-id');
+      const row = container.querySelector(`.pf-entry-row[data-id="${id}"]`);
+      const form = container.querySelector(`.pf-entry-edit-form[data-edit-id="${id}"]`);
+      if(row) row.style.display = 'none';
+      if(form) form.style.display = 'flex';
+    });
+  });
+  container.querySelectorAll('.pf-edit-cancel').forEach(btn=>{
+    btn.addEventListener('click', (ev)=>{
+      ev.stopPropagation();
+      const id = btn.getAttribute('data-id');
+      const row = container.querySelector(`.pf-entry-row[data-id="${id}"]`);
+      const form = container.querySelector(`.pf-entry-edit-form[data-edit-id="${id}"]`);
+      if(form) form.style.display = 'none';
+      if(row) row.style.display = 'flex';
+    });
+  });
+  container.querySelectorAll('.pf-edit-save').forEach(btn=>{
+    btn.addEventListener('click', (ev)=>{
+      ev.stopPropagation();
+      const id = btn.getAttribute('data-id');
+      const form = container.querySelector(`.pf-entry-edit-form[data-edit-id="${id}"]`);
+      const qty = parseFloat(form.querySelector('.pf-edit-qty').value);
+      const spent = parseFloat(form.querySelector('.pf-edit-spent').value);
+      if(!qty || qty <= 0 || !spent || spent <= 0){
+        alert('Quantity and spent amount must both be greater than zero.');
+        return;
+      }
+      const entry = pfEntries.find(e => String(e.id) === String(id));
+      if(entry){ entry.qty = qty; entry.spent = spent; }
       pfSave(pfEntries);
       pfRender();
     });
