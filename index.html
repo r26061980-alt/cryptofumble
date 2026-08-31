@@ -1048,6 +1048,43 @@
     font-size:14px; padding:2px 6px; line-height:1;
   }
   .pf-entry-row .pf-entry-del:hover{color:#EA3943;}
+  /* ═══ Mobile compactness pass ═══ */
+  /* On a real phone with a real long chart history, the space ABOVE the
+     receipt (hero text + daily-regret box + the calculator panel itself)
+     plus the receipt's own internal spacing added up to ~2000px of
+     scrolling before the action buttons ever appeared — a user reported
+     the "Add to portfolio" button as effectively "missing" on their phone
+     purely because of how far down it sat, even though it renders
+     correctly. This tightens vertical spacing ONLY below 480px (small
+     phones) — desktop and tablet keep the original, more spacious design,
+     since the receipt's current size is deliberately kept large there for
+     screenshot/share impact. Tap targets (button padding, input fields)
+     are left untouched so nothing gets harder to tap; this only removes
+     extra breathing room between sections.
+     Canvas-rendered exports (share card, certificate, premium export) are
+     drawn by separate JS code at fixed pixel dimensions and are NOT
+     affected by any of this — this is page CSS only. */
+  @media (max-width:480px){
+    .eyebrow{margin-bottom:10px;}
+    h1{font-size:clamp(26px, 7.5vw, 44px); margin-bottom:8px;}
+    .sub{margin-bottom:16px;}
+    .regret-counter{margin-bottom:12px;}
+    .daily-regret{padding:12px 14px; margin-bottom:14px;}
+    .panel{padding:16px; margin-bottom:14px;}
+    .field{margin-bottom:12px;}
+    #receipt-holder{margin-top:12px;}
+    .receipt{padding:16px 14px 12px;}
+    .r-sub{margin-bottom:10px;}
+    .dashed{margin:8px 0;}
+    .r-big{margin:10px 0 6px;}
+    .r-mult-wrap{margin-bottom:3px;}
+    .r-tier{margin-bottom:6px;}
+    .r-chart-wrap{margin:8px 0 4px;}
+    .r-compare{margin-top:8px;}
+    .r-sold-peak{margin-top:8px;}
+    .r-footer{margin-top:8px;}
+    .share-cta, .cta-invest{margin-top:10px;}
+  }
 </style>
 <!-- FAQPage structured data — mirrors the FAQ accordion below word-for-word,
      so Google can show these as an expandable rich snippet under the search
