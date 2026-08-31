@@ -193,6 +193,26 @@
   .live-feed-row .fr-mult.pos{color:#16C784;}
   .live-feed-row .fr-mult.neg{color:#EA3943;}
   @keyframes feedIn{ from{opacity:0; transform:translateY(-4px);} to{opacity:1; transform:translateY(0);} }
+  /* Скрыта на десктопе/планшете — там все 10 строк и так помещаются нормально;
+     показывается только в мобильном @media-блоке ниже, где список тикера
+     сворачивается до топ-5. */
+  .ticker-toggle{
+    display:none;
+    width:100%;
+    margin-top:2px;
+    padding:9px 10px;
+    border:none;
+    border-radius:10px;
+    background:rgba(255,255,255,0.04);
+    color:var(--muted);
+    font-family:var(--mono);
+    font-size:11px;
+    letter-spacing:.04em;
+    cursor:pointer;
+    transition:background .2s var(--ease);
+  }
+  .ticker-toggle:hover{ background:rgba(255,255,255,0.08); }
+  .ticker-toggle.tt-hide{ display:none !important; }
   .regret-counter{
     font-family:var(--mono);
     font-size:12px;
@@ -951,8 +971,23 @@
   #pfCoinSearch:focus{border-color:var(--gold); box-shadow:0 0 0 4px rgba(240,185,11,0.12);}
   .pf-note{
     font-size:12px; color:var(--muted); text-align:center;
-    margin:0 0 20px; line-height:1.6;
+    margin:0 0 14px; line-height:1.6;
   }
+  /* Портфель живёт только в localStorage этого браузера (см. .pf-note чуть
+     выше) — экспорт/импорт нужен, чтобы это не было ловушкой: обычный
+     JSON-файл с точным массивом записей, и такой же импорт, который
+     ДОБАВЛЯЕТ (никогда молча не заменяет) то, что уже есть. */
+  .pf-backup-row{
+    display:flex; justify-content:center; gap:10px; flex-wrap:wrap;
+    margin:0 0 20px;
+  }
+  .pf-backup-btn{
+    background:transparent; border:1px solid var(--panel-border); color:var(--muted);
+    font-family:var(--mono); font-size:11.5px; letter-spacing:0.02em;
+    padding:8px 14px; border-radius:var(--r-md); cursor:pointer;
+    transition:border-color .2s var(--ease), color .2s var(--ease);
+  }
+  .pf-backup-btn:hover{ border-color:var(--gold); color:var(--gold); }
   .pf-add-btn{
     width:100%; background:var(--gold); color:#1C1503; border:none;
     font-family:var(--sans); font-weight:800; font-size:15px;
@@ -1042,11 +1077,79 @@
     font-size:12px; padding:8px 0; border-top:1px dashed var(--panel-border-soft);
     color:var(--muted);
   }
-  .pf-entry-row .pf-entry-del{
+  .pf-entry-row .pf-entry-del, .pf-entry-row .pf-entry-edit{
     background:none; border:none; color:var(--muted); cursor:pointer;
     font-size:14px; padding:2px 6px; line-height:1;
   }
   .pf-entry-row .pf-entry-del:hover{color:#EA3943;}
+  .pf-entry-row .pf-entry-edit:hover{color:var(--gold);}
+  /* Инлайн-форма редактирования одной покупки — позволяет тому, кто продал
+     часть монеты, поправить оставшееся количество (и, если нужно, сумму
+     потраченного) прямо в этой записи, не удаляя и не создавая её заново.
+     Намеренно те же два простых числовых поля, что и в форме добавления
+     покупки выше — без отдельного объекта "продажа" и учёта реализованной
+     прибыли, в том же минималистичном духе, что и весь остальной портфель. */
+  .pf-entry-edit-form{
+    display:flex; align-items:center; gap:6px; flex-wrap:wrap;
+    padding:8px 0; border-top:1px dashed var(--panel-border-soft);
+  }
+  .pf-entry-edit-form input{
+    width:84px; font-family:var(--mono); font-size:12px;
+    background:var(--field-bg); color:var(--text);
+    border:1px solid var(--panel-border); border-radius:6px; padding:6px 8px;
+  }
+  .pf-entry-edit-form input:focus{border-color:var(--gold); outline:none;}
+  .pf-entry-edit-form label{font-size:10.5px; color:var(--muted); margin-right:-2px;}
+  .pf-edit-save, .pf-edit-cancel{
+    background:none; border:none; cursor:pointer; font-size:15px;
+    padding:2px 7px; line-height:1; margin-left:auto;
+  }
+  .pf-edit-save{color:#16C784;}
+  .pf-edit-cancel{color:var(--muted); margin-left:2px;}
+  .pf-edit-cancel:hover{color:#EA3943;}
+  /* ═══ Компактность на мобильном ═══ */
+  /* На реальном телефоне с реальной длинной историей цены пространство НАД
+     чеком (заголовок + блок «дневного сожаления» + сама панель
+     калькулятора) плюс внутренние отступы самого чека в сумме давали около
+     2000px прокрутки до появления кнопок действий — пользователь сообщил,
+     что кнопка «Добавить в портфель» на телефоне «пропала», хотя на самом
+     деле она рендерится правильно, просто очень далеко внизу. Это сжимает
+     вертикальные отступы ТОЛЬКО ниже 480px (маленькие телефоны) — десктоп
+     и планшет сохраняют исходный, более просторный дизайн, поскольку
+     текущий размер чека там сознательно оставлен крупным ради эффектности
+     при скриншоте/шеринге. Область нажатия (отступы кнопок, поля ввода)
+     не тронута, чтобы ничего не стало сложнее нажимать — убирается только
+     лишний воздух между блоками.
+     Экспорт в canvas (карточка для шеринга, сертификат, премиум-экспорт)
+     рисуется отдельным JS-кодом в фиксированных пикселях и этой правкой
+     CSS страницы никак не затрагивается. */
+  @media (max-width:480px){
+    .eyebrow{margin-bottom:10px;}
+    h1{font-size:clamp(26px, 7.5vw, 44px); margin-bottom:8px;}
+    .sub{margin-bottom:16px;}
+    .regret-counter{margin-bottom:12px;}
+    .daily-regret{padding:12px 14px; margin-bottom:14px;}
+    .panel{padding:16px; margin-bottom:14px;}
+    .field{margin-bottom:12px;}
+    #receipt-holder{margin-top:12px;}
+    .receipt{padding:16px 14px 12px;}
+    .r-sub{margin-bottom:10px;}
+    .dashed{margin:8px 0;}
+    .r-big{margin:10px 0 6px;}
+    .r-mult-wrap{margin-bottom:3px;}
+    .r-tier{margin-bottom:6px;}
+    .r-chart-wrap{margin:8px 0 4px;}
+    .r-compare{margin-top:8px;}
+    .r-sold-peak{margin-top:8px;}
+    .r-footer{margin-top:8px;}
+    .share-cta, .cta-invest{margin-top:10px;}
+    /* Топ-10 тикер сворачивается до 5 строк на телефоне — сам тикер идёт уже
+       после чека и кнопок, так что это не приближает "Добавить в портфель"
+       (это уже почти выжато выше), а просто укорачивает то, что осталось
+       ниже, для тех, кто листает до конца страницы. */
+    .live-feed-list:not(.expanded) .live-feed-row:nth-child(n+6){ display:none; }
+    .ticker-toggle{ display:block; }
+  }
 </style>
 <!-- FAQPage structured data — дословно повторяет FAQ-аккордеон ниже, чтобы
      Google мог показать это как раскрывающийся сниппет прямо в выдаче. -->
@@ -1084,7 +1187,11 @@
 </script>
 </head>
 <body>
-<!-- ═══ Баннер Product Hunt — вставить ТОЛЬКО после старта запуска (после 15:01 по Пекину / 00:01 PDT, 28 августа), сразу после <body> ═══ -->
+<!-- ═══ Бейдж Product Hunt — день запуска был 28 августа; исходный текст
+     "сегодня мы на PH, голосуй" устаревает (и начинает читаться как баг)
+     сразу после того, как закрывается дневной рейтинг PH. Заменено на
+     постоянный, без ложной срочности бейдж "были на Product Hunt" вместо
+     полного удаления — по-прежнему сигнал доверия, просто не враньё. ═══ -->
 <div id="ph-banner" style="
   display:flex; align-items:center; justify-content:center; gap:12px;
   flex-wrap:wrap; text-align:center;
@@ -1092,11 +1199,11 @@
   color:#0D1117; font-family:'Manrope', sans-serif; font-weight:700;
   font-size:14px; padding:12px 44px 12px 16px; position:relative;
 ">
-  <span>🚀 Сегодня мы на Product Hunt — твой голос очень важен!</span>
+  <span>🏆 Мы на Product Hunt</span>
   <a href="https://www.producthunt.com/products/cryptofumble-what-could-you-have-made?launch=cryptofumble-what-could-you-have-made"
      target="_blank" rel="noopener"
      style="background:#0D1117; color:#F0B90B; padding:7px 16px; border-radius:8px; text-decoration:none; font-weight:800; white-space:nowrap;">
-    Проголосовать →
+    Смотреть запуск →
   </a>
   <button onclick="document.getElementById('ph-banner').style.display='none'; try{localStorage.setItem('phBannerClosed','1')}catch(e){}"
     aria-label="Закрыть"
@@ -1260,6 +1367,7 @@
   <div class="live-feed" id="marketTicker" style="display:none;">
     <div class="live-feed-title">📊 ТОП-10 ПО КАПИТАЛИЗАЦИИ</div>
     <div class="live-feed-list" id="marketTickerList"></div>
+    <button type="button" class="ticker-toggle" id="tickerToggle" aria-expanded="false">▼ Показать ещё 5</button>
   </div>
   </div>
   </div>
@@ -1315,6 +1423,11 @@
       </div>
     </div>
     <p class="pf-note">Хранится только в этом браузере, на этом устройстве — очистишь данные браузера, и записи пропадут. Нигде не синхронизируется, это не инвестиционный совет.</p>
+    <div class="pf-backup-row">
+      <button type="button" class="pf-backup-btn" id="pfExportBtn">⬇ Экспорт бэкапа</button>
+      <button type="button" class="pf-backup-btn" id="pfImportBtn">⬆ Импорт бэкапа</button>
+      <input type="file" id="pfImportFile" accept="application/json,.json" style="display:none;">
+    </div>
     <div class="pf-tg-connect">
       <button type="button" class="pf-tg-btn" id="pfTgConnectBtn">📲 Подключить уведомления в Telegram</button>
       <div class="pf-tg-status" id="pfTgStatus"></div>
@@ -2258,12 +2371,32 @@ async function loadMarketTicker(){
       slot.replaceWith(makeTickerIconEl(slot.dataset.image, slot.dataset.symbol));
     });
     document.getElementById('marketTicker').style.display = 'block';
+    // если монет 5 или меньше — сворачивать нечего, прячем стрелку
+    const toggle = document.getElementById('tickerToggle');
+    if (toggle) toggle.classList.toggle('tt-hide', coins.length <= 5);
   }catch(err){
     // тихо ничего не показываем — тикер опциональная фича, не должен ничего ломать
   }
 }
 loadMarketTicker();
 setInterval(loadMarketTicker, 60000); // держим цены свежими, пока страница открыта
+// Раскрытие топ-10 тикера до полного списка на телефоне (по умолчанию —
+// только топ-5, см. .live-feed-list:not(.expanded) в мобильном @media).
+// Класс "expanded" вешается на сам список, а не на #marketTicker, поэтому
+// переживает автообновление каждые 60с (обновляется innerHTML списка, а не
+// его атрибуты) — уже развёрнутый пользователь не увидит, как список
+// внезапно схлопнется обратно у него на глазах.
+(function(){
+  const tickerToggle = document.getElementById('tickerToggle');
+  if (!tickerToggle) return;
+  tickerToggle.addEventListener('click', function(){
+    const list = document.getElementById('marketTickerList');
+    if (!list) return;
+    const expanded = list.classList.toggle('expanded');
+    tickerToggle.textContent = expanded ? '▲ Свернуть' : '▼ Показать ещё 5';
+    tickerToggle.setAttribute('aria-expanded', expanded ? 'true' : 'false');
+  });
+})();
 // ---- Free-text coin search via CoinGecko /search ----
 const searchInput = document.getElementById('coinSearch');
 const dropdown = document.getElementById('coinDropdown');
@@ -4179,6 +4312,70 @@ document.getElementById('pfAddBtn').addEventListener('click', ()=>{
   if(typeof gtag === 'function') gtag('event', 'portfolio_entry_added', { coin: pfSelectedCoin.symbol });
 });
 
+// Экспорт/импорт бэкапа — портфель живёт только в localStorage (см.
+// .pf-note), это единственная страховка от «очистил браузер и всё потерял».
+// Экспорт — просто сырой массив pfEntries в JSON; импорт проверяет форму,
+// присваивает новые id, чтобы ничего не столкнулось с уже существующими
+// записями, и ДОБАВЛЯЕТ, а не молча заменяет то, что уже есть в портфеле —
+// пользователь явно подтверждает добавление.
+document.getElementById('pfExportBtn').addEventListener('click', ()=>{
+  if(pfEntries.length === 0){
+    alert('Портфель пуст — пока нечего экспортировать.');
+    return;
+  }
+  const blob = new Blob([JSON.stringify(pfEntries, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `cryptofumble-portfolio-${new Date().toISOString().slice(0,10)}.json`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+  if(typeof gtag === 'function') gtag('event', 'portfolio_export', { count: pfEntries.length });
+});
+document.getElementById('pfImportBtn').addEventListener('click', ()=>{
+  document.getElementById('pfImportFile').click();
+});
+document.getElementById('pfImportFile').addEventListener('change', (ev)=>{
+  const file = ev.target.files[0];
+  ev.target.value = ''; // сброс, чтобы повторный выбор того же файла снова сработал
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    let imported;
+    try{
+      imported = JSON.parse(reader.result);
+    }catch(e){
+      alert('Не удалось прочитать файл — это не похоже на бэкап CryptoFumble.');
+      return;
+    }
+    const isValid = Array.isArray(imported) && imported.length > 0 && imported.every(e =>
+      e && typeof e === 'object' && e.geckoId && e.symbol &&
+      typeof e.qty === 'number' && e.qty > 0 &&
+      typeof e.spent === 'number' && e.spent > 0
+    );
+    if(!isValid){
+      alert('Не удалось прочитать файл — это не похоже на корректный бэкап CryptoFumble.');
+      return;
+    }
+    // новые id, чтобы импортированные записи не столкнулись с уже сохранёнными
+    const fresh = imported.map(e => ({ ...e, id: Date.now() + Math.random() }));
+    if(pfEntries.length > 0){
+      const word = pfEntries.length===1?'покупка':pfEntries.length<5?'покупки':'покупок';
+      const ok = confirm(`У вас уже есть ${pfEntries.length} ${word} в портфеле. Добавить ещё ${fresh.length} из этого бэкапа? (Ничего из уже добавленного не удалится.)`);
+      if(!ok) return;
+      pfEntries = pfEntries.concat(fresh);
+    } else {
+      pfEntries = fresh;
+    }
+    pfSave(pfEntries);
+    pfRender();
+    if(typeof gtag === 'function') gtag('event', 'portfolio_import', { count: fresh.length });
+  };
+  reader.readAsText(file);
+});
+
 // «Подключить уведомления в Telegram» — снимает снимок текущего портфеля во
 // временный код через Upstash (см. netlify/functions/telegram-link.js);
 // пользователь присылает /connect <код> боту @CryptoFumble_bot, который
@@ -4261,7 +4458,15 @@ async function pfRender(){
     const entriesHtml = g.entries.map(e => `
       <div class="pf-entry-row" data-id="${e.id}">
         <span>${e.dateStr} · ${pfFmtQty(e.qty)} @ ${fmt(e.spent/e.qty)}</span>
-        <span>${fmt(e.spent)} <button type="button" class="pf-entry-del" data-id="${e.id}" title="Удалить">✕</button></span>
+        <span>${fmt(e.spent)} <button type="button" class="pf-entry-edit" data-id="${e.id}" title="Изменить">✎</button> <button type="button" class="pf-entry-del" data-id="${e.id}" title="Удалить">✕</button></span>
+      </div>
+      <div class="pf-entry-edit-form" data-edit-id="${e.id}" style="display:none;">
+        <label>Кол-во</label>
+        <input type="number" class="pf-edit-qty" min="0" step="any" value="${e.qty}">
+        <label>Потрачено</label>
+        <input type="number" class="pf-edit-spent" min="0" step="any" value="${e.spent}">
+        <button type="button" class="pf-edit-save" data-id="${e.id}" title="Сохранить">✓</button>
+        <button type="button" class="pf-edit-cancel" data-id="${e.id}" title="Отмена">✕</button>
       </div>`).join('');
     return `<div class="pf-coin-card" data-geckoid="${id}">
       <div class="pf-coin-head">
@@ -4313,6 +4518,46 @@ async function pfRender(){
       ev.stopPropagation();
       const id = btn.getAttribute('data-id');
       pfEntries = pfEntries.filter(e => String(e.id) !== String(id));
+      pfSave(pfEntries);
+      pfRender();
+    });
+  });
+  // Редактирование уже существующей покупки на месте — основной сценарий:
+  // поправить оставшееся количество после того, как продал часть позиции,
+  // не удаляя и не пересоздавая запись заново.
+  container.querySelectorAll('.pf-entry-edit').forEach(btn=>{
+    btn.addEventListener('click', (ev)=>{
+      ev.stopPropagation();
+      const id = btn.getAttribute('data-id');
+      const row = container.querySelector(`.pf-entry-row[data-id="${id}"]`);
+      const form = container.querySelector(`.pf-entry-edit-form[data-edit-id="${id}"]`);
+      if(row) row.style.display = 'none';
+      if(form) form.style.display = 'flex';
+    });
+  });
+  container.querySelectorAll('.pf-edit-cancel').forEach(btn=>{
+    btn.addEventListener('click', (ev)=>{
+      ev.stopPropagation();
+      const id = btn.getAttribute('data-id');
+      const row = container.querySelector(`.pf-entry-row[data-id="${id}"]`);
+      const form = container.querySelector(`.pf-entry-edit-form[data-edit-id="${id}"]`);
+      if(form) form.style.display = 'none';
+      if(row) row.style.display = 'flex';
+    });
+  });
+  container.querySelectorAll('.pf-edit-save').forEach(btn=>{
+    btn.addEventListener('click', (ev)=>{
+      ev.stopPropagation();
+      const id = btn.getAttribute('data-id');
+      const form = container.querySelector(`.pf-entry-edit-form[data-edit-id="${id}"]`);
+      const qty = parseFloat(form.querySelector('.pf-edit-qty').value);
+      const spent = parseFloat(form.querySelector('.pf-edit-spent').value);
+      if(!qty || qty <= 0 || !spent || spent <= 0){
+        alert('Количество и потраченная сумма должны быть больше нуля.');
+        return;
+      }
+      const entry = pfEntries.find(e => String(e.id) === String(id));
+      if(entry){ entry.qty = qty; entry.spent = spent; }
       pfSave(pfEntries);
       pfRender();
     });
