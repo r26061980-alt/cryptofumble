@@ -780,6 +780,8 @@
     transition:background .2s var(--ease), transform .2s var(--ease);
   }
   .share-cta:hover{background:rgba(240,185,11,0.08); transform:translateY(-1px);}
+  .share-cta:disabled{opacity:0.55; cursor:default; transform:none;}
+  .share-cta:disabled:hover{background:var(--field-bg);}
   .cta-invest{
     display:block;
     width:100%;
@@ -1206,6 +1208,7 @@
       <a id="shareDownload" class="share-cta" style="display:block; text-decoration:none; margin-top:10px; box-sizing:border-box;" download="crypto-regret-card.png">⬇️ Скачать PNG</a>
     </div>
     <button class="share-cta" id="certBtn">🎖️ Получить сертификат</button>
+    <button class="share-cta" id="addToPfBtn" style="display:none;">➕ Добавить в портфель</button>
     <div id="certCardWrap" style="display:none; margin-top:14px; text-align:center;">
       <canvas id="certCanvas" width="900" height="1020" style="display:none;"></canvas>
       <img id="certCardImg" style="width:100%; border-radius:8px; box-shadow:0 12px 40px rgba(0,0,0,0.5);">
@@ -2686,6 +2689,7 @@ async function runLumpSumCalculation(coin){
   lastResult = {
     coinName: coin.name,
     coinSymbol: coin.symbol,
+    geckoId: coin.geckoId,
     dateStr,
     mode: currentMode,
     tier,
@@ -2699,11 +2703,19 @@ async function runLumpSumCalculation(coin){
     isGood,
     chartValues,
     investedRaw: baseValue,
-    resultRaw: result
+    resultRaw: result,
+    coinsRaw: coins
   };
   // reset any previously generated share card since the numbers changed
   document.getElementById('shareCardWrap').style.display = 'none';
   document.getElementById('certCardWrap').style.display = 'none';
+  // "Добавить в портфель" имеет смысл только для монет, которые реально
+  // остаются на руках — прячем в режиме "sold", на каждом новом расчёте
+  // сбрасываем в исходное состояние
+  const addToPfBtn = document.getElementById('addToPfBtn');
+  addToPfBtn.style.display = currentMode === 'sold' ? 'none' : 'block';
+  addToPfBtn.disabled = false;
+  addToPfBtn.textContent = '➕ Добавить в портфель';
   saveLastCalc();
   precacheShareCard(); // рисуем PNG-карточку в фоне заранее, чтобы она была готова к моменту клика на "Share"
   precacheShareId(); // заодно запрашиваем короткую ссылку в фоне, по той же логике
@@ -2828,6 +2840,7 @@ async function runDcaCalculation(coin){
     lastResult = {
       coinName: coin.name,
       coinSymbol: coin.symbol,
+      geckoId: coin.geckoId,
       dateStr,
       mode: currentMode,
       tier,
@@ -2842,8 +2855,14 @@ async function runDcaCalculation(coin){
       chartValues: null,
       investedRaw: totalInvested,
       resultRaw: result,
+      coinsRaw: totalCoins,
     };
     document.getElementById('shareCardWrap').style.display = 'none';
+    // DCA тоже представляет монеты, которые остались бы на руках — тот же мост
+    const addToPfBtn = document.getElementById('addToPfBtn');
+    addToPfBtn.style.display = 'block';
+    addToPfBtn.disabled = false;
+    addToPfBtn.textContent = '➕ Добавить в портфель';
     document.getElementById('certCardWrap').style.display = 'none';
     saveLastCalc();
     precacheShareCard(); // рисуем PNG-карточку в фоне заранее, чтобы она была готова к моменту клика на "Share"
@@ -3314,6 +3333,33 @@ async function drawCertificateCard(includeLogo){
   ctx.restore();
   return canvas.toDataURL('image/png');
 }
+// ---- "Добавить в портфель" — мост из результата калькулятора в трекер
+// «Мой портфель» (pfEntries/PF_KEY, объявлены дальше по файлу — хойстинг
+// функций/let делает их доступными к моменту клика, он в любом случае
+// возможен только после полной загрузки страницы).
+// Предлагается только для "bought"/"dca" (монеты, которые реально были бы
+// на руках) — режим "sold" означает монету, которой уже не владеешь, и её
+// добавление исказило бы трекер текущих активов. Точный день неизвестен
+// (калькулятор работает с точностью до месяца), поэтому в портфель
+// записывается 1-е число месяца.
+document.getElementById('addToPfBtn').addEventListener('click', ()=>{
+  if(!lastResult || !lastResult.coinsRaw) return;
+  pfEntries.push({
+    id: Date.now() + Math.random(),
+    symbol: lastResult.coinSymbol,
+    name: lastResult.coinName,
+    geckoId: lastResult.geckoId,
+    dateStr: `${lastResult.dateStr}-01`,
+    qty: lastResult.coinsRaw,
+    spent: lastResult.investedRaw,
+  });
+  pfSave(pfEntries);
+  pfRender();
+  const btn = document.getElementById('addToPfBtn');
+  btn.textContent = '✓ Добавлено в портфель';
+  btn.disabled = true;
+  if(typeof gtag === 'function') gtag('event', 'portfolio_entry_added', { coin: lastResult.coinSymbol, source: 'receipt' });
+});
 document.getElementById('certBtn').addEventListener('click', async ()=>{
   if(!lastResult){
     alert('Сначала нажми «Покажи, что я упустил», чтобы посчитать результат.');
