@@ -772,21 +772,21 @@
   .cta-invest{
     display:block;
     width:100%;
-    background:linear-gradient(180deg, #21DC97, #0F9D68);
-    color:#06251A;
+    background:var(--field-bg);
+    color:var(--green);
+    border:1px solid rgba(22,199,132,0.45);
     font-family:var(--sans);
-    font-weight:800;
-    font-size:15px;
+    font-weight:700;
+    font-size:14px;
     text-align:center;
-    padding:15px;
+    padding:14px;
     border-radius:var(--r-md);
     text-decoration:none;
     margin-top:14px;
     box-sizing:border-box;
-    box-shadow:0 1px 0 rgba(255,255,255,0.25) inset, 0 12px 24px -10px rgba(22,199,132,0.4);
-    transition:transform .2s var(--ease), box-shadow .2s var(--ease);
+    transition:background .2s var(--ease), transform .2s var(--ease);
   }
-  .cta-invest:hover{box-shadow:0 1px 0 rgba(255,255,255,0.25) inset, 0 16px 30px -10px rgba(22,199,132,0.5); transform:translateY(-2px);}
+  .cta-invest:hover{background:rgba(22,199,132,0.08); transform:translateY(-1px);}
   .invest-note{
     text-align:center;
     font-size:11px;
@@ -1187,12 +1187,6 @@
       <div class="r-disclaimer">Just for fun — not investment advice.</div>
       <div class="r-footer">RECEIPT OF REGRET · TIMESTAMP <span id="rStamp"></span></div>
     </div>
-    <a href="https://www.bybit.com/invite?ref=PK8RA3&medium=referral&utm_campaign=evergreen&share_to=post"
-       target="_blank" rel="noopener noreferrer sponsored"
-       class="cta-invest" id="ctaInvest" style="display:none;">
-      <span id="ctaInvestText">Start on an exchange →</span>
-    </a>
-    <div class="invest-note" id="investNote" style="display:none;">Affiliate link — we may earn a small commission, at no extra cost to you.</div>
     <button class="share-cta" id="shareBtn">📸 Generate share card</button>
     <button class="share-cta" id="shareXBtn">𝕏 Share on X</button>
     <button class="share-cta" id="certBtn">🎖️ Get certificate</button>
@@ -1206,6 +1200,12 @@
       <img id="certCardImg" style="width:100%; border-radius:8px; box-shadow:0 12px 40px rgba(0,0,0,0.5);">
       <a id="certDownload" class="share-cta" style="display:block; text-decoration:none; margin-top:10px; box-sizing:border-box;" download="cryptofumble-certificate.png">⬇️ Download certificate</a>
     </div>
+    <a href="https://www.bybit.com/invite?ref=PK8RA3&medium=referral&utm_campaign=evergreen&share_to=post"
+       target="_blank" rel="noopener noreferrer sponsored"
+       class="cta-invest" id="ctaInvest" style="display:none;">
+      <span id="ctaInvestText">Start on an exchange →</span>
+    </a>
+    <div class="invest-note" id="investNote" style="display:none;">Affiliate link — we may earn a small commission, at no extra cost to you.</div>
     <div class="compare-block" id="compareBlock" style="display:none;">
       <button type="button" class="compare-toggle" id="compareToggle">⚖️ Compare with another coin</button>
       <div class="compare-picker" id="comparePicker" style="display:none;">
@@ -1489,11 +1489,13 @@ function renderLocalCurrency(resultRaw){
   }catch(err){ el.style.display = 'none'; }
 }
 function fmtCoinsQty(qty, symbol){
-  // for cheap coins (DOGE, SHIB, etc.) the raw coin count is part of the joke,
-  // so large quantities round to a whole number with thousands separators,
-  // while pricier coins (BTC, etc.) need fractional precision
+  // for cheap/mid-price coins, a quantity of 100+ reads better as a whole
+  // number ("278 SOL", not "277.7778 SOL") — the raw coin count is part of
+  // the joke, and nobody cares about the 4th decimal at that scale. Below
+  // 100 units the fraction is usually meaningful (a few ETH, a fraction of
+  // a BTC), so it's kept.
   let numStr;
-  if(qty >= 1000){
+  if(qty >= 100){
     numStr = Math.round(qty).toLocaleString('en-US');
   } else if(qty >= 1){
     numStr = qty.toFixed(4).replace(/0+$/,'').replace(/\.$/,'');
@@ -2041,6 +2043,40 @@ function updateSelectedUI(){
   starBtn.onclick = ()=>{ toggleFavorite(currentCoin); updateSelectedUI(); };
   selectedLabel.appendChild(starBtn);
 }
+// ---- Restore the last calculation for a returning visitor (coin + date) ----
+// Prefills the form from localStorage; never auto-calculates — the visitor
+// still has to press the button, this just saves re-typing. Runs before the
+// deep-link block below so an explicit ?coin=&date= link (e.g. from a shared
+// result or SEO landing page) still wins over a stale saved default.
+// Mode + amount are restored separately, further down — that needs the
+// mode-toggle's click handler to exist first, since it's attached later in
+// this script and does its own label/button-text syncing on click.
+const LAST_CALC_KEY = 'cf_last_calc';
+function readLastCalc(){
+  try{
+    const raw = localStorage.getItem(LAST_CALC_KEY);
+    if(!raw) return null;
+    const saved = JSON.parse(raw);
+    return (saved && saved.symbol && saved.geckoId) ? saved : null;
+  }catch(e){ return null; }
+}
+(function restoreLastCalcCoinDate(){
+  const saved = readLastCalc();
+  if(!saved) return;
+  currentCoin = { symbol: saved.symbol, name: saved.name || saved.symbol, geckoId: saved.geckoId };
+  if(typeof saved.dateStr === 'string'){
+    const m = saved.dateStr.match(/^(\d{4})-(\d{2})$/);
+    if(m){
+      const y = parseInt(m[1], 10), mo = parseInt(m[2], 10);
+      if(y >= PICKER_MIN_YEAR && y <= PICKER_MAX_YEAR && mo >= 1 && mo <= 12){
+        pickedYear = y;
+        pickedMonth = mo;
+        currentDateStr = saved.dateStr;
+        dateTrigger.textContent = `${MONTH_NAMES[mo-1]} ${y}`;
+      }
+    }
+  }
+})();
 // ---- Deep-link support for SEO landing pages (Phase 2) ----
 // ?coin=BTC&date=2013-01 preselects the coin and month/year so a landing
 // page's "calculate your own" link drops the visitor into a calculator
@@ -2322,6 +2358,17 @@ modeToggle.addEventListener('click', (e)=>{
     amountWrap.classList.remove('no-prefix');
   }
 });
+// Restore mode + amount now that the click handler above exists to do the
+// label/button-text syncing (coin + date were already restored earlier).
+(function restoreLastCalcModeAmount(){
+  const saved = readLastCalc();
+  if(!saved) return;
+  if(saved.mode && saved.mode !== 'bought'){
+    const btn = modeToggle.querySelector(`.mode-btn[data-mode="${saved.mode}"]`);
+    if(btn) btn.click();
+  }
+  if(saved.amount) amountInputEl.value = saved.amount;
+})();
 // ---- Quick period-select shortcuts (1M/6M/1Y/5Y/MAX) ----
 document.querySelectorAll('.period-btn').forEach(btn=>{
   btn.addEventListener('click', ()=>{
@@ -2571,6 +2618,7 @@ async function runLumpSumCalculation(coin){
   // reset any previously generated share card since the numbers changed
   document.getElementById('shareCardWrap').style.display = 'none';
   document.getElementById('certCardWrap').style.display = 'none';
+  saveLastCalc();
   precacheShareCard(); // draw the share-card PNG in the background now, ready before the user clicks Share
   precacheShareId(); // also fetch the short share link in the background, same reasoning
   // "compare with another coin" only makes sense for a straight "I bought" purchase —
@@ -2708,6 +2756,7 @@ async function runDcaCalculation(coin){
     };
     document.getElementById('shareCardWrap').style.display = 'none';
     document.getElementById('certCardWrap').style.display = 'none';
+    saveLastCalc();
     precacheShareCard(); // draw the share-card PNG in the background now, ready before the user clicks Share
     precacheShareId(); // also fetch the short share link in the background, same reasoning
     // coin-comparison only applies to a single lump-sum purchase, not DCA
@@ -2741,6 +2790,23 @@ async function runDcaCalculation(coin){
 }
 // keep the last computed result around so the share card can use it
 let lastResult = null;
+// ---- Remember the last calculation so a returning visitor's form isn't
+// blank (client-side only, same localStorage pattern as favorite coins).
+// Restored on load, never auto-submitted — just prefills the form.
+// (LAST_CALC_KEY itself is declared earlier, near readLastCalc/restoreLastCalc*,
+// since those run at page-load time — before this point in the script.)
+function saveLastCalc(){
+  try{
+    localStorage.setItem(LAST_CALC_KEY, JSON.stringify({
+      symbol: currentCoin.symbol,
+      name: currentCoin.name,
+      geckoId: currentCoin.geckoId,
+      amount: document.getElementById('amount').value,
+      dateStr: currentDateStr,
+      mode: currentMode,
+    }));
+  }catch(e){}
+}
 // pre-rendered share-card PNG for the current lastResult — drawn in the background
 // right after each calculation finishes, so "Share on X" doesn't need to wait on it
 // (an async wait there risks the browser blocking the popup window as not
@@ -3229,15 +3295,21 @@ document.getElementById('shareBtn').addEventListener('click', async ()=>{
   }
   const shareBtn = document.getElementById('shareBtn');
   const origLabel = shareBtn.textContent;
-  shareBtn.textContent = 'Drawing card…';
-  shareBtn.disabled = true;
-  let dataUrl;
-  try{
-    dataUrl = await drawShareCard(true);
-  }catch(err){
-    // canvas.toDataURL() мог упасть из-за "tainted canvas" (иконка монеты
-    // подгрузилась без нужных CORS-заголовков) — тихо перерисовываем без логотипа
-    dataUrl = await drawShareCard(false);
+  // precacheShareCard() already drew this PNG in the background right after
+  // the calculation finished — reuse it instead of redrawing from scratch,
+  // so the button is instant on the common case. Only fall back to a fresh
+  // draw if the precache hasn't finished yet or failed.
+  let dataUrl = cachedShareCardDataUrl;
+  if(!dataUrl){
+    shareBtn.textContent = 'Drawing card…';
+    shareBtn.disabled = true;
+    try{
+      dataUrl = await drawShareCard(true);
+    }catch(err){
+      // canvas.toDataURL() мог упасть из-за "tainted canvas" (иконка монеты
+      // подгрузилась без нужных CORS-заголовков) — тихо перерисовываем без логотипа
+      dataUrl = await drawShareCard(false);
+    }
   }
   const img = document.getElementById('shareCardImg');
   const dl = document.getElementById('shareDownload');
