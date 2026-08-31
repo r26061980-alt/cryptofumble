@@ -246,7 +246,7 @@
   }
   .pf-promo #pfPromoBtn:hover{ text-decoration:underline; }
   .pf-promo-close{
-    position:absolute; right:8px; top:50%; transform:translateY(-50%);
+    position:absolute; right:6px; top:6px;
     background:none; border:none; color:var(--muted); font-size:15px;
     font-weight:700; cursor:pointer; padding:2px 8px; line-height:1;
   }
@@ -1060,7 +1060,7 @@
     font-family:var(--mono); font-size:10px; letter-spacing:0.08em;
     text-transform:uppercase; color:var(--muted); margin-bottom:8px;
   }
-  .pf-totals .pf-tot-val{font-family:var(--mono); font-weight:700; font-size:19px;}
+  .pf-totals .pf-tot-val{font-family:var(--mono); font-weight:700; font-size:19px; overflow-wrap:anywhere;}
   .pf-totals .pf-tot-val.pos{color:#16C784;}
   .pf-totals .pf-tot-val.neg{color:#EA3943;}
   .pf-coin-card{
@@ -1091,7 +1091,7 @@
   .pf-coin-stats .pf-stat-label{color:var(--muted); margin-bottom:3px; font-size:10.5px; text-transform:uppercase; letter-spacing:0.05em;}
   .pf-coin-stats .pf-stat-val{color:var(--text); font-weight:600;}
   .pf-pnl{
-    display:flex; justify-content:space-between; align-items:center;
+    display:flex; justify-content:space-between; align-items:center; gap:8px;
     padding-top:12px; border-top:1px dashed var(--panel-border-soft);
   }
   .pf-pnl-val{font-family:var(--mono); font-weight:700; font-size:16px;}
@@ -1159,6 +1159,26 @@
     h1{font-size:clamp(26px, 7.5vw, 44px); margin-bottom:8px;}
     .sub{margin-bottom:16px;}
     .pf-promo{padding:8px 30px 8px 12px; margin-bottom:12px; font-size:11.5px;}
+    /* Portfolio card "Currently worth / P&L" row: at 375px, once amounts get
+       big (e.g. a real BTC position), the label and the value no longer fit
+       side by side, and each span's own text was wrapping mid-content —
+       "Currently worth" splitting from its number, "+$24,278" splitting from
+       "(+161.9%)". Letting the row wrap keeps each span intact as a whole
+       unit; it just drops to its own line instead of breaking mid-word. */
+    .pf-pnl{flex-wrap:wrap; row-gap:4px;}
+    .pf-pnl span{white-space:nowrap;}
+    /* Same idea for the "Total invested / Worth now / P&L" summary strip at
+       the top of the portfolio tab: 3 equal columns is fine for small
+       numbers, but this app's whole premise is "what if you'd bought dirt
+       cheap" — a tiny buy of an early/cheap coin can turn into a 5-6 digit
+       gain, and a wide percentage like "+2078300.0%" doesn't fit a ~110px
+       column. Without room to wrap, it was bleeding across into the next
+       column instead ("$207,840+2078300.0%" running together). 2 columns
+       gives each value roughly double the width; P/L drops to its own
+       centered row when there's an odd one out. */
+    .pf-totals{flex-wrap:wrap; row-gap:16px; column-gap:10px;}
+    .pf-totals .pf-tot-item{flex:1 1 45%; min-width:45%;}
+    .pf-totals .pf-tot-val{font-size:16px;}
     .regret-counter{margin-bottom:12px;}
     .daily-regret{padding:12px 14px; margin-bottom:14px;}
     .panel{padding:16px; margin-bottom:14px;}
@@ -1240,7 +1260,7 @@
   </a>
   <button onclick="document.getElementById('ph-banner').style.display='none'; try{localStorage.setItem('phBannerClosed','1')}catch(e){}"
     aria-label="Close"
-    style="position:absolute; right:12px; top:50%; transform:translateY(-50%); background:none; border:none; font-size:18px; font-weight:700; color:#0D1117; cursor:pointer; line-height:1;">
+    style="position:absolute; right:12px; top:12px; background:none; border:none; font-size:18px; font-weight:700; color:#0D1117; cursor:pointer; line-height:1;">
     ×
   </button>
 </div>
