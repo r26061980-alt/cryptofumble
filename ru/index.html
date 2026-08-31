@@ -3401,7 +3401,6 @@ async function drawShareCard(includeLogo){
 async function drawPortfolioShareCard(){
   const s = pfLastSummary;
   const canvas = document.getElementById('pfShareCanvas');
-  const W = canvas.width, H = canvas.height;
   const ctx = canvas.getContext('2d');
   await Promise.all([
     document.fonts.load('700 46px "IBM Plex Mono"'),
@@ -3409,10 +3408,25 @@ async function drawPortfolioShareCard(){
     document.fonts.load('400 16px "IBM Plex Mono"'),
     document.fonts.load('800 26px "Manrope"'),
   ]);
+  // Высота считается по фактическому числу монет, а не берётся фиксированной
+  // высокой — у портфеля из 1-2 монет (частый случай) раньше оставалась
+  // большая пустая область между «ПО МОНЕТАМ» и подписью внизу. BYCOIN_Y —
+  // это y-координата, на которую попадает заголовок «ПО МОНЕТАМ» при текущих
+  // отступах ниже — если поменяете отступы, поправьте и её.
+  const pad=30, cardTop=50;
+  const BYCOIN_Y = 464;
+  const COIN_ROW_H = 30;
+  const shown = s.coins.slice(0, 4);
+  const hasMore = s.coins.length > shown.length;
+  const lastContentY = BYCOIN_Y + shown.length*COIN_ROW_H + (hasMore ? 26 : 0);
+  const footerY = lastContentY + 44;
+  const cardBottomEdge = footerY + 24;
+  const cardH = cardBottomEdge - cardTop;
+  const W = 640, H = cardBottomEdge + 50;
+  canvas.width = W; canvas.height = H;
   const bg = ctx.createRadialGradient(W/2,60,40, W/2,60,W);
   bg.addColorStop(0,'#171C24'); bg.addColorStop(1,'#0D1117');
   ctx.fillStyle = bg; ctx.fillRect(0,0,W,H);
-  const pad=30, cardTop=60, cardH=H-120;
   roundedZigzagPath(ctx, pad, cardTop, W-pad*2, cardH, 26, 7);
   ctx.fillStyle = '#F7F1E3';
   ctx.shadowColor = 'rgba(0,0,0,0.5)'; ctx.shadowBlur = 40; ctx.shadowOffsetY = 20;
@@ -3420,14 +3434,14 @@ async function drawPortfolioShareCard(){
   ctx.shadowColor = 'transparent';
   const ink = '#2A2418';
   const cx = W/2;
-  let y = 140;
+  let y = cardTop+70;
   ctx.textAlign='center';
   ctx.fillStyle = 'rgba(42,36,24,0.55)';
   ctx.font = '600 12px "IBM Plex Mono"';
   ctx.save(); ctx.letterSpacing='3px';
   ctx.fillText('— МОЙ ПОРТФЕЛЬ —', cx, y);
   ctx.restore();
-  y += 34;
+  y += 28;
   ctx.fillStyle = 'rgba(42,36,24,0.45)';
   ctx.font = '400 13px "IBM Plex Mono"';
   const n = s.coins.length;
@@ -3437,12 +3451,12 @@ async function drawPortfolioShareCard(){
   const [sinceY, sinceM] = s.earliestDateStr.split('-');
   const sinceText = `${MONTH_NAMES_GEN[parseInt(sinceM,10)-1]} ${sinceY}`;
   ctx.fillText(`${n} ${coinWord} · в портфеле с ${sinceText}`, cx, y);
-  y += 30;
+  y += 26;
   ctx.strokeStyle = 'rgba(42,36,24,0.3)';
   ctx.setLineDash([5,5]);
   ctx.beginPath(); ctx.moveTo(pad+30,y); ctx.lineTo(W-pad-30,y); ctx.stroke();
   function row(label, value, color){
-    y += 36;
+    y += 34;
     ctx.setLineDash([]);
     ctx.textAlign='left'; ctx.fillStyle=ink; ctx.font='400 14px "IBM Plex Mono"';
     ctx.fillText(label, pad+30, y);
@@ -3452,23 +3466,23 @@ async function drawPortfolioShareCard(){
   }
   row('Всего вложено', fmt(s.totalSpentAll));
   row('Стоит сейчас', fmt(s.totalValueAll));
-  y += 30;
+  y += 26;
   ctx.setLineDash([5,5]);
   ctx.beginPath(); ctx.moveTo(pad+30,y); ctx.lineTo(W-pad-30,y); ctx.stroke();
   ctx.setLineDash([]);
-  y += 38;
+  y += 32;
   ctx.textAlign='center';
   ctx.fillStyle = 'rgba(42,36,24,0.5)';
   ctx.font = '600 12px "IBM Plex Mono"';
   ctx.save(); ctx.letterSpacing='2px';
   ctx.fillText('ОБЩАЯ ПРИБЫЛЬ / УБЫТОК', cx, y);
   ctx.restore();
-  y += 60;
+  y += 52;
   const pnlColor = s.overallGood ? '#0F7A50' : '#A82A30';
   ctx.fillStyle = pnlColor;
-  ctx.font = '700 50px "IBM Plex Mono"';
+  ctx.font = '700 44px "IBM Plex Mono"';
   ctx.fillText(`${s.overallGood?'+':''}${fmt(s.overallPnl)}`, cx, y);
-  y += 42;
+  y += 38;
   const pctText = `${s.overallGood?'+':''}${s.overallPct.toFixed(1)}%`;
   ctx.font = '700 16px "IBM Plex Mono"';
   const pctW = ctx.measureText(pctText).width + 34;
@@ -3478,29 +3492,29 @@ async function drawPortfolioShareCard(){
   ctx.fill();
   ctx.fillStyle = pnlColor;
   ctx.fillText(pctText, cx, y);
-  y += 50;
+  y += 44;
   ctx.setLineDash([5,5]);
   ctx.strokeStyle = 'rgba(42,36,24,0.3)';
   ctx.beginPath(); ctx.moveTo(pad+30,y); ctx.lineTo(W-pad-30,y); ctx.stroke();
   ctx.setLineDash([]);
-  y += 34;
+  y += 30;
+  // y здесь должно совпадать с BYCOIN_Y выше — расчёт высоты уже это учитывает.
   ctx.textAlign='center';
   ctx.fillStyle = 'rgba(42,36,24,0.5)';
   ctx.font = '600 12px "IBM Plex Mono"';
   ctx.save(); ctx.letterSpacing='2px';
   ctx.fillText('ПО МОНЕТАМ', cx, y);
   ctx.restore();
-  const shown = s.coins.slice(0, 4);
   shown.forEach(c=>{
-    y += 34;
+    y += COIN_ROW_H;
     ctx.textAlign='left'; ctx.fillStyle=ink; ctx.font='600 14px "IBM Plex Mono"';
     ctx.fillText(c.symbol, pad+30, y);
     ctx.textAlign='right'; ctx.font='600 14px "IBM Plex Mono"';
     ctx.fillStyle = c.isGood ? '#0F7A50' : '#A82A30';
     ctx.fillText(`${c.isGood?'+':''}${c.pnlPct.toFixed(1)}%`, W-pad-30, y);
   });
-  if(s.coins.length > shown.length){
-    y += 30;
+  if(hasMore){
+    y += 26;
     ctx.textAlign='center'; ctx.font='400 12px "IBM Plex Mono"';
     ctx.fillStyle = 'rgba(42,36,24,0.45)';
     ctx.fillText(`+ ещё ${s.coins.length - shown.length}`, cx, y);
@@ -3509,7 +3523,7 @@ async function drawPortfolioShareCard(){
   ctx.font = '600 12px "IBM Plex Mono"';
   ctx.fillStyle = 'rgba(42,36,24,0.4)';
   ctx.save(); ctx.letterSpacing='2px';
-  ctx.fillText('CRYPTOFUMBLE.COM/RU · ВЕДИ СВОЙ БЕСПЛАТНО', cx, cardTop+cardH-24);
+  ctx.fillText('CRYPTOFUMBLE.COM/RU · ВЕДИ СВОЙ БЕСПЛАТНО', cx, footerY);
   ctx.restore();
   return canvas.toDataURL('image/png');
 }
