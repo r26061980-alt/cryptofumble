@@ -1217,8 +1217,13 @@
     <div id="certCardWrap" style="display:none; margin-top:14px; text-align:center;">
       <canvas id="certCanvas" width="900" height="1020" style="display:none;"></canvas>
       <canvas id="storyCanvas" width="1080" height="1920" style="display:none;"></canvas>
-      <img id="certCardImg" style="width:100%; border-radius:8px; box-shadow:0 12px 40px rgba(0,0,0,0.5);">
+      <img id="certCardImg" style="width:62%; max-width:320px; border-radius:8px; box-shadow:0 12px 40px rgba(0,0,0,0.5);">
       <a id="certDownload" class="share-cta" style="display:block; text-decoration:none; margin-top:10px; box-sizing:border-box;" download="cryptofumble-certificate.png">⬇️ Download certificate</a>
+      <div id="premiumPreviewWrap" style="display:none; margin-top:16px;">
+        <p style="font-size:12.5px; color:var(--muted); margin:0 0 8px; letter-spacing:0.02em;">✨ This is what the premium version looks like:</p>
+        <canvas id="premiumPreviewCanvas" width="1080" height="1920" style="display:none;"></canvas>
+        <img id="premiumPreviewImg" style="width:56%; max-width:230px; border-radius:14px; box-shadow:0 12px 40px rgba(0,0,0,0.5);">
+      </div>
       <button class="share-cta" id="premiumUnlockBtn" style="display:none;">🌟 Premium export — no watermark, story format ($3)</button>
       <div id="premiumDownloads" style="display:none;">
         <button class="share-cta" id="premiumDownloadPngBtn">⬇️ Download PNG (story, no watermark)</button>
@@ -2723,6 +2728,7 @@ async function runLumpSumCalculation(coin){
   // a fresh calculation always starts back at the paywalled state
   premiumUnlocked = false;
   document.getElementById('premiumDownloads').style.display = 'none';
+  document.getElementById('premiumPreviewWrap').style.display = 'none';
   document.getElementById('premiumStatus').textContent = '';
   saveLastCalc();
   precacheShareCard(); // draw the share-card PNG in the background now, ready before the user clicks Share
@@ -2868,6 +2874,7 @@ async function runDcaCalculation(coin){
     document.getElementById('certCardWrap').style.display = 'none';
     premiumUnlocked = false;
     document.getElementById('premiumDownloads').style.display = 'none';
+    document.getElementById('premiumPreviewWrap').style.display = 'none';
     document.getElementById('premiumStatus').textContent = '';
     // DCA also represents coins you'd be holding — offer the same bridge
     const addToPfBtn = document.getElementById('addToPfBtn');
@@ -3477,9 +3484,51 @@ document.getElementById('certBtn').addEventListener('click', async ()=>{
 // Shows the paywall button or the unlocked download buttons depending on
 // `premiumUnlocked`, which is reset to false on every new calculation (see
 // runLumpSumCalculation/runDcaCalculation) — one payment covers one result.
+// Before payment, also renders a live "PREVIEW"-stamped thumbnail of the
+// actual premium design (not a generic stock example) so people aren't
+// asked to pay $3 for an image they've never seen — the stamp is tiled and
+// semi-transparent specifically so a screenshot of the preview isn't a
+// usable substitute for the real, clean download.
 function updatePremiumUI(){
   document.getElementById('premiumUnlockBtn').style.display = premiumUnlocked ? 'none' : 'block';
   document.getElementById('premiumDownloads').style.display = premiumUnlocked ? 'block' : 'none';
+  const previewWrap = document.getElementById('premiumPreviewWrap');
+  if(premiumUnlocked){
+    previewWrap.style.display = 'none';
+  } else {
+    previewWrap.style.display = 'block';
+    generatePremiumPreview().catch(()=>{ previewWrap.style.display = 'none'; });
+  }
+}
+async function generatePremiumPreview(){
+  const cleanDataUrl = await generatePremiumExport();
+  const srcImg = await loadImageSafe(cleanDataUrl);
+  if(!srcImg) throw new Error('preview render failed');
+  const canvas = document.getElementById('premiumPreviewCanvas');
+  const W = canvas.width, H = canvas.height; // 1080x1920, same as the real export
+  const ctx = canvas.getContext('2d');
+  ctx.clearRect(0, 0, W, H);
+  ctx.drawImage(srcImg, 0, 0, W, H);
+  // tiled, rotated, semi-transparent "PREVIEW" stamp across the whole frame
+  ctx.save();
+  ctx.translate(W/2, H/2);
+  ctx.rotate(-Math.PI/7);
+  ctx.translate(-W/2, -H/2);
+  ctx.fillStyle = 'rgba(255,255,255,0.16)';
+  ctx.strokeStyle = 'rgba(0,0,0,0.18)';
+  ctx.lineWidth = 2;
+  ctx.font = '800 64px "IBM Plex Mono", monospace';
+  ctx.textAlign = 'center';
+  for(let row = -1; row < 6; row++){
+    for(let col = -1; col < 3; col++){
+      const x = col * 520 + (row % 2 === 0 ? 0 : 260);
+      const y = row * 300 + 150;
+      ctx.strokeText('PREVIEW', x, y);
+      ctx.fillText('PREVIEW', x, y);
+    }
+  }
+  ctx.restore();
+  document.getElementById('premiumPreviewImg').src = canvas.toDataURL('image/png');
 }
 // Renders the same certificate design at 2x resolution with the watermark
 // removed, then composites it onto a 1080×1920 "story" canvas (Instagram/
