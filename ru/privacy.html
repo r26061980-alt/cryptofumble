@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-83PMW2GVF7"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-83PMW2GVF7');
+</script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="icon" href="/favicon-32.png" type="image/png">
+<link rel="apple-touch-icon" href="/favicon-180.png">
+<title>Приватность — CryptoFumble</title>
+<meta name="description" content="Что CryptoFumble хранит, что видит Google Analytics и что нужно опциональному Telegram-боту.">
+<link rel="canonical" href="https://cryptofumble.com/ru/privacy.html">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0A0B10;
+    --panel:#12161D;
+    --panel-border:rgba(255,255,255,0.08);
+    --panel-border-soft:rgba(255,255,255,0.06);
+    --gold:#F0B90B;
+    --gold-soft:#FFD65C;
+    --text:#F3F2EE;
+    --muted:#98A0AC;
+    --mono:'IBM Plex Mono', monospace;
+    --sans:'Manrope', sans-serif;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--text);
+    font-family:var(--sans);
+    line-height:1.7;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{ max-width:640px; margin:0 auto; padding:56px 20px 100px; }
+  .brand{
+    display:flex; align-items:center; gap:10px; margin-bottom:36px;
+    text-decoration:none;
+  }
+  .brand .coin{
+    width:34px; height:34px; border-radius:50%;
+    background:linear-gradient(145deg,#F0B90B,#caa106);
+    display:flex; align-items:center; justify-content:center;
+    font-family:var(--mono); font-weight:700; font-size:16px; color:#0A0B10;
+  }
+  .brand .name{ font-size:18px; font-weight:800; color:var(--text); }
+  .brand .name span{ color:var(--gold); }
+  h1{ font-size:32px; margin:0 0 6px; letter-spacing:-0.01em; }
+  .eyebrow{
+    font-family:var(--mono); font-size:11px; letter-spacing:0.12em;
+    color:var(--muted); text-transform:uppercase; margin:0 0 8px;
+  }
+  .updated{ font-family:var(--mono); font-size:12px; color:var(--muted); margin:0 0 28px; }
+  p{ color:rgba(243,242,238,0.85); margin:0 0 18px; }
+  h2{ font-size:18px; margin:36px 0 12px; color:var(--text); }
+  a{ color:var(--gold-soft); }
+  ul{ margin:0 0 18px; padding-left:20px; color:rgba(243,242,238,0.85); }
+  li{ margin-bottom:6px; }
+  .card{
+    background:var(--panel); border:1px solid var(--panel-border);
+    border-radius:14px; padding:20px 22px; margin:24px 0;
+  }
+  .card p:last-child{ margin-bottom:0; }
+  footer{
+    margin-top:56px; padding-top:20px; border-top:1px solid var(--panel-border-soft);
+    font-size:12.5px; color:var(--muted); font-family:var(--mono);
+  }
+  footer a{ color:var(--muted); text-decoration:underline; text-underline-offset:2px; }
+  footer a:hover{ color:var(--gold-soft); }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <a class="brand" href="/ru">
+      <div class="coin">₿</div>
+      <div class="name">Crypto<span>Fumble</span></div>
+    </a>
+
+    <p class="eyebrow">Приватность</p>
+    <h1>Что сайт реально делает с данными</h1>
+    <p class="updated">Обновлено 31 августа 2026</p>
+
+    <div class="card">
+      <p>Коротко: на CryptoFumble нет ни аккаунта, ни регистрации, ни email, который где-то собирается. Дальше — честная длинная версия: что хранится в твоём браузере, что видит Google Analytics и что нужно опциональному Telegram-боту.</p>
+    </div>
+
+    <h2>Что хранится в браузере</h2>
+    <p>Это живёт только в локальном хранилище твоего браузера. Никогда не отправляется ни на какой сервер автоматически и исчезает, если очистить данные сайта в браузере:</p>
+    <ul>
+      <li>Избранные монеты, если ты что-то отметил звёздочкой</li>
+      <li>Последний расчёт (монета, сумма, дата, режим) — чтобы форма не была пустой в следующий раз</li>
+      <li>Записи портфеля, если пользовался разделом «Мой портфель» — монета, дата покупки, количество и потраченная сумма, ровно как ты их ввёл</li>
+      <li>Небольшие технические флаги (какую биржу показать следующей, закрывал ли ты баннер)</li>
+    </ul>
+
+    <h2>Аналитика</h2>
+    <p>Сайт использует Google Analytics (GA4), чтобы видеть в целом, сколько людей заходит и какими функциями пользуются — например, «сгенерирован сертификат» или «кто-то открыл сравнение монет», с меткой монеты и результата (плюс/минус), но никогда с чем-то, что опознаёт лично тебя. Что Google делает с этими данными, описано в их собственной <a href="https://policies.google.com/privacy" target="_blank" rel="noopener">политике конфиденциальности</a>. Блокировщики рекламы и защита от трекинга в браузере тут прекрасно работают, если не хочешь отправлять эти данные вообще — сайт от аналитики никак не зависит.</p>
+
+    <h2>Telegram-бот (опционально)</h2>
+    <p>Если нажать «Подключить уведомления в Telegram» в разделе «Мой портфель», записи портфеля отправляются на сервер CryptoFumble и хранятся недолго (около 15 минут) за одноразовым кодом. Отправка этого кода боту <a href="https://t.me/CryptoFumble_bot" target="_blank" rel="noopener">@CryptoFumble_bot</a> привязывает снимок портфеля к твоему Telegram chat ID, чтобы бот мог присылать еженедельный отчёт по прибыли/убытку. Это единственная идентифицирующая информация во всей этой цепочке — ни номера телефона, ни имени, ни username, кроме того, что сам Telegram передаёт как chat ID. Если ты никогда не нажимаешь эту кнопку — ничего из этого не происходит.</p>
+
+    <h2>Партнёрские ссылки</h2>
+    <p>Кнопки, ведущие на криптобиржу (например, «Начать на бирже»), — партнёрские ссылки, это указано прямо рядом с кнопкой. Переход по такой ссылке уводит на сайт биржи с её собственной политикой конфиденциальности и собственными куки — CryptoFumble не видит, что происходит там, кроме иногда самого факта клика.</p>
+
+    <h2>Что никогда не собирается</h2>
+    <p>Никаких паролей, адресов кошельков, API-ключей, настоящих имён, платёжных данных. Собирать их попросту нечем — на CryptoFumble нет входа в аккаунт и никогда не запрашивается.</p>
+
+    <h2>Изменения этой страницы</h2>
+    <p>Если то, что собирает сайт, изменится, эта страница будет обновлена, а дата вверху изменится вместе с ней.</p>
+
+    <h2>Вопросы</h2>
+    <p>Напиши <a href="https://t.me/CryptoFumble_bot" target="_blank" rel="noopener">@CryptoFumble_bot</a> в Telegram или найди CryptoFumble в X.</p>
+
+    <footer>
+      <a href="/ru">← Назад к калькулятору</a> · <a href="/ru/about.html">О проекте</a>
+    </footer>
+  </div>
+</body>
+</html>
