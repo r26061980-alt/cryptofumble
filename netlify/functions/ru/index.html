@@ -220,6 +220,35 @@
     margin-bottom:22px;
   }
   .regret-counter b{color:var(--gold); font-weight:700;}
+  /* Тихая однострочная подсказка про «Мой портфель» для тех, кто пришёл
+     сразу на калькулятор и может не понять, зачем вообще нужна вторая
+     вкладка. Прячется сама, как только человек уже пользуется портфелем
+     (pfEntries.length>0) или сам её закрыл. Намеренно в одну строку — рядом
+     и так борется за внимание блок «regret дня», а компактность на
+     мобильном (см. @media ниже) означает, что каждый лишний пиксель здесь —
+     это лишний скролл на телефоне. */
+  .pf-promo{
+    display:flex; align-items:center; justify-content:center; gap:10px;
+    flex-wrap:wrap; text-align:center;
+    font-size:12.5px; color:var(--muted); line-height:1.5;
+    border:1px dashed var(--panel-border);
+    border-radius:var(--r-md);
+    padding:9px 34px 9px 14px;
+    margin-bottom:20px;
+    position:relative;
+  }
+  .pf-promo b{ color:var(--text); }
+  .pf-promo #pfPromoBtn{
+    background:none; border:none; color:var(--gold); font-family:var(--sans);
+    font-weight:700; font-size:12.5px; cursor:pointer; padding:0; white-space:nowrap;
+  }
+  .pf-promo #pfPromoBtn:hover{ text-decoration:underline; }
+  .pf-promo-close{
+    position:absolute; right:8px; top:50%; transform:translateY(-50%);
+    background:none; border:none; color:var(--muted); font-size:15px;
+    font-weight:700; cursor:pointer; padding:2px 8px; line-height:1;
+  }
+  .pf-promo-close:hover{ color:var(--text); }
   .faq{
     max-width:480px;
     margin:40px auto 0;
@@ -1127,6 +1156,7 @@
     .eyebrow{margin-bottom:10px;}
     h1{font-size:clamp(26px, 7.5vw, 44px); margin-bottom:8px;}
     .sub{margin-bottom:16px;}
+    .pf-promo{padding:8px 30px 8px 12px; margin-bottom:12px; font-size:11.5px;}
     .regret-counter{margin-bottom:12px;}
     .daily-regret{padding:12px 14px; margin-bottom:14px;}
     .panel{padding:16px; margin-bottom:14px;}
@@ -1231,6 +1261,11 @@
   <div class="eyebrow">живые цены · coingecko</div>
   <h1>Сколько бы ты <span>заработал</span>, если бы купил тогда?</h1>
   <p class="sub">Выбери монету, сумму и дату — узнай, во что превратились бы твои деньги. Больно, но полезно.</p>
+  <div class="pf-promo" id="pfPromo" style="display:none;">
+    <span>📊 А ещё можно вести <b>настоящий</b> портфель — плюс еженедельный отчёт в Telegram.</span>
+    <button type="button" id="pfPromoBtn">Добавить первую покупку →</button>
+    <button type="button" class="pf-promo-close" id="pfPromoClose" aria-label="Закрыть">×</button>
+  </div>
   <div class="regret-counter" id="regretCounter" style="display:none;"></div>
   <div class="daily-regret" id="dailyRegret" style="display:none;">
     <div class="daily-regret-label">📅 РЕГРЕТ ДНЯ</div>
@@ -4139,6 +4174,28 @@ function pfSave(entries){
 }
 let pfEntries = pfLoad();
 let pfSelectedCoin = { symbol:'BTC', name:'Bitcoin', geckoId:'bitcoin' };
+
+// Подсказка «а ещё можно вести настоящий портфель» под шапкой — есть смысл
+// показывать только тому, кто портфель ещё не нашёл: прячется сразу, если
+// уже есть записи, или если человек сам её закрыл.
+(function(){
+  const promo = document.getElementById('pfPromo');
+  if(!promo) return;
+  let closed = false;
+  try{ closed = localStorage.getItem('pfPromoClosed') === '1'; }catch(e){}
+  if(pfEntries.length === 0 && !closed) promo.style.display = 'flex';
+  document.getElementById('pfPromoBtn')?.addEventListener('click', ()=>{
+    try{ localStorage.setItem('pfPromoClosed', '1'); }catch(e){}
+    promo.style.display = 'none';
+    document.querySelector('#pageTabs .page-tab[data-view="portfolio"]')?.click();
+    document.getElementById('portfolioView')?.scrollIntoView({ behavior:'smooth', block:'start' });
+    if(typeof gtag === 'function') gtag('event', 'portfolio_promo_click');
+  });
+  document.getElementById('pfPromoClose')?.addEventListener('click', ()=>{
+    try{ localStorage.setItem('pfPromoClosed', '1'); }catch(e){}
+    promo.style.display = 'none';
+  });
+})();
 
 // свой отдельный выбор монеты — не пересекается с выбором в самом калькуляторе
 const pfGrid = document.getElementById('pfCoinGrid');
