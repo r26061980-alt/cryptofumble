@@ -1062,11 +1062,36 @@
     font-size:12px; padding:8px 0; border-top:1px dashed var(--panel-border-soft);
     color:var(--muted);
   }
-  .pf-entry-row .pf-entry-del{
+  .pf-entry-row .pf-entry-del, .pf-entry-row .pf-entry-edit{
     background:none; border:none; color:var(--muted); cursor:pointer;
     font-size:14px; padding:2px 6px; line-height:1;
   }
   .pf-entry-row .pf-entry-del:hover{color:#EA3943;}
+  .pf-entry-row .pf-entry-edit:hover{color:var(--gold);}
+  /* Инлайн-форма редактирования одной покупки — позволяет тому, кто продал
+     часть монеты, поправить оставшееся количество (и, если нужно, сумму
+     потраченного) прямо в этой записи, не удаляя и не создавая её заново.
+     Намеренно те же два простых числовых поля, что и в форме добавления
+     покупки выше — без отдельного объекта "продажа" и учёта реализованной
+     прибыли, в том же минималистичном духе, что и весь остальной портфель. */
+  .pf-entry-edit-form{
+    display:flex; align-items:center; gap:6px; flex-wrap:wrap;
+    padding:8px 0; border-top:1px dashed var(--panel-border-soft);
+  }
+  .pf-entry-edit-form input{
+    width:84px; font-family:var(--mono); font-size:12px;
+    background:var(--field-bg); color:var(--text);
+    border:1px solid var(--panel-border); border-radius:6px; padding:6px 8px;
+  }
+  .pf-entry-edit-form input:focus{border-color:var(--gold); outline:none;}
+  .pf-entry-edit-form label{font-size:10.5px; color:var(--muted); margin-right:-2px;}
+  .pf-edit-save, .pf-edit-cancel{
+    background:none; border:none; cursor:pointer; font-size:15px;
+    padding:2px 7px; line-height:1; margin-left:auto;
+  }
+  .pf-edit-save{color:#16C784;}
+  .pf-edit-cancel{color:var(--muted); margin-left:2px;}
+  .pf-edit-cancel:hover{color:#EA3943;}
   /* ═══ Компактность на мобильном ═══ */
   /* На реальном телефоне с реальной длинной историей цены пространство НАД
      чеком (заголовок + блок «дневного сожаления» + сама панель
@@ -4345,7 +4370,15 @@ async function pfRender(){
     const entriesHtml = g.entries.map(e => `
       <div class="pf-entry-row" data-id="${e.id}">
         <span>${e.dateStr} · ${pfFmtQty(e.qty)} @ ${fmt(e.spent/e.qty)}</span>
-        <span>${fmt(e.spent)} <button type="button" class="pf-entry-del" data-id="${e.id}" title="Удалить">✕</button></span>
+        <span>${fmt(e.spent)} <button type="button" class="pf-entry-edit" data-id="${e.id}" title="Изменить">✎</button> <button type="button" class="pf-entry-del" data-id="${e.id}" title="Удалить">✕</button></span>
+      </div>
+      <div class="pf-entry-edit-form" data-edit-id="${e.id}" style="display:none;">
+        <label>Кол-во</label>
+        <input type="number" class="pf-edit-qty" min="0" step="any" value="${e.qty}">
+        <label>Потрачено</label>
+        <input type="number" class="pf-edit-spent" min="0" step="any" value="${e.spent}">
+        <button type="button" class="pf-edit-save" data-id="${e.id}" title="Сохранить">✓</button>
+        <button type="button" class="pf-edit-cancel" data-id="${e.id}" title="Отмена">✕</button>
       </div>`).join('');
     return `<div class="pf-coin-card" data-geckoid="${id}">
       <div class="pf-coin-head">
@@ -4397,6 +4430,46 @@ async function pfRender(){
       ev.stopPropagation();
       const id = btn.getAttribute('data-id');
       pfEntries = pfEntries.filter(e => String(e.id) !== String(id));
+      pfSave(pfEntries);
+      pfRender();
+    });
+  });
+  // Редактирование уже существующей покупки на месте — основной сценарий:
+  // поправить оставшееся количество после того, как продал часть позиции,
+  // не удаляя и не пересоздавая запись заново.
+  container.querySelectorAll('.pf-entry-edit').forEach(btn=>{
+    btn.addEventListener('click', (ev)=>{
+      ev.stopPropagation();
+      const id = btn.getAttribute('data-id');
+      const row = container.querySelector(`.pf-entry-row[data-id="${id}"]`);
+      const form = container.querySelector(`.pf-entry-edit-form[data-edit-id="${id}"]`);
+      if(row) row.style.display = 'none';
+      if(form) form.style.display = 'flex';
+    });
+  });
+  container.querySelectorAll('.pf-edit-cancel').forEach(btn=>{
+    btn.addEventListener('click', (ev)=>{
+      ev.stopPropagation();
+      const id = btn.getAttribute('data-id');
+      const row = container.querySelector(`.pf-entry-row[data-id="${id}"]`);
+      const form = container.querySelector(`.pf-entry-edit-form[data-edit-id="${id}"]`);
+      if(form) form.style.display = 'none';
+      if(row) row.style.display = 'flex';
+    });
+  });
+  container.querySelectorAll('.pf-edit-save').forEach(btn=>{
+    btn.addEventListener('click', (ev)=>{
+      ev.stopPropagation();
+      const id = btn.getAttribute('data-id');
+      const form = container.querySelector(`.pf-entry-edit-form[data-edit-id="${id}"]`);
+      const qty = parseFloat(form.querySelector('.pf-edit-qty').value);
+      const spent = parseFloat(form.querySelector('.pf-edit-spent').value);
+      if(!qty || qty <= 0 || !spent || spent <= 0){
+        alert('Количество и потраченная сумма должны быть больше нуля.');
+        return;
+      }
+      const entry = pfEntries.find(e => String(e.id) === String(id));
+      if(entry){ entry.qty = qty; entry.spent = spent; }
       pfSave(pfEntries);
       pfRender();
     });
