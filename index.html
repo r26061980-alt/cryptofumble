@@ -3,6 +3,9 @@
 <head>
 <!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-83PMW2GVF7"></script>
+<!-- jsPDF — only used by the premium-export "Download PDF" button; loaded
+     deferred since it's not needed until well after page load, if ever. -->
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script>
   window.dataLayer = window.dataLayer || [];
   function gtag(){dataLayer.push(arguments);}
@@ -1213,8 +1216,15 @@
     </div>
     <div id="certCardWrap" style="display:none; margin-top:14px; text-align:center;">
       <canvas id="certCanvas" width="900" height="1020" style="display:none;"></canvas>
+      <canvas id="storyCanvas" width="1080" height="1920" style="display:none;"></canvas>
       <img id="certCardImg" style="width:100%; border-radius:8px; box-shadow:0 12px 40px rgba(0,0,0,0.5);">
       <a id="certDownload" class="share-cta" style="display:block; text-decoration:none; margin-top:10px; box-sizing:border-box;" download="cryptofumble-certificate.png">⬇️ Download certificate</a>
+      <button class="share-cta" id="premiumUnlockBtn" style="display:none;">🌟 Premium export — no watermark, story format ($3)</button>
+      <div id="premiumDownloads" style="display:none;">
+        <button class="share-cta" id="premiumDownloadPngBtn">⬇️ Download PNG (story, no watermark)</button>
+        <button class="share-cta" id="premiumDownloadPdfBtn">⬇️ Download PDF (story, no watermark)</button>
+      </div>
+      <div id="premiumStatus" style="font-size:11.5px; color:var(--muted); margin-top:8px;"></div>
     </div>
     <a href="https://www.bybit.com/invite?ref=PK8RA3&medium=referral&utm_campaign=evergreen&share_to=post"
        target="_blank" rel="noopener noreferrer sponsored"
@@ -2709,6 +2719,11 @@ async function runLumpSumCalculation(coin){
   addToPfBtn.style.display = currentMode === 'sold' ? 'none' : 'block';
   addToPfBtn.disabled = false;
   addToPfBtn.textContent = '➕ Add to portfolio';
+  // a $3 premium-export unlock only ever covers the result it was paid for —
+  // a fresh calculation always starts back at the paywalled state
+  premiumUnlocked = false;
+  document.getElementById('premiumDownloads').style.display = 'none';
+  document.getElementById('premiumStatus').textContent = '';
   saveLastCalc();
   precacheShareCard(); // draw the share-card PNG in the background now, ready before the user clicks Share
   precacheShareId(); // also fetch the short share link in the background, same reasoning
@@ -2851,6 +2866,9 @@ async function runDcaCalculation(coin){
     };
     document.getElementById('shareCardWrap').style.display = 'none';
     document.getElementById('certCardWrap').style.display = 'none';
+    premiumUnlocked = false;
+    document.getElementById('premiumDownloads').style.display = 'none';
+    document.getElementById('premiumStatus').textContent = '';
     // DCA also represents coins you'd be holding — offer the same bridge
     const addToPfBtn = document.getElementById('addToPfBtn');
     addToPfBtn.style.display = 'block';
@@ -2890,6 +2908,11 @@ async function runDcaCalculation(coin){
 }
 // keep the last computed result around so the share card can use it
 let lastResult = null;
+// whether the current lastResult has an active $3 premium-export unlock —
+// per-result, not site-wide: reset to false at the top of every new
+// calculation (see runLumpSumCalculation/runDcaCalculation) so one payment
+// only ever unlocks the one result it was made for.
+let premiumUnlocked = false;
 // ---- Remember the last calculation so a returning visitor's form isn't
 // blank (client-side only, same localStorage pattern as favorite coins).
 // Restored on load, never auto-submitted — just prefills the form.
@@ -3194,10 +3217,20 @@ function drawDiamond(ctx, x, y, r){
   ctx.closePath();
   ctx.fill();
 }
-async function drawCertificateCard(includeLogo){
+// opts.scale renders the exact same design at a higher pixel density (used
+// by the premium export, which composites this onto a bigger canvas — a
+// downscale from something crisper looks better than an upscale from 900px).
+// opts.hideWatermark drops the "CRYPTOFUMBLE.COM · MAKE YOUR OWN" footer line
+// for paying users, per the premium export's "no watermark" promise.
+async function drawCertificateCard(includeLogo, opts){
+  opts = opts || {};
+  const scale = opts.scale || 1;
   const canvas = document.getElementById('certCanvas');
-  const W = canvas.width, H = canvas.height; // 900 x 1200 — portrait, meant to print/frame as-is
+  const W = 900, H = 1020; // logical size — all layout math below is unchanged by `scale`
+  canvas.width = W * scale;
+  canvas.height = H * scale;
   const ctx = canvas.getContext('2d');
+  ctx.setTransform(scale, 0, 0, scale, 0, 0);
   await Promise.all([
     document.fonts.load('800 46px "Playfair Display"'),
     document.fonts.load('700 30px "Dancing Script"'),
@@ -3351,12 +3384,14 @@ async function drawCertificateCard(includeLogo){
   ctx.fillText('CHIEF REGRET OFFICER', W-80, footerY+60);
   ctx.restore();
 
-  ctx.textAlign = 'center';
-  ctx.fillStyle = inkFaint;
-  ctx.font = '600 12px "IBM Plex Mono"';
-  ctx.save(); ctx.letterSpacing = '2px';
-  ctx.fillText('CRYPTOFUMBLE.COM · MAKE YOUR OWN', cx, H-70);
-  ctx.restore();
+  if(!opts.hideWatermark){
+    ctx.textAlign = 'center';
+    ctx.fillStyle = inkFaint;
+    ctx.font = '600 12px "IBM Plex Mono"';
+    ctx.save(); ctx.letterSpacing = '2px';
+    ctx.fillText('CRYPTOFUMBLE.COM · MAKE YOUR OWN', cx, H-70);
+    ctx.restore();
+  }
 
   return canvas.toDataURL('image/png');
 }
@@ -3410,10 +3445,163 @@ document.getElementById('certBtn').addEventListener('click', async ()=>{
   document.getElementById('certCardWrap').scrollIntoView({behavior:'smooth', block:'nearest'});
   certBtn.textContent = origLabel;
   certBtn.disabled = false;
+  updatePremiumUI();
   if(typeof gtag === 'function'){
     gtag('event', 'certificate_generate', { outcome: lastResult.isGood?'win':'loss', coin: lastResult.coinSymbol });
   }
 });
+// ---- Premium export ($3, via Stripe Checkout) ----
+// Shows the paywall button or the unlocked download buttons depending on
+// `premiumUnlocked`, which is reset to false on every new calculation (see
+// runLumpSumCalculation/runDcaCalculation) — one payment covers one result.
+function updatePremiumUI(){
+  document.getElementById('premiumUnlockBtn').style.display = premiumUnlocked ? 'none' : 'block';
+  document.getElementById('premiumDownloads').style.display = premiumUnlocked ? 'block' : 'none';
+}
+// Renders the same certificate design at 2x resolution with the watermark
+// removed, then composites it onto a 1080×1920 "story" canvas (Instagram/
+// Telegram-stories aspect ratio) with generous padding — a downscale from
+// the 2x source looks noticeably crisper than stretching the normal 900px
+// certificate up to fill the same frame.
+async function generatePremiumExport(){
+  let certDataUrl;
+  try{
+    certDataUrl = await drawCertificateCard(true, { scale: 2, hideWatermark: true });
+  }catch(err){
+    certDataUrl = await drawCertificateCard(false, { scale: 2, hideWatermark: true });
+  }
+  const certImg = await loadImageSafe(certDataUrl);
+  const storyCanvas = document.getElementById('storyCanvas');
+  const SW = storyCanvas.width, SH = storyCanvas.height; // 1080 x 1920
+  const sctx = storyCanvas.getContext('2d');
+  sctx.clearRect(0, 0, SW, SH);
+  const bg = sctx.createRadialGradient(SW/2, SH*0.4, 100, SW/2, SH*0.4, SW*1.1);
+  bg.addColorStop(0, '#1A1710');
+  bg.addColorStop(1, '#0A0B10');
+  sctx.fillStyle = bg;
+  sctx.fillRect(0, 0, SW, SH);
+  if(certImg){
+    const maxW = SW - 140;
+    const srcW = certImg.naturalWidth || 1800, srcH = certImg.naturalHeight || 2040;
+    const ratio = maxW / srcW;
+    const drawW = srcW * ratio, drawH = srcH * ratio;
+    const dx = (SW - drawW) / 2, dy = (SH - drawH) / 2;
+    sctx.save();
+    sctx.shadowColor = 'rgba(0,0,0,0.55)';
+    sctx.shadowBlur = 50;
+    sctx.shadowOffsetY = 22;
+    sctx.drawImage(certImg, dx, dy, drawW, drawH);
+    sctx.restore();
+  }
+  return storyCanvas.toDataURL('image/png');
+}
+function triggerDownload(dataUrl, filename){
+  const a = document.createElement('a');
+  a.href = dataUrl;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+}
+document.getElementById('premiumUnlockBtn').addEventListener('click', async ()=>{
+  if(!lastResult) return;
+  const btn = document.getElementById('premiumUnlockBtn');
+  const statusEl = document.getElementById('premiumStatus');
+  btn.disabled = true;
+  btn.textContent = 'Redirecting to checkout…';
+  statusEl.textContent = '';
+  try{
+    const res = await fetch('/.netlify/functions/create-checkout-session', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ returnPath: location.pathname }),
+    });
+    if(!res.ok) throw new Error('checkout session failed');
+    const { url } = await res.json();
+    if(!url) throw new Error('no checkout url returned');
+    if(typeof gtag === 'function') gtag('event', 'premium_checkout_start', { coin: lastResult.coinSymbol });
+    window.location.href = url; // full navigation to Stripe's hosted checkout page
+  }catch(err){
+    btn.disabled = false;
+    btn.textContent = '🌟 Premium export — no watermark, story format ($3)';
+    statusEl.textContent = "Couldn't start checkout — try again in a moment.";
+  }
+});
+document.getElementById('premiumDownloadPngBtn').addEventListener('click', async ()=>{
+  const btn = document.getElementById('premiumDownloadPngBtn');
+  const orig = btn.textContent;
+  btn.disabled = true; btn.textContent = 'Rendering…';
+  try{
+    const dataUrl = await generatePremiumExport();
+    triggerDownload(dataUrl, 'cryptofumble-premium.png');
+  } finally {
+    btn.disabled = false; btn.textContent = orig;
+  }
+});
+document.getElementById('premiumDownloadPdfBtn').addEventListener('click', async ()=>{
+  const btn = document.getElementById('premiumDownloadPdfBtn');
+  const orig = btn.textContent;
+  btn.disabled = true; btn.textContent = 'Rendering…';
+  try{
+    const dataUrl = await generatePremiumExport();
+    if(!window.jspdf || !window.jspdf.jsPDF){
+      // jsPDF (loaded deferred from a CDN) hasn't finished loading yet — PNG
+      // still works regardless, so fail gracefully rather than leave the
+      // button stuck
+      document.getElementById('premiumStatus').textContent = "PDF library still loading — try again in a second, or use the PNG download.";
+      return;
+    }
+    const storyCanvas = document.getElementById('storyCanvas');
+    const pdf = new window.jspdf.jsPDF({ orientation:'portrait', unit:'px', format:[storyCanvas.width, storyCanvas.height] });
+    pdf.addImage(dataUrl, 'PNG', 0, 0, storyCanvas.width, storyCanvas.height);
+    pdf.save('cryptofumble-premium.pdf');
+  } finally {
+    btn.disabled = false; btn.textContent = orig;
+  }
+});
+// ---- Returning from Stripe Checkout ----
+// success_url includes ?premium_unlock=1&session_id=cs_... — verify with
+// Stripe server-side (see verify-checkout-session.js) before unlocking
+// anything, then restore + re-run the calculation the user paid for (the
+// browser fully navigated away to Stripe and back, so calculator state
+// only survives via the same cf_last_calc localStorage the "restore last
+// calculation" feature already uses) and generate its certificate.
+(async function handlePremiumCheckoutReturn(){
+  const params = new URLSearchParams(location.search);
+  if(!params.has('premium_unlock') && !params.has('premium_cancelled')) return;
+  const cleanUrl = location.pathname;
+  if(params.has('premium_cancelled')){
+    history.replaceState(null, '', cleanUrl);
+    return;
+  }
+  const sessionId = params.get('session_id');
+  history.replaceState(null, '', cleanUrl); // strip params immediately either way — never re-verify on a refresh
+  if(!sessionId) return;
+  const statusEl = document.getElementById('premiumStatus');
+  try{
+    const res = await fetch(`/.netlify/functions/verify-checkout-session?session_id=${encodeURIComponent(sessionId)}`);
+    const json = await res.json();
+    if(!res.ok || !json.paid){
+      alert("We couldn't confirm the payment for this session. If you were charged, message @CryptoFumble_bot on Telegram and it'll get sorted.");
+      return;
+    }
+    const saved = readLastCalc();
+    if(!saved){
+      alert('Payment confirmed, but the calculation to unlock got lost — run it again and the premium export button will remember this payment for a minute.');
+      return;
+    }
+    if(currentMode === 'dca'){
+      await runDcaCalculation(currentCoin);
+    } else {
+      await runLumpSumCalculation(currentCoin);
+    }
+    premiumUnlocked = true;
+    document.getElementById('certBtn').click();
+    if(typeof gtag === 'function') gtag('event', 'premium_unlocked', { coin: currentCoin.symbol });
+  }catch(err){
+    if(statusEl) statusEl.textContent = "Couldn't verify the payment — refresh in a moment, or message @CryptoFumble_bot if this persists.";
+  }
+})();
 document.getElementById('shareBtn').addEventListener('click', async ()=>{
   if(!lastResult){
     alert('First hit "Show me what I missed" to calculate a result.');
