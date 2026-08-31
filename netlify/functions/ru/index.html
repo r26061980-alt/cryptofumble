@@ -244,7 +244,7 @@
   }
   .pf-promo #pfPromoBtn:hover{ text-decoration:underline; }
   .pf-promo-close{
-    position:absolute; right:8px; top:50%; transform:translateY(-50%);
+    position:absolute; right:6px; top:6px;
     background:none; border:none; color:var(--muted); font-size:15px;
     font-weight:700; cursor:pointer; padding:2px 8px; line-height:1;
   }
@@ -1058,7 +1058,7 @@
     font-family:var(--mono); font-size:10px; letter-spacing:0.08em;
     text-transform:uppercase; color:var(--muted); margin-bottom:8px;
   }
-  .pf-totals .pf-tot-val{font-family:var(--mono); font-weight:700; font-size:19px;}
+  .pf-totals .pf-tot-val{font-family:var(--mono); font-weight:700; font-size:19px; overflow-wrap:anywhere;}
   .pf-totals .pf-tot-val.pos{color:#16C784;}
   .pf-totals .pf-tot-val.neg{color:#EA3943;}
   .pf-coin-card{
@@ -1089,7 +1089,7 @@
   .pf-coin-stats .pf-stat-label{color:var(--muted); margin-bottom:3px; font-size:10.5px; text-transform:uppercase; letter-spacing:0.05em;}
   .pf-coin-stats .pf-stat-val{color:var(--text); font-weight:600;}
   .pf-pnl{
-    display:flex; justify-content:space-between; align-items:center;
+    display:flex; justify-content:space-between; align-items:center; gap:8px;
     padding-top:12px; border-top:1px dashed var(--panel-border-soft);
   }
   .pf-pnl-val{font-family:var(--mono); font-weight:700; font-size:16px;}
@@ -1157,6 +1157,25 @@
     h1{font-size:clamp(26px, 7.5vw, 44px); margin-bottom:8px;}
     .sub{margin-bottom:16px;}
     .pf-promo{padding:8px 30px 8px 12px; margin-bottom:12px; font-size:11.5px;}
+    /* Строка "Сейчас стоит / +прибыль (%)" в карточке монеты: на 375px, как
+       только суммы становятся большие (реальная позиция в BTC), метка и
+       значение перестают помещаться рядом, и текст каждого span'а начинал
+       переноситься посередине — "Сейчас стоит" отрывалось от своей цифры,
+       "+$24,278" от "(+161.9%)". Разрешаем переносить строку целиком —
+       каждый span остаётся цельным, просто уходит на свою строку. */
+    .pf-pnl{flex-wrap:wrap; row-gap:4px;}
+    .pf-pnl span{white-space:nowrap;}
+    /* То же для верхней плашки "Всего вложено / Стоит сейчас / Прибыль-убыток":
+       3 колонки в ряд нормально смотрятся с небольшими цифрами, но вся идея
+       этого калькулятора — "а что если бы купил дёшево", и небольшая покупка
+       дешёвой/ранней монеты может превратиться в выигрыш на 5-6 знаков —
+       процент вроде "+2078300.0%" не помещается в колонку ~110px. Без места
+       для переноса он наезжал на соседнюю колонку ("$207,840+2078300.0%"
+       слипались). 2 колонки дают каждому значению вдвое больше места; если
+       колонка одна лишняя (П/У), она уходит на свою строку по центру. */
+    .pf-totals{flex-wrap:wrap; row-gap:16px; column-gap:10px;}
+    .pf-totals .pf-tot-item{flex:1 1 45%; min-width:45%;}
+    .pf-totals .pf-tot-val{font-size:16px;}
     .regret-counter{margin-bottom:12px;}
     .daily-regret{padding:12px 14px; margin-bottom:14px;}
     .panel{padding:16px; margin-bottom:14px;}
@@ -1237,7 +1256,7 @@
   </a>
   <button onclick="document.getElementById('ph-banner').style.display='none'; try{localStorage.setItem('phBannerClosed','1')}catch(e){}"
     aria-label="Закрыть"
-    style="position:absolute; right:12px; top:50%; transform:translateY(-50%); background:none; border:none; font-size:18px; font-weight:700; color:#0D1117; cursor:pointer; line-height:1;">
+    style="position:absolute; right:12px; top:12px; background:none; border:none; font-size:18px; font-weight:700; color:#0D1117; cursor:pointer; line-height:1;">
     ×
   </button>
 </div>
