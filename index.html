@@ -972,8 +972,23 @@
   #pfCoinSearch:focus{border-color:var(--gold); box-shadow:0 0 0 4px rgba(240,185,11,0.12);}
   .pf-note{
     font-size:12px; color:var(--muted); text-align:center;
-    margin:0 0 20px; line-height:1.6;
+    margin:0 0 14px; line-height:1.6;
   }
+  /* The portfolio lives only in this browser's localStorage (see .pf-note
+     right above) — export/import is the escape hatch so that isn't a trap:
+     a plain JSON download of the exact entries array, and a matching import
+     that merges into (never silently replaces) whatever's already there. */
+  .pf-backup-row{
+    display:flex; justify-content:center; gap:10px; flex-wrap:wrap;
+    margin:0 0 20px;
+  }
+  .pf-backup-btn{
+    background:transparent; border:1px solid var(--panel-border); color:var(--muted);
+    font-family:var(--mono); font-size:11.5px; letter-spacing:0.02em;
+    padding:8px 14px; border-radius:var(--r-md); cursor:pointer;
+    transition:border-color .2s var(--ease), color .2s var(--ease);
+  }
+  .pf-backup-btn:hover{ border-color:var(--gold); color:var(--gold); }
   .pf-add-btn{
     width:100%; background:var(--gold); color:#1C1503; border:none;
     font-family:var(--sans); font-weight:800; font-size:15px;
@@ -1174,7 +1189,11 @@
 </script>
 </head>
 <body>
-<!-- ═══ Product Hunt launch banner — add ONLY after the launch goes live (after 15:01 Beijing time / 00:01 PDT on Aug 28), right after <body> ═══ -->
+<!-- ═══ Product Hunt badge — launch day was Aug 28; the original banner said
+     "we're live today, vote now", which goes stale (and starts reading as a
+     bug) the moment launch day ends and the PH daily ranking closes. Swapped
+     for a permanent, low-urgency "featured on" credential instead of
+     removing it outright — still a trust signal, just not a false one. ═══ -->
 <div id="ph-banner" style="
   display:flex; align-items:center; justify-content:center; gap:12px;
   flex-wrap:wrap; text-align:center;
@@ -1182,11 +1201,11 @@
   color:#0D1117; font-family:'Manrope', sans-serif; font-weight:700;
   font-size:14px; padding:12px 44px 12px 16px; position:relative;
 ">
-  <span>🚀 We're live on Product Hunt today — your upvote means the world!</span>
+  <span>🏆 Featured on Product Hunt</span>
   <a href="https://www.producthunt.com/products/cryptofumble-what-could-you-have-made?launch=cryptofumble-what-could-you-have-made"
      target="_blank" rel="noopener"
      style="background:#0D1117; color:#F0B90B; padding:7px 16px; border-radius:8px; text-decoration:none; font-weight:800; white-space:nowrap;">
-    Vote now →
+    See the launch →
   </a>
   <button onclick="document.getElementById('ph-banner').style.display='none'; try{localStorage.setItem('phBannerClosed','1')}catch(e){}"
     aria-label="Close"
@@ -1406,6 +1425,11 @@
       </div>
     </div>
     <p class="pf-note">Stored only in this browser, on this device — clear your browser data and it's gone. Not synced anywhere, not investment advice.</p>
+    <div class="pf-backup-row">
+      <button type="button" class="pf-backup-btn" id="pfExportBtn">⬇ Export backup</button>
+      <button type="button" class="pf-backup-btn" id="pfImportBtn">⬆ Import backup</button>
+      <input type="file" id="pfImportFile" accept="application/json,.json" style="display:none;">
+    </div>
     <div class="pf-tg-connect">
       <button type="button" class="pf-tg-btn" id="pfTgConnectBtn">📲 Connect Telegram notifications</button>
       <div class="pf-tg-status" id="pfTgStatus"></div>
@@ -4316,6 +4340,69 @@ document.getElementById('pfAddBtn').addEventListener('click', ()=>{
   document.getElementById('pfComputedPrice').textContent = '';
   pfRender();
   if(typeof gtag === 'function') gtag('event', 'portfolio_entry_added', { coin: pfSelectedCoin.symbol });
+});
+
+// Export/import backup — the portfolio is localStorage-only (see .pf-note),
+// so this is the one escape hatch against "cleared my browser and lost
+// everything". Export is just the raw pfEntries array as JSON; import
+// validates the shape, regenerates ids so nothing can collide with existing
+// entries, and MERGES rather than silently replacing when there's already
+// something in the portfolio — the user explicitly confirms the merge first.
+document.getElementById('pfExportBtn').addEventListener('click', ()=>{
+  if(pfEntries.length === 0){
+    alert('Your portfolio is empty — nothing to export yet.');
+    return;
+  }
+  const blob = new Blob([JSON.stringify(pfEntries, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `cryptofumble-portfolio-${new Date().toISOString().slice(0,10)}.json`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+  if(typeof gtag === 'function') gtag('event', 'portfolio_export', { count: pfEntries.length });
+});
+document.getElementById('pfImportBtn').addEventListener('click', ()=>{
+  document.getElementById('pfImportFile').click();
+});
+document.getElementById('pfImportFile').addEventListener('change', (ev)=>{
+  const file = ev.target.files[0];
+  ev.target.value = ''; // reset so re-selecting the same file later still fires "change"
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    let imported;
+    try{
+      imported = JSON.parse(reader.result);
+    }catch(e){
+      alert("Couldn't read that file — it doesn't look like a CryptoFumble backup.");
+      return;
+    }
+    const isValid = Array.isArray(imported) && imported.length > 0 && imported.every(e =>
+      e && typeof e === 'object' && e.geckoId && e.symbol &&
+      typeof e.qty === 'number' && e.qty > 0 &&
+      typeof e.spent === 'number' && e.spent > 0
+    );
+    if(!isValid){
+      alert("Couldn't read that file — it doesn't look like a valid CryptoFumble backup.");
+      return;
+    }
+    // fresh ids so imported entries never collide with anything already stored
+    const fresh = imported.map(e => ({ ...e, id: Date.now() + Math.random() }));
+    if(pfEntries.length > 0){
+      const ok = confirm(`You already have ${pfEntries.length} purchase${pfEntries.length>1?'s':''} logged. Add ${fresh.length} more from this backup? (Nothing already here will be deleted.)`);
+      if(!ok) return;
+      pfEntries = pfEntries.concat(fresh);
+    } else {
+      pfEntries = fresh;
+    }
+    pfSave(pfEntries);
+    pfRender();
+    if(typeof gtag === 'function') gtag('event', 'portfolio_import', { count: fresh.length });
+  };
+  reader.readAsText(file);
 });
 
 // "Connect Telegram notifications" — snapshots the current portfolio to a
