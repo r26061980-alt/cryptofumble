@@ -971,8 +971,23 @@
   #pfCoinSearch:focus{border-color:var(--gold); box-shadow:0 0 0 4px rgba(240,185,11,0.12);}
   .pf-note{
     font-size:12px; color:var(--muted); text-align:center;
-    margin:0 0 20px; line-height:1.6;
+    margin:0 0 14px; line-height:1.6;
   }
+  /* Портфель живёт только в localStorage этого браузера (см. .pf-note чуть
+     выше) — экспорт/импорт нужен, чтобы это не было ловушкой: обычный
+     JSON-файл с точным массивом записей, и такой же импорт, который
+     ДОБАВЛЯЕТ (никогда молча не заменяет) то, что уже есть. */
+  .pf-backup-row{
+    display:flex; justify-content:center; gap:10px; flex-wrap:wrap;
+    margin:0 0 20px;
+  }
+  .pf-backup-btn{
+    background:transparent; border:1px solid var(--panel-border); color:var(--muted);
+    font-family:var(--mono); font-size:11.5px; letter-spacing:0.02em;
+    padding:8px 14px; border-radius:var(--r-md); cursor:pointer;
+    transition:border-color .2s var(--ease), color .2s var(--ease);
+  }
+  .pf-backup-btn:hover{ border-color:var(--gold); color:var(--gold); }
   .pf-add-btn{
     width:100%; background:var(--gold); color:#1C1503; border:none;
     font-family:var(--sans); font-weight:800; font-size:15px;
@@ -1172,7 +1187,11 @@
 </script>
 </head>
 <body>
-<!-- ═══ Баннер Product Hunt — вставить ТОЛЬКО после старта запуска (после 15:01 по Пекину / 00:01 PDT, 28 августа), сразу после <body> ═══ -->
+<!-- ═══ Бейдж Product Hunt — день запуска был 28 августа; исходный текст
+     "сегодня мы на PH, голосуй" устаревает (и начинает читаться как баг)
+     сразу после того, как закрывается дневной рейтинг PH. Заменено на
+     постоянный, без ложной срочности бейдж "были на Product Hunt" вместо
+     полного удаления — по-прежнему сигнал доверия, просто не враньё. ═══ -->
 <div id="ph-banner" style="
   display:flex; align-items:center; justify-content:center; gap:12px;
   flex-wrap:wrap; text-align:center;
@@ -1180,11 +1199,11 @@
   color:#0D1117; font-family:'Manrope', sans-serif; font-weight:700;
   font-size:14px; padding:12px 44px 12px 16px; position:relative;
 ">
-  <span>🚀 Сегодня мы на Product Hunt — твой голос очень важен!</span>
+  <span>🏆 Мы на Product Hunt</span>
   <a href="https://www.producthunt.com/products/cryptofumble-what-could-you-have-made?launch=cryptofumble-what-could-you-have-made"
      target="_blank" rel="noopener"
      style="background:#0D1117; color:#F0B90B; padding:7px 16px; border-radius:8px; text-decoration:none; font-weight:800; white-space:nowrap;">
-    Проголосовать →
+    Смотреть запуск →
   </a>
   <button onclick="document.getElementById('ph-banner').style.display='none'; try{localStorage.setItem('phBannerClosed','1')}catch(e){}"
     aria-label="Закрыть"
@@ -1404,6 +1423,11 @@
       </div>
     </div>
     <p class="pf-note">Хранится только в этом браузере, на этом устройстве — очистишь данные браузера, и записи пропадут. Нигде не синхронизируется, это не инвестиционный совет.</p>
+    <div class="pf-backup-row">
+      <button type="button" class="pf-backup-btn" id="pfExportBtn">⬇ Экспорт бэкапа</button>
+      <button type="button" class="pf-backup-btn" id="pfImportBtn">⬆ Импорт бэкапа</button>
+      <input type="file" id="pfImportFile" accept="application/json,.json" style="display:none;">
+    </div>
     <div class="pf-tg-connect">
       <button type="button" class="pf-tg-btn" id="pfTgConnectBtn">📲 Подключить уведомления в Telegram</button>
       <div class="pf-tg-status" id="pfTgStatus"></div>
@@ -4286,6 +4310,70 @@ document.getElementById('pfAddBtn').addEventListener('click', ()=>{
   document.getElementById('pfComputedPrice').textContent = '';
   pfRender();
   if(typeof gtag === 'function') gtag('event', 'portfolio_entry_added', { coin: pfSelectedCoin.symbol });
+});
+
+// Экспорт/импорт бэкапа — портфель живёт только в localStorage (см.
+// .pf-note), это единственная страховка от «очистил браузер и всё потерял».
+// Экспорт — просто сырой массив pfEntries в JSON; импорт проверяет форму,
+// присваивает новые id, чтобы ничего не столкнулось с уже существующими
+// записями, и ДОБАВЛЯЕТ, а не молча заменяет то, что уже есть в портфеле —
+// пользователь явно подтверждает добавление.
+document.getElementById('pfExportBtn').addEventListener('click', ()=>{
+  if(pfEntries.length === 0){
+    alert('Портфель пуст — пока нечего экспортировать.');
+    return;
+  }
+  const blob = new Blob([JSON.stringify(pfEntries, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `cryptofumble-portfolio-${new Date().toISOString().slice(0,10)}.json`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+  if(typeof gtag === 'function') gtag('event', 'portfolio_export', { count: pfEntries.length });
+});
+document.getElementById('pfImportBtn').addEventListener('click', ()=>{
+  document.getElementById('pfImportFile').click();
+});
+document.getElementById('pfImportFile').addEventListener('change', (ev)=>{
+  const file = ev.target.files[0];
+  ev.target.value = ''; // сброс, чтобы повторный выбор того же файла снова сработал
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    let imported;
+    try{
+      imported = JSON.parse(reader.result);
+    }catch(e){
+      alert('Не удалось прочитать файл — это не похоже на бэкап CryptoFumble.');
+      return;
+    }
+    const isValid = Array.isArray(imported) && imported.length > 0 && imported.every(e =>
+      e && typeof e === 'object' && e.geckoId && e.symbol &&
+      typeof e.qty === 'number' && e.qty > 0 &&
+      typeof e.spent === 'number' && e.spent > 0
+    );
+    if(!isValid){
+      alert('Не удалось прочитать файл — это не похоже на корректный бэкап CryptoFumble.');
+      return;
+    }
+    // новые id, чтобы импортированные записи не столкнулись с уже сохранёнными
+    const fresh = imported.map(e => ({ ...e, id: Date.now() + Math.random() }));
+    if(pfEntries.length > 0){
+      const word = pfEntries.length===1?'покупка':pfEntries.length<5?'покупки':'покупок';
+      const ok = confirm(`У вас уже есть ${pfEntries.length} ${word} в портфеле. Добавить ещё ${fresh.length} из этого бэкапа? (Ничего из уже добавленного не удалится.)`);
+      if(!ok) return;
+      pfEntries = pfEntries.concat(fresh);
+    } else {
+      pfEntries = fresh;
+    }
+    pfSave(pfEntries);
+    pfRender();
+    if(typeof gtag === 'function') gtag('event', 'portfolio_import', { count: fresh.length });
+  };
+  reader.readAsText(file);
 });
 
 // «Подключить уведомления в Telegram» — снимает снимок текущего портфеля во
