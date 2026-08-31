@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-83PMW2GVF7"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-83PMW2GVF7');
+</script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="icon" href="/favicon-32.png" type="image/png">
+<link rel="apple-touch-icon" href="/favicon-180.png">
+<title>Privacy — CryptoFumble</title>
+<meta name="description" content="What CryptoFumble stores, what it sends to Google Analytics, and what the optional Telegram bot needs.">
+<link rel="canonical" href="https://cryptofumble.com/privacy.html">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0A0B10;
+    --panel:#12161D;
+    --panel-border:rgba(255,255,255,0.08);
+    --panel-border-soft:rgba(255,255,255,0.06);
+    --gold:#F0B90B;
+    --gold-soft:#FFD65C;
+    --text:#F3F2EE;
+    --muted:#98A0AC;
+    --mono:'IBM Plex Mono', monospace;
+    --sans:'Manrope', sans-serif;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--text);
+    font-family:var(--sans);
+    line-height:1.7;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{ max-width:640px; margin:0 auto; padding:56px 20px 100px; }
+  .brand{
+    display:flex; align-items:center; gap:10px; margin-bottom:36px;
+    text-decoration:none;
+  }
+  .brand .coin{
+    width:34px; height:34px; border-radius:50%;
+    background:linear-gradient(145deg,#F0B90B,#caa106);
+    display:flex; align-items:center; justify-content:center;
+    font-family:var(--mono); font-weight:700; font-size:16px; color:#0A0B10;
+  }
+  .brand .name{ font-size:18px; font-weight:800; color:var(--text); }
+  .brand .name span{ color:var(--gold); }
+  h1{ font-size:32px; margin:0 0 6px; letter-spacing:-0.01em; }
+  .eyebrow{
+    font-family:var(--mono); font-size:11px; letter-spacing:0.12em;
+    color:var(--muted); text-transform:uppercase; margin:0 0 8px;
+  }
+  .updated{ font-family:var(--mono); font-size:12px; color:var(--muted); margin:0 0 28px; }
+  p{ color:rgba(243,242,238,0.85); margin:0 0 18px; }
+  h2{ font-size:18px; margin:36px 0 12px; color:var(--text); }
+  a{ color:var(--gold-soft); }
+  ul{ margin:0 0 18px; padding-left:20px; color:rgba(243,242,238,0.85); }
+  li{ margin-bottom:6px; }
+  code{ font-family:var(--mono); font-size:0.92em; background:rgba(255,255,255,0.06); padding:1px 5px; border-radius:4px; }
+  .card{
+    background:var(--panel); border:1px solid var(--panel-border);
+    border-radius:14px; padding:20px 22px; margin:24px 0;
+  }
+  .card p:last-child{ margin-bottom:0; }
+  footer{
+    margin-top:56px; padding-top:20px; border-top:1px solid var(--panel-border-soft);
+    font-size:12.5px; color:var(--muted); font-family:var(--mono);
+  }
+  footer a{ color:var(--muted); text-decoration:underline; text-underline-offset:2px; }
+  footer a:hover{ color:var(--gold-soft); }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <a class="brand" href="/">
+      <div class="coin">₿</div>
+      <div class="name">Crypto<span>Fumble</span></div>
+    </a>
+
+    <p class="eyebrow">Privacy</p>
+    <h1>What this site actually does with data</h1>
+    <p class="updated">Last updated 31 August 2026</p>
+
+    <div class="card">
+      <p>Short version: there's no account, no sign-up, no email address collected anywhere on CryptoFumble. What follows is the honest long version — what's stored in your own browser, what Google Analytics sees, and what the optional Telegram bot needs.</p>
+    </div>
+
+    <h2>What's stored in your browser</h2>
+    <p>These live only in your browser's local storage. They're never sent to any server automatically, and they disappear if you clear your browser's site data:</p>
+    <ul>
+      <li>Your favorite coins, if you've starred any</li>
+      <li>Your last calculation (coin, amount, date, mode) — so the form isn't blank next time</li>
+      <li>Your portfolio entries, if you've used "My Portfolio" — coin, purchase date, quantity, and amount spent, exactly as you typed them</li>
+      <li>Small preference flags (which exchange to show next, whether you dismissed a banner)</li>
+    </ul>
+
+    <h2>Analytics</h2>
+    <p>The site uses Google Analytics (GA4) to see, in aggregate, how many people visit and which features get used — things like "a certificate was generated" or "someone opened the compare tool," tagged with a coin symbol and win/loss, never with anything that identifies you personally. Google's own <a href="https://policies.google.com/privacy" target="_blank" rel="noopener">privacy policy</a> covers what they do with that. Ad blockers and browser tracking protection both work fine here if you'd rather not send it at all — nothing on the site depends on analytics working.</p>
+
+    <h2>The Telegram bot (optional)</h2>
+    <p>If you tap "Connect Telegram notifications" in My Portfolio, your portfolio entries are sent to CryptoFumble's server and held briefly (about 15 minutes) behind a one-time code. Sending that code to <a href="https://t.me/CryptoFumble_bot" target="_blank" rel="noopener">@CryptoFumble_bot</a> links your portfolio snapshot to your Telegram chat ID, so the bot can send you a weekly profit/loss digest. That's the only piece of identifying information involved — no phone number, no name, no Telegram username beyond what Telegram itself hands over as your chat ID. If you never use this button, none of this happens.</p>
+
+    <h2>Affiliate links</h2>
+    <p>Buttons that point to a crypto exchange (like "Start on an exchange") are affiliate links, disclosed right next to the button. Clicking one takes you to that exchange's own site, which has its own privacy policy and its own cookies — CryptoFumble doesn't see anything that happens there beyond, sometimes, a signal that a click occurred.</p>
+
+    <h2>What's never collected</h2>
+    <p>No passwords, no wallet addresses, no API keys, no real names, no payment details. There's nothing to collect them with — CryptoFumble has no login and never asks for one.</p>
+
+    <h2>Changes to this page</h2>
+    <p>If what the site collects changes, this page will be updated and the date at the top will change with it.</p>
+
+    <h2>Questions</h2>
+    <p>Message <a href="https://t.me/CryptoFumble_bot" target="_blank" rel="noopener">@CryptoFumble_bot</a> on Telegram or find CryptoFumble on X.</p>
+
+    <footer>
+      <a href="/">← Back to the calculator</a> · <a href="/about.html">About</a>
+    </footer>
+  </div>
+</body>
+</html>
