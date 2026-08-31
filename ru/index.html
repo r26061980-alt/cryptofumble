@@ -1203,6 +1203,12 @@
       <div class="r-disclaimer">Просто для развлечения — не инвестиционный совет.</div>
       <div class="r-footer">ЧЕК УПУЩЕННОЙ ПРИБЫЛИ · ВРЕМЯ <span id="rStamp"></span></div>
     </div>
+    <a href="https://www.bybit.com/invite?ref=PK8RA3&medium=referral&utm_campaign=evergreen&share_to=post"
+       target="_blank" rel="noopener noreferrer sponsored"
+       class="cta-invest" id="ctaInvest" style="display:none;">
+      <span id="ctaInvestText">Начать на бирже →</span>
+    </a>
+    <div class="invest-note" id="investNote" style="display:none;">Партнёрская ссылка — можем получить небольшую комиссию, без доплаты с твоей стороны.</div>
     <button class="share-cta" id="shareBtn">📸 Сгенерировать карточку для шеринга</button>
     <button class="share-cta" id="shareTgBtn">✈️ Поделиться в Telegram</button>
     <div id="shareCardWrap" style="display:none; margin-top:14px; text-align:center;">
@@ -1223,18 +1229,13 @@
         <img id="premiumPreviewImg" style="width:56%; max-width:230px; border-radius:14px; box-shadow:0 12px 40px rgba(0,0,0,0.5);">
       </div>
       <button class="share-cta" id="premiumUnlockBtn" style="display:none;">🌟 Премиум-экспорт — без водяного знака, формат сторис ($3)</button>
+      <button class="share-cta" id="premiumUnlockCryptoBtn" style="display:none; margin-top:8px; background:#14161f; border:1px solid #34384a; color:#e7e7ee; box-shadow:none;">₮ Карта не проходит? Оплати $3 в USDT</button>
       <div id="premiumDownloads" style="display:none;">
         <button class="share-cta" id="premiumDownloadPngBtn">⬇️ Скачать PNG (сторис, без водяного знака)</button>
         <button class="share-cta" id="premiumDownloadPdfBtn">⬇️ Скачать PDF (сторис, без водяного знака)</button>
       </div>
       <div id="premiumStatus" style="font-size:11.5px; color:var(--muted); margin-top:8px;"></div>
     </div>
-    <a href="https://www.bybit.com/invite?ref=PK8RA3&medium=referral&utm_campaign=evergreen&share_to=post"
-       target="_blank" rel="noopener noreferrer sponsored"
-       class="cta-invest" id="ctaInvest" style="display:none;">
-      <span id="ctaInvestText">Начать на бирже →</span>
-    </a>
-    <div class="invest-note" id="investNote" style="display:none;">Партнёрская ссылка — можем получить небольшую комиссию, без доплаты с твоей стороны.</div>
     <div class="compare-block" id="compareBlock" style="display:none;">
       <button type="button" class="compare-toggle" id="compareToggle">⚖️ Сравнить с другой монетой</button>
       <div class="compare-picker" id="comparePicker" style="display:none;">
@@ -2730,6 +2731,8 @@ async function runLumpSumCalculation(coin){
   document.getElementById('premiumDownloads').style.display = 'none';
   document.getElementById('premiumPreviewWrap').style.display = 'none';
   document.getElementById('premiumStatus').textContent = '';
+  stopCryptoPoll();
+  clearCryptoInvoice();
   // "Добавить в портфель" имеет смысл только для монет, которые реально
   // остаются на руках — прячем в режиме "sold", на каждом новом расчёте
   // сбрасываем в исходное состояние
@@ -2889,6 +2892,8 @@ async function runDcaCalculation(coin){
     document.getElementById('premiumDownloads').style.display = 'none';
     document.getElementById('premiumPreviewWrap').style.display = 'none';
     document.getElementById('premiumStatus').textContent = '';
+    stopCryptoPoll();
+    clearCryptoInvoice();
     saveLastCalc();
     precacheShareCard(); // рисуем PNG-карточку в фоне заранее, чтобы она была готова к моменту клика на "Share"
     precacheShareId(); // заодно запрашиваем короткую ссылку в фоне, по той же логике
@@ -3465,6 +3470,7 @@ document.getElementById('certBtn').addEventListener('click', async ()=>{
 // чтобы скриншот превью не заменял настоящую чистую версию.
 function updatePremiumUI(){
   document.getElementById('premiumUnlockBtn').style.display = premiumUnlocked ? 'none' : 'block';
+  document.getElementById('premiumUnlockCryptoBtn').style.display = premiumUnlocked ? 'none' : 'block';
   document.getElementById('premiumDownloads').style.display = premiumUnlocked ? 'block' : 'none';
   const previewWrap = document.getElementById('premiumPreviewWrap');
   if(premiumUnlocked){
@@ -3642,6 +3648,116 @@ document.getElementById('premiumDownloadPdfBtn').addEventListener('click', async
   }catch(err){
     if(statusEl) statusEl.textContent = 'Не удалось проверить оплату — обнови страницу через минуту, или напиши @CryptoFumble_bot, если не поможет.';
   }
+})();
+// ---- Премиум-экспорт за $3 через Trybit (USDT/крипта — для карт, которые
+// не проходят через Stripe, например российских) ----
+// У API Trybit нет success/cancel URL для конкретного запроса — они один
+// раз фиксируются на уровне проекта в личном кабинете Trybit. Поэтому, в
+// отличие от Stripe, тут нельзя полагаться на то, что браузер сам вернётся
+// на сайт: вместо этого открываем страницу оплаты в новой вкладке и сами
+// спрашиваем нашу функцию verify-crypto-invoice, оплачен ли счёт — сначала
+// каждые несколько секунд, пока открыта вкладка с оплатой, и ещё раз при
+// следующей загрузке страницы на случай, если вкладку закрыли раньше, чем
+// пришло подтверждение (крипто-платежи иногда подтверждаются не сразу).
+const CRYPTO_INVOICE_KEY = 'cf_pending_crypto_invoice';
+function writeCryptoInvoice(data){
+  try{ localStorage.setItem(CRYPTO_INVOICE_KEY, JSON.stringify(data)); }catch(err){}
+}
+function readCryptoInvoice(){
+  try{
+    const raw = localStorage.getItem(CRYPTO_INVOICE_KEY);
+    return raw ? JSON.parse(raw) : null;
+  }catch(err){ return null; }
+}
+function clearCryptoInvoice(){
+  try{ localStorage.removeItem(CRYPTO_INVOICE_KEY); }catch(err){}
+}
+let cryptoPollTimer = null;
+function stopCryptoPoll(){
+  if(cryptoPollTimer){ clearInterval(cryptoPollTimer); cryptoPollTimer = null; }
+}
+async function onCryptoPaymentConfirmed(){
+  clearCryptoInvoice();
+  const saved = readLastCalc();
+  if(!saved){
+    alert('Оплата подтверждена, но расчёт, который нужно разблокировать, потерялся — посчитай ещё раз, платёж вспомнится в течение минуты.');
+    return;
+  }
+  if(currentMode === 'dca'){
+    await runDcaCalculation(currentCoin);
+  } else {
+    await runLumpSumCalculation(currentCoin);
+  }
+  premiumUnlocked = true;
+  document.getElementById('certBtn').click();
+  if(typeof gtag === 'function') gtag('event', 'premium_unlocked', { coin: currentCoin.symbol, method: 'crypto' });
+}
+function pollCryptoInvoice(uuid, btn, origLabel, statusEl){
+  stopCryptoPoll();
+  let attempts = 0;
+  const MAX_ATTEMPTS = 120; // ~20 минут по 10 секунд — с запасом на подтверждение в блокчейне
+  cryptoPollTimer = setInterval(async ()=>{
+    attempts++;
+    if(attempts > MAX_ATTEMPTS){
+      stopCryptoPoll();
+      if(btn){ btn.disabled = false; btn.textContent = origLabel; }
+      if(statusEl) statusEl.textContent = 'Подтверждение всё ещё не пришло — если оплата прошла, напиши @CryptoFumble_bot в Telegram, разберёмся.';
+      return;
+    }
+    try{
+      const res = await fetch(`/.netlify/functions/verify-crypto-invoice?uuid=${encodeURIComponent(uuid)}`);
+      const json = await res.json();
+      if(res.ok && json.paid){
+        stopCryptoPoll();
+        await onCryptoPaymentConfirmed();
+      }
+    }catch(err){ /* временный сбой сети — следующая попытка через 10 секунд */ }
+  }, 10000);
+}
+document.getElementById('premiumUnlockCryptoBtn').addEventListener('click', async ()=>{
+  if(!lastResult) return;
+  const btn = document.getElementById('premiumUnlockCryptoBtn');
+  const statusEl = document.getElementById('premiumStatus');
+  const origLabel = btn.textContent;
+  btn.disabled = true;
+  btn.textContent = 'Создаём счёт…';
+  statusEl.textContent = '';
+  try{
+    const res = await fetch('/.netlify/functions/create-crypto-invoice', { method: 'POST' });
+    if(!res.ok) throw new Error('invoice creation failed');
+    const { uuid, link } = await res.json();
+    if(!uuid || !link) throw new Error('no invoice returned');
+    writeCryptoInvoice({ uuid, ts: Date.now() });
+    window.open(link, '_blank', 'noopener');
+    if(typeof gtag === 'function') gtag('event', 'premium_crypto_start', { coin: lastResult.coinSymbol });
+    btn.textContent = '⏳ Ждём оплату…';
+    statusEl.textContent = 'Оплати в открывшейся вкладке, потом вернись сюда — проверка идёт автоматически каждые несколько секунд.';
+    pollCryptoInvoice(uuid, btn, origLabel, statusEl);
+  }catch(err){
+    btn.disabled = false;
+    btn.textContent = origLabel;
+    statusEl.textContent = 'Не получилось создать счёт на оплату — попробуй ещё раз через момент.';
+  }
+});
+// Возобновление платежа, оставшегося незавершённым с прошлого визита
+// (вкладку закрыли раньше, чем сработала проверка выше) — проверяем один
+// раз при загрузке страницы.
+(async function resumePendingCryptoInvoice(){
+  const pending = readCryptoInvoice();
+  if(!pending || !pending.uuid) return;
+  // Через 24 часа просто забываем про счёт — он и сам к этому моменту уже
+  // истечёт, бесконечно проверять мёртвый счёт смысла нет.
+  if(Date.now() - (pending.ts || 0) > 24 * 60 * 60 * 1000){
+    clearCryptoInvoice();
+    return;
+  }
+  try{
+    const res = await fetch(`/.netlify/functions/verify-crypto-invoice?uuid=${encodeURIComponent(pending.uuid)}`);
+    const json = await res.json();
+    if(res.ok && json.paid){
+      await onCryptoPaymentConfirmed();
+    }
+  }catch(err){ /* просто попробуем ещё раз при следующей загрузке */ }
 })();
 document.getElementById('shareBtn').addEventListener('click', async ()=>{
   if(!lastResult){
