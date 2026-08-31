@@ -3,6 +3,9 @@
 <head>
 <!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-83PMW2GVF7"></script>
+<!-- jsPDF — используется только кнопкой "Скачать PDF" в премиум-экспорте;
+     загружается deferred, поскольку не нужна сразу после загрузки страницы. -->
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script>
   window.dataLayer = window.dataLayer || [];
   function gtag(){dataLayer.push(arguments);}
@@ -1211,8 +1214,15 @@
     <button class="share-cta" id="addToPfBtn" style="display:none;">➕ Добавить в портфель</button>
     <div id="certCardWrap" style="display:none; margin-top:14px; text-align:center;">
       <canvas id="certCanvas" width="900" height="1020" style="display:none;"></canvas>
+      <canvas id="storyCanvas" width="1080" height="1920" style="display:none;"></canvas>
       <img id="certCardImg" style="width:100%; border-radius:8px; box-shadow:0 12px 40px rgba(0,0,0,0.5);">
       <a id="certDownload" class="share-cta" style="display:block; text-decoration:none; margin-top:10px; box-sizing:border-box;" download="cryptofumble-certificate.png">⬇️ Скачать сертификат</a>
+      <button class="share-cta" id="premiumUnlockBtn" style="display:none;">🌟 Премиум-экспорт — без водяного знака, формат сторис ($3)</button>
+      <div id="premiumDownloads" style="display:none;">
+        <button class="share-cta" id="premiumDownloadPngBtn">⬇️ Скачать PNG (сторис, без водяного знака)</button>
+        <button class="share-cta" id="premiumDownloadPdfBtn">⬇️ Скачать PDF (сторис, без водяного знака)</button>
+      </div>
+      <div id="premiumStatus" style="font-size:11.5px; color:var(--muted); margin-top:8px;"></div>
     </div>
     <a href="https://www.bybit.com/invite?ref=PK8RA3&medium=referral&utm_campaign=evergreen&share_to=post"
        target="_blank" rel="noopener noreferrer sponsored"
@@ -2709,6 +2719,11 @@ async function runLumpSumCalculation(coin){
   // reset any previously generated share card since the numbers changed
   document.getElementById('shareCardWrap').style.display = 'none';
   document.getElementById('certCardWrap').style.display = 'none';
+  // разблокировка премиум-экспорта за $3 покрывает только тот результат, за
+  // который заплатили — новый расчёт всегда возвращает к платному экрану
+  premiumUnlocked = false;
+  document.getElementById('premiumDownloads').style.display = 'none';
+  document.getElementById('premiumStatus').textContent = '';
   // "Добавить в портфель" имеет смысл только для монет, которые реально
   // остаются на руках — прячем в режиме "sold", на каждом новом расчёте
   // сбрасываем в исходное состояние
@@ -2864,6 +2879,9 @@ async function runDcaCalculation(coin){
     addToPfBtn.disabled = false;
     addToPfBtn.textContent = '➕ Добавить в портфель';
     document.getElementById('certCardWrap').style.display = 'none';
+    premiumUnlocked = false;
+    document.getElementById('premiumDownloads').style.display = 'none';
+    document.getElementById('premiumStatus').textContent = '';
     saveLastCalc();
     precacheShareCard(); // рисуем PNG-карточку в фоне заранее, чтобы она была готова к моменту клика на "Share"
     precacheShareId(); // заодно запрашиваем короткую ссылку в фоне, по той же логике
@@ -2898,6 +2916,12 @@ async function runDcaCalculation(coin){
 }
 // keep the last computed result around so the share card can use it
 let lastResult = null;
+// есть ли у текущего lastResult активная разблокировка премиум-экспорта за
+// $3 — привязано к конкретному результату, а не ко всему сайту: сбрасывается
+// в false в начале каждого нового расчёта (см. runLumpSumCalculation/
+// runDcaCalculation), чтобы один платёж разблокировывал только тот результат,
+// за который заплатили.
+let premiumUnlocked = false;
 // ---- Запоминаем последний расчёт, чтобы форма не была пустой при возврате
 // (тот же паттерн localStorage, что и для избранных монет). Восстанавливается
 // при загрузке, но никогда не запускает расчёт сам — только подставляет поля.
@@ -3193,10 +3217,19 @@ function drawDiamond(ctx, x, y, r){
   ctx.closePath();
   ctx.fill();
 }
-async function drawCertificateCard(includeLogo){
+// opts.scale рисует тот же дизайн с большей плотностью пикселей (использует
+// премиум-экспорт — сжатие из более чёткого источника выглядит лучше, чем
+// растягивание исходных 900px). opts.hideWatermark убирает подпись
+// "CRYPTOFUMBLE.COM · MAKE YOUR OWN" внизу для купивших премиум-экспорт.
+async function drawCertificateCard(includeLogo, opts){
+  opts = opts || {};
+  const scale = opts.scale || 1;
   const canvas = document.getElementById('certCanvas');
-  const W = canvas.width, H = canvas.height; // 900 x 1020
+  const W = 900, H = 1020; // логический размер — вся раскладка ниже не зависит от `scale`
+  canvas.width = W * scale;
+  canvas.height = H * scale;
   const ctx = canvas.getContext('2d');
+  ctx.setTransform(scale, 0, 0, scale, 0, 0);
   await Promise.all([
     document.fonts.load('800 46px "Playfair Display"'),
     document.fonts.load('32px "Marck Script"'),
@@ -3325,12 +3358,14 @@ async function drawCertificateCard(includeLogo){
   ctx.save(); ctx.letterSpacing = '1.5px';
   ctx.fillText('ДИРЕКТОР ПО СОЖАЛЕНИЯМ', W-80, footerY+60);
   ctx.restore();
-  ctx.textAlign = 'center';
-  ctx.fillStyle = inkFaint;
-  ctx.font = '600 12px "IBM Plex Mono"';
-  ctx.save(); ctx.letterSpacing = '2px';
-  ctx.fillText('CRYPTOFUMBLE.COM/RU · СДЕЛАЙ СВОЙ', cx, H-70);
-  ctx.restore();
+  if(!opts.hideWatermark){
+    ctx.textAlign = 'center';
+    ctx.fillStyle = inkFaint;
+    ctx.font = '600 12px "IBM Plex Mono"';
+    ctx.save(); ctx.letterSpacing = '2px';
+    ctx.fillText('CRYPTOFUMBLE.COM/RU · СДЕЛАЙ СВОЙ', cx, H-70);
+    ctx.restore();
+  }
   return canvas.toDataURL('image/png');
 }
 // ---- "Добавить в портфель" — мост из результата калькулятора в трекер
@@ -3383,10 +3418,160 @@ document.getElementById('certBtn').addEventListener('click', async ()=>{
   document.getElementById('certCardWrap').scrollIntoView({behavior:'smooth', block:'nearest'});
   certBtn.textContent = origLabel;
   certBtn.disabled = false;
+  updatePremiumUI();
   if(typeof gtag === 'function'){
     gtag('event', 'certificate_generate', { outcome: lastResult.isGood?'win':'loss', coin: lastResult.coinSymbol });
   }
 });
+// ---- Премиум-экспорт ($3 через Stripe Checkout) ----
+// Показывает либо платную кнопку, либо разблокированные кнопки скачивания —
+// в зависимости от `premiumUnlocked`, который сбрасывается в false при
+// каждом новом расчёте (см. runLumpSumCalculation/runDcaCalculation) —
+// один платёж покрывает один результат.
+function updatePremiumUI(){
+  document.getElementById('premiumUnlockBtn').style.display = premiumUnlocked ? 'none' : 'block';
+  document.getElementById('premiumDownloads').style.display = premiumUnlocked ? 'block' : 'none';
+}
+// Рисует тот же дизайн сертификата в 2x разрешении без водяного знака, затем
+// компонует его на холсте 1080×1920 (формат сторис Instagram/Telegram) с
+// большими полями — сжатие из 2x-источника выглядит заметно чётче, чем
+// растягивание обычного 900px сертификата на тот же размер.
+async function generatePremiumExport(){
+  let certDataUrl;
+  try{
+    certDataUrl = await drawCertificateCard(true, { scale: 2, hideWatermark: true });
+  }catch(err){
+    certDataUrl = await drawCertificateCard(false, { scale: 2, hideWatermark: true });
+  }
+  const certImg = await loadImageSafe(certDataUrl);
+  const storyCanvas = document.getElementById('storyCanvas');
+  const SW = storyCanvas.width, SH = storyCanvas.height; // 1080 x 1920
+  const sctx = storyCanvas.getContext('2d');
+  sctx.clearRect(0, 0, SW, SH);
+  const bg = sctx.createRadialGradient(SW/2, SH*0.4, 100, SW/2, SH*0.4, SW*1.1);
+  bg.addColorStop(0, '#1A1710');
+  bg.addColorStop(1, '#0A0B10');
+  sctx.fillStyle = bg;
+  sctx.fillRect(0, 0, SW, SH);
+  if(certImg){
+    const maxW = SW - 140;
+    const srcW = certImg.naturalWidth || 1800, srcH = certImg.naturalHeight || 2040;
+    const ratio = maxW / srcW;
+    const drawW = srcW * ratio, drawH = srcH * ratio;
+    const dx = (SW - drawW) / 2, dy = (SH - drawH) / 2;
+    sctx.save();
+    sctx.shadowColor = 'rgba(0,0,0,0.55)';
+    sctx.shadowBlur = 50;
+    sctx.shadowOffsetY = 22;
+    sctx.drawImage(certImg, dx, dy, drawW, drawH);
+    sctx.restore();
+  }
+  return storyCanvas.toDataURL('image/png');
+}
+function triggerDownload(dataUrl, filename){
+  const a = document.createElement('a');
+  a.href = dataUrl;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+}
+document.getElementById('premiumUnlockBtn').addEventListener('click', async ()=>{
+  if(!lastResult) return;
+  const btn = document.getElementById('premiumUnlockBtn');
+  const statusEl = document.getElementById('premiumStatus');
+  btn.disabled = true;
+  btn.textContent = 'Переходим к оплате…';
+  statusEl.textContent = '';
+  try{
+    const res = await fetch('/.netlify/functions/create-checkout-session', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ returnPath: location.pathname }),
+    });
+    if(!res.ok) throw new Error('checkout session failed');
+    const { url } = await res.json();
+    if(!url) throw new Error('no checkout url returned');
+    if(typeof gtag === 'function') gtag('event', 'premium_checkout_start', { coin: lastResult.coinSymbol });
+    window.location.href = url; // полный переход на страницу оплаты Stripe
+  }catch(err){
+    btn.disabled = false;
+    btn.textContent = '🌟 Премиум-экспорт — без водяного знака, формат сторис ($3)';
+    statusEl.textContent = 'Не удалось начать оплату — попробуй ещё раз через минуту.';
+  }
+});
+document.getElementById('premiumDownloadPngBtn').addEventListener('click', async ()=>{
+  const btn = document.getElementById('premiumDownloadPngBtn');
+  const orig = btn.textContent;
+  btn.disabled = true; btn.textContent = 'Рендерим…';
+  try{
+    const dataUrl = await generatePremiumExport();
+    triggerDownload(dataUrl, 'cryptofumble-premium.png');
+  } finally {
+    btn.disabled = false; btn.textContent = orig;
+  }
+});
+document.getElementById('premiumDownloadPdfBtn').addEventListener('click', async ()=>{
+  const btn = document.getElementById('premiumDownloadPdfBtn');
+  const orig = btn.textContent;
+  btn.disabled = true; btn.textContent = 'Рендерим…';
+  try{
+    const dataUrl = await generatePremiumExport();
+    if(!window.jspdf || !window.jspdf.jsPDF){
+      document.getElementById('premiumStatus').textContent = 'Библиотека для PDF ещё грузится — попробуй через секунду, или скачай PNG.';
+      return;
+    }
+    const storyCanvas = document.getElementById('storyCanvas');
+    const pdf = new window.jspdf.jsPDF({ orientation:'portrait', unit:'px', format:[storyCanvas.width, storyCanvas.height] });
+    pdf.addImage(dataUrl, 'PNG', 0, 0, storyCanvas.width, storyCanvas.height);
+    pdf.save('cryptofumble-premium.pdf');
+  } finally {
+    btn.disabled = false; btn.textContent = orig;
+  }
+});
+// ---- Возврат из Stripe Checkout ----
+// success_url содержит ?premium_unlock=1&session_id=cs_... — сначала
+// проверяем сессию на стороне сервера (verify-checkout-session.js), потом
+// восстанавливаем и заново считаем тот расчёт, за который заплатили
+// (браузер полностью уходил на Stripe и обратно, так что состояние
+// калькулятора сохраняется только через тот же cf_last_calc localStorage,
+// что уже использует восстановление последнего расчёта) и генерируем сертификат.
+(async function handlePremiumCheckoutReturn(){
+  const params = new URLSearchParams(location.search);
+  if(!params.has('premium_unlock') && !params.has('premium_cancelled')) return;
+  const cleanUrl = location.pathname;
+  if(params.has('premium_cancelled')){
+    history.replaceState(null, '', cleanUrl);
+    return;
+  }
+  const sessionId = params.get('session_id');
+  history.replaceState(null, '', cleanUrl); // убираем параметры сразу — чтобы обновление страницы не запускало проверку заново
+  if(!sessionId) return;
+  const statusEl = document.getElementById('premiumStatus');
+  try{
+    const res = await fetch(`/.netlify/functions/verify-checkout-session?session_id=${encodeURIComponent(sessionId)}`);
+    const json = await res.json();
+    if(!res.ok || !json.paid){
+      alert('Не получилось подтвердить оплату для этой сессии. Если деньги списались — напиши @CryptoFumble_bot в Telegram, разберёмся.');
+      return;
+    }
+    const saved = readLastCalc();
+    if(!saved){
+      alert('Оплата подтверждена, но расчёт, который нужно разблокировать, потерялся — посчитай ещё раз, кнопка премиум-экспорта вспомнит про этот платёж в течение минуты.');
+      return;
+    }
+    if(currentMode === 'dca'){
+      await runDcaCalculation(currentCoin);
+    } else {
+      await runLumpSumCalculation(currentCoin);
+    }
+    premiumUnlocked = true;
+    document.getElementById('certBtn').click();
+    if(typeof gtag === 'function') gtag('event', 'premium_unlocked', { coin: currentCoin.symbol });
+  }catch(err){
+    if(statusEl) statusEl.textContent = 'Не удалось проверить оплату — обнови страницу через минуту, или напиши @CryptoFumble_bot, если не поможет.';
+  }
+})();
 document.getElementById('shareBtn').addEventListener('click', async ()=>{
   if(!lastResult){
     alert('Сначала нажми «Покажи, что я упустил», чтобы посчитать результат.');
