@@ -746,6 +746,18 @@
     margin-top:14px;
     line-height:1.5;
   }
+  .r-sold-peak{
+    display:none;
+    margin-top:14px;
+    padding:12px 14px;
+    border-radius:10px;
+    background:rgba(168,42,48,0.10);
+    border:1px solid rgba(168,42,48,0.25);
+    font-size:12.5px;
+    line-height:1.5;
+    text-align:center;
+  }
+  .r-sold-peak b{ color:#A82A30; }
   .r-footer{
     text-align:center;
     font-size:10px;
@@ -1182,6 +1194,7 @@
       </div>
       <div class="r-year-table" id="rYearTable" style="display:none;"></div>
       <div class="r-compare" id="rCompare"></div>
+      <div class="r-sold-peak" id="rSoldPeak"></div>
       <div class="r-disclaimer">Просто для развлечения — не инвестиционный совет.</div>
       <div class="r-footer">ЧЕК УПУЩЕННОЙ ПРИБЫЛИ · ВРЕМЯ <span id="rStamp"></span></div>
     </div>
@@ -2412,23 +2425,72 @@ function getTier(mult){
   return { label: 'АЛМАЗНЫЕ РУКИ ОКУПИЛИСЬ', emoji: '💎' };
 }
 // ---- Кривая стоимости позиции для графика на чеке ----
-async function fetchValueCurve(coin, dateStr, buyPrice, nowPrice, baseValue){
+// pointsCount — опциональный оверрайд числа точек (см. range.js: points=<N>).
+// Возвращает { values, dates } — dates нужны только для "продал слишком рано
+// → пик после продажи" (см. computeSoldPeak), сам график по-прежнему
+// использует только values.
+async function fetchValueCurve(coin, dateStr, buyPrice, nowPrice, baseValue, pointsCount){
   try{
-    const res = await fetch(`/.netlify/functions/range?coin=${coin.geckoId}&from=${dateStr}`);
+    const pointsParam = pointsCount ? `&points=${pointsCount}` : '';
+    const res = await fetch(`/.netlify/functions/range?coin=${coin.geckoId}&from=${dateStr}${pointsParam}`);
     if(!res.ok) throw new Error('range proxy failed');
     const { points } = await res.json();
     if(!points || points.length < 2) throw new Error('not enough points');
     // первую и последнюю точку жёстко фиксируем на уже посчитанных
     // buyPrice/nowPrice, чтобы график не расходился с цифрами в чеке
-    return points.map((p,i)=>{
+    const values = points.map((p,i)=>{
       let price = p.price;
       if(i===0) price = buyPrice;
       if(i===points.length-1) price = nowPrice;
       return baseValue * (price/buyPrice);
     });
+    return { values, dates: points.map(p=>p.date) };
   }catch(err){
     return null; // график опциональный — тихо скрываем при любой ошибке
   }
+}
+// ---- "Продал слишком рано?" — примерный ATH-максимум после продажи ----
+// Переиспользует уже имеющуюся кривую цены (живые точки из range.js либо ту
+// же таблицу опорных точек, что и офлайн-фолбэк) — новых сетевых запросов
+// не добавляет. Лог-интерполяция между двумя опорными точками монотонна,
+// поэтому истинный пик интерполированной кривой всегда лежит ровно в одной
+// из опорных точек — интерполировать между ними для поиска пика не нужно.
+function computeSoldPeakFromAnchors(points, dateStr, baseValue){
+  // Соотношение считается целиком в масштабе самой таблицы опорных точек
+  // (и цена продажи, и цена "сейчас" берутся заново из `points`), а не
+  // смешивается с тем, что вернул живой API, — эти два масштаба могут
+  // немного отличаться, и смешение исказило бы соотношение пик/продажа.
+  const startTs = monthToTs(dateStr);
+  const anchorBuyPrice = interpPrice(points, dateStr);
+  const anchorNowPrice = interpPrice(points, '2026-08');
+  let peakPrice = anchorBuyPrice;
+  let peakDate = dateStr;
+  for(const [d, p] of points){
+    if(monthToTs(d) >= startTs && p > peakPrice){
+      peakPrice = p;
+      peakDate = d;
+    }
+  }
+  if(anchorNowPrice >= peakPrice){ peakPrice = anchorNowPrice; peakDate = null; } // сегодня и есть пик
+  return { peakValue: baseValue * (peakPrice/anchorBuyPrice), peakDate };
+}
+function computeSoldPeakFromCurve(curve, resultToday){
+  let peakValue = resultToday, peakDate = null;
+  curve.values.forEach((v,i)=>{
+    if(v > peakValue){ peakValue = v; peakDate = curve.dates[i]; }
+  });
+  return { peakValue, peakDate };
+}
+function renderSoldPeak(peakValue, peakDate, resultToday){
+  const el = document.getElementById('rSoldPeak');
+  // показываем только если пик заметно выше уже показанной цифры — иначе
+  // это просто повтор строки "сейчас было бы"
+  if(!peakDate || peakValue < resultToday * 1.03){
+    el.style.display = 'none';
+    return;
+  }
+  el.innerHTML = `Продал слишком рано? Между продажей и сегодня эта позиция достигала пика примерно в <b>${humanDate(peakDate)}</b> — на пике она стоила бы около <b>${fmtBig(peakValue)}</b>.`;
+  el.style.display = 'block';
 }
 
 // ---- Value-by-year breakdown table (uses the same range.js proxy, annual mode) ----
@@ -2574,13 +2636,26 @@ async function runLumpSumCalculation(coin){
   const goldResult = baseValue * (goldNow/goldBuy);
   document.getElementById('rCompare').textContent =
     `Для сравнения: та же сумма сейчас стоила бы ${fmtBig(spResult)} в S&P 500, ${fmtBig(aaplResult)} в акциях Apple (AAPL), или ${fmtBig(goldResult)} в золоте.`;
-  let chartValues = await fetchValueCurve(coin, dateStr, buyPrice, nowPrice, baseValue);
+  // в режиме "sold" запрашиваем чуть больше точек, чем нужно самому графику —
+  // ниже это даёт поиску пика (computeSoldPeakFromCurve) не 10 широко
+  // разнесённых месяцев, а более плотную сетку, тем же одним запросом
+  const curve = await fetchValueCurve(coin, dateStr, buyPrice, nowPrice, baseValue, currentMode==='sold' ? 20 : undefined);
+  let chartValues = curve ? curve.values : null;
   if(chartValues){
     renderValueCurveSvg(chartValues);
     document.getElementById('rChartCaption').textContent = `Стоимость позиции · ${dateStr} → сегодня`;
     document.getElementById('rChartWrap').style.display = 'block';
   } else {
     document.getElementById('rChartWrap').style.display = 'none';
+  }
+  if(currentMode === 'sold'){
+    const demoPoints = DATA[coin.symbol]?.points;
+    const { peakValue, peakDate } = curve
+      ? computeSoldPeakFromCurve(curve, result)
+      : (demoPoints ? computeSoldPeakFromAnchors(demoPoints, dateStr, baseValue) : { peakValue: result, peakDate: null });
+    renderSoldPeak(peakValue, peakDate, result);
+  } else {
+    document.getElementById('rSoldPeak').style.display = 'none';
   }
   const yearRows = await fetchYearlyBreakdown(coin, dateStr, buyPrice, nowPrice, baseValue);
   if(yearRows){
@@ -2728,9 +2803,11 @@ async function runDcaCalculation(coin){
     document.getElementById('rCompare').textContent =
       `Если бы вложил всю эту сумму (${fmt(totalInvested)}) сразу, одним платежом, сегодня было бы ${fmtBig(lumpSumValue)}. Для сравнения: та же сумма в S&P 500 стоила бы ${fmtBig(spResult)}, в акциях Apple (AAPL) — ${fmtBig(aaplResult)}, а в золоте — ${fmtBig(goldResult)}.`;
     // у DCA нет смысла показывать "кривую одной покупки" — прячем график
-    // и таблицу по годам вместо того, чтобы показывать вводящую в заблуждение картинку
+    // и таблицу по годам вместо того, чтобы показывать вводящую в заблуждение картинку.
+    // "Продал слишком рано" тоже относится только к режиму sold — прячем и её.
     document.getElementById('rChartWrap').style.display = 'none';
     document.getElementById('rYearTable').style.display = 'none';
+    document.getElementById('rSoldPeak').style.display = 'none';
     document.getElementById('rStamp').textContent = new Date().toISOString().slice(0,19).replace('T',' ');
     const ctaInvest = document.getElementById('ctaInvest');
     const exchange = nextExchange();
