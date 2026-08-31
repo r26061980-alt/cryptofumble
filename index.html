@@ -194,6 +194,26 @@
   .live-feed-row .fr-mult.pos{color:#16C784;}
   .live-feed-row .fr-mult.neg{color:#EA3943;}
   @keyframes feedIn{ from{opacity:0; transform:translateY(-4px);} to{opacity:1; transform:translateY(0);} }
+  /* Скрыта на десктопе/планшете — там все 10 строк и так помещаются нормально;
+     показывается только в мобильном @media-блоке ниже, где список тикера
+     сворачивается до топ-5. */
+  .ticker-toggle{
+    display:none;
+    width:100%;
+    margin-top:2px;
+    padding:9px 10px;
+    border:none;
+    border-radius:10px;
+    background:rgba(255,255,255,0.04);
+    color:var(--muted);
+    font-family:var(--mono);
+    font-size:11px;
+    letter-spacing:.04em;
+    cursor:pointer;
+    transition:background .2s var(--ease);
+  }
+  .ticker-toggle:hover{ background:rgba(255,255,255,0.08); }
+  .ticker-toggle.tt-hide{ display:none !important; }
   .regret-counter{
     font-family:var(--mono);
     font-size:12px;
@@ -1084,6 +1104,12 @@
     .r-sold-peak{margin-top:8px;}
     .r-footer{margin-top:8px;}
     .share-cta, .cta-invest{margin-top:10px;}
+    /* Топ-10 тикер сворачивается до 5 строк на телефоне — сам тикер идёт уже
+       после чека и кнопок, так что это не приближает "Add to portfolio"
+       (это уже почти выжато выше), а просто укорачивает то, что осталось
+       ниже, для тех, кто листает до конца страницы. */
+    .live-feed-list:not(.expanded) .live-feed-row:nth-child(n+6){ display:none; }
+    .ticker-toggle{ display:block; }
   }
 </style>
 <!-- FAQPage structured data — mirrors the FAQ accordion below word-for-word,
@@ -1299,6 +1325,7 @@
   <div class="live-feed" id="marketTicker" style="display:none;">
     <div class="live-feed-title">📊 TOP 10 BY MARKET CAP</div>
     <div class="live-feed-list" id="marketTickerList"></div>
+    <button type="button" class="ticker-toggle" id="tickerToggle" aria-expanded="false">▼ Show 5 more</button>
   </div>
   </div>
   </div>
@@ -2291,12 +2318,32 @@ async function loadMarketTicker(){
       slot.replaceWith(makeTickerIconEl(slot.dataset.image, slot.dataset.symbol));
     });
     document.getElementById('marketTicker').style.display = 'block';
+    // если монет 5 или меньше — сворачивать нечего, прячем стрелку
+    const toggle = document.getElementById('tickerToggle');
+    if (toggle) toggle.classList.toggle('tt-hide', coins.length <= 5);
   }catch(err){
     // тихо ничего не показываем — тикер опциональная фича, не должен ничего ломать
   }
 }
 loadMarketTicker();
 setInterval(loadMarketTicker, 60000); // держим цены свежими, пока страница открыта
+// Раскрытие топ-10 тикера до полного списка на телефоне (по умолчанию —
+// только топ-5, см. .live-feed-list:not(.expanded) в мобильном @media).
+// Класс "expanded" вешается на сам список, а не на #marketTicker, поэтому
+// переживает автообновление каждые 60с (обновляется innerHTML списка, а не
+// его атрибуты) — уже развёрнутый пользователь не увидит, как список
+// внезапно схлопнется обратно у него на глазах.
+(function(){
+  const tickerToggle = document.getElementById('tickerToggle');
+  if (!tickerToggle) return;
+  tickerToggle.addEventListener('click', function(){
+    const list = document.getElementById('marketTickerList');
+    if (!list) return;
+    const expanded = list.classList.toggle('expanded');
+    tickerToggle.textContent = expanded ? '▲ Show less' : '▼ Show 5 more';
+    tickerToggle.setAttribute('aria-expanded', expanded ? 'true' : 'false');
+  });
+})();
 // ---- Free-text coin search via CoinGecko /search ----
 const searchInput = document.getElementById('coinSearch');
 const dropdown = document.getElementById('coinDropdown');
