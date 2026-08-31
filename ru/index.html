@@ -1047,6 +1047,43 @@
     font-size:14px; padding:2px 6px; line-height:1;
   }
   .pf-entry-row .pf-entry-del:hover{color:#EA3943;}
+  /* ═══ Компактность на мобильном ═══ */
+  /* На реальном телефоне с реальной длинной историей цены пространство НАД
+     чеком (заголовок + блок «дневного сожаления» + сама панель
+     калькулятора) плюс внутренние отступы самого чека в сумме давали около
+     2000px прокрутки до появления кнопок действий — пользователь сообщил,
+     что кнопка «Добавить в портфель» на телефоне «пропала», хотя на самом
+     деле она рендерится правильно, просто очень далеко внизу. Это сжимает
+     вертикальные отступы ТОЛЬКО ниже 480px (маленькие телефоны) — десктоп
+     и планшет сохраняют исходный, более просторный дизайн, поскольку
+     текущий размер чека там сознательно оставлен крупным ради эффектности
+     при скриншоте/шеринге. Область нажатия (отступы кнопок, поля ввода)
+     не тронута, чтобы ничего не стало сложнее нажимать — убирается только
+     лишний воздух между блоками.
+     Экспорт в canvas (карточка для шеринга, сертификат, премиум-экспорт)
+     рисуется отдельным JS-кодом в фиксированных пикселях и этой правкой
+     CSS страницы никак не затрагивается. */
+  @media (max-width:480px){
+    .eyebrow{margin-bottom:10px;}
+    h1{font-size:clamp(26px, 7.5vw, 44px); margin-bottom:8px;}
+    .sub{margin-bottom:16px;}
+    .regret-counter{margin-bottom:12px;}
+    .daily-regret{padding:12px 14px; margin-bottom:14px;}
+    .panel{padding:16px; margin-bottom:14px;}
+    .field{margin-bottom:12px;}
+    #receipt-holder{margin-top:12px;}
+    .receipt{padding:16px 14px 12px;}
+    .r-sub{margin-bottom:10px;}
+    .dashed{margin:8px 0;}
+    .r-big{margin:10px 0 6px;}
+    .r-mult-wrap{margin-bottom:3px;}
+    .r-tier{margin-bottom:6px;}
+    .r-chart-wrap{margin:8px 0 4px;}
+    .r-compare{margin-top:8px;}
+    .r-sold-peak{margin-top:8px;}
+    .r-footer{margin-top:8px;}
+    .share-cta, .cta-invest{margin-top:10px;}
+  }
 </style>
 <!-- FAQPage structured data — дословно повторяет FAQ-аккордеон ниже, чтобы
      Google мог показать это как раскрывающийся сниппет прямо в выдаче. -->
@@ -1209,6 +1246,7 @@
       <span id="ctaInvestText">Начать на бирже →</span>
     </a>
     <div class="invest-note" id="investNote" style="display:none;">Партнёрская ссылка — можем получить небольшую комиссию, без доплаты с твоей стороны.</div>
+    <button class="share-cta" id="addToPfBtn" style="display:none;">➕ Добавить в портфель</button>
     <button class="share-cta" id="shareBtn">📸 Сгенерировать карточку для шеринга</button>
     <button class="share-cta" id="shareTgBtn">✈️ Поделиться в Telegram</button>
     <div id="shareCardWrap" style="display:none; margin-top:14px; text-align:center;">
@@ -1217,7 +1255,6 @@
       <a id="shareDownload" class="share-cta" style="display:block; text-decoration:none; margin-top:10px; box-sizing:border-box;" download="crypto-regret-card.png">⬇️ Скачать PNG</a>
     </div>
     <button class="share-cta" id="certBtn">🎖️ Получить сертификат</button>
-    <button class="share-cta" id="addToPfBtn" style="display:none;">➕ Добавить в портфель</button>
     <div id="certCardWrap" style="display:none; margin-top:14px; text-align:center;">
       <canvas id="certCanvas" width="900" height="1020" style="display:none;"></canvas>
       <canvas id="storyCanvas" width="1080" height="1920" style="display:none;"></canvas>
