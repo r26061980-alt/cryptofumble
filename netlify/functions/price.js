@@ -148,11 +148,22 @@ exports.handler = async (event) => {
     // привязан к конкретному списку монет, сайт сам подтягивает актуальный
     // топ у CoinGecko (та же аналитика, что стоит за рейтингом CoinMarketCap,
     // без интеграции ещё одного стороннего API с отдельным ключом).
+    //
+    // CoinGecko иногда включает в market_cap_desc токены с завышенной или
+    // непоказательной капитализацией — например, токенизированные
+    // финансовые продукты с почти нулевым реальным объёмом торгов
+    // (обнаружено пользователем: FIGR_HELOC оказался в нашем топ-10, хотя
+    // на CoinMarketCap его нет даже в топ-13 — там применяется более строгая
+    // фильтрация данных). Берём с запасом 30 монет вместо 10 и отбрасываем
+    // те, где объём торгов за 24ч подозрительно мал относительно капитализации
+    // (порог 0.1% — с большим запасом ниже того, что показывают все настоящие
+    // топ-10-монеты, но достаточно, чтобы отсечь малоликвидные аномалии),
+    // затем берём первые 10 из того, что осталось.
     try {
       const key = 'top10';
       const coins = await dedupedFetch(key, async () => {
         const res = await fetch(
-          'https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=10&page=1&price_change_percentage=24h',
+          'https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=30&page=1&price_change_percentage=24h',
           { headers: apiKeyHeaders() }
         );
         if (!res.ok) {
@@ -160,7 +171,15 @@ exports.handler = async (event) => {
           throw new Error(`coingecko markets ${res.status}: ${bodyText.slice(0, 300)}`);
         }
         const json = await res.json();
-        return json.map((c) => ({
+        const MIN_VOLUME_RATIO = 0.001; // объём/капитализация — минимум для "настоящей" ликвидной монеты
+        const liquid = json.filter((c) => {
+          const mcap = c.market_cap;
+          const vol = c.total_volume;
+          if (!mcap || mcap <= 0) return false;
+          if (typeof vol !== 'number') return false;
+          return vol / mcap >= MIN_VOLUME_RATIO;
+        });
+        return liquid.slice(0, 10).map((c) => ({
           id: c.id,
           symbol: String(c.symbol || '').toUpperCase(),
           name: c.name,
