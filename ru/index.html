@@ -3237,16 +3237,37 @@ async function drawCertificateCard(includeLogo, opts){
     document.fonts.load('600 13px "IBM Plex Mono"'),
     document.fonts.load('400 16px "IBM Plex Mono"'),
   ]);
-  const ink = '#2A2418';
-  const inkSoft = 'rgba(42,36,24,0.6)';
-  const inkFaint = 'rgba(42,36,24,0.4)';
-  const gold = '#B8860B';
+  // opts.dark переключает на премиум-тему «чёрной карты» (тёмная поверхность,
+  // более яркое золото, светлые чернила) вместо бесплатного вида «диплом на
+  // пергаменте» — намеренно другой на вид объект, а не то же самое с убранной
+  // подписью, чтобы платная версия ощущалась апгрейдом, а не просто «то же
+  // самое минус логотип».
+  const isDark = !!opts.dark;
+  const ink = isDark ? '#F5F1E6' : '#2A2418';
+  const inkSoft = isDark ? 'rgba(245,241,230,0.68)' : 'rgba(42,36,24,0.6)';
+  const inkFaint = isDark ? 'rgba(245,241,230,0.42)' : 'rgba(42,36,24,0.4)';
+  const gold = isDark ? '#F0B90B' : '#B8860B';
+  const dividerColor = isDark ? 'rgba(245,241,230,0.24)' : 'rgba(42,36,24,0.25)';
+  const underlineColor = isDark ? 'rgba(245,241,230,0.38)' : 'rgba(42,36,24,0.4)';
+  const goodColor = isDark ? '#34C77B' : '#0F7A50';
+  const badColor = isDark ? '#FF6E62' : '#A82A30';
   const cx = W/2;
-  const bg = ctx.createRadialGradient(cx, H*0.35, 60, cx, H*0.35, W*0.9);
-  bg.addColorStop(0, '#FBF6EA');
-  bg.addColorStop(1, '#EFE7D2');
-  ctx.fillStyle = bg;
-  ctx.fillRect(0, 0, W, H);
+  if(isDark){
+    // поверхность «чёрной карты» — чуть более светлый уголь в центре,
+    // затухающий к почти чёрному краю, чтобы золотая окантовка и светлые
+    // чернила читались как отдельная карточка, а не плоская заливка
+    const bg = ctx.createRadialGradient(cx, H*0.35, 60, cx, H*0.4, W*0.95);
+    bg.addColorStop(0, '#1D2029');
+    bg.addColorStop(1, '#0A0B10');
+    ctx.fillStyle = bg;
+    ctx.fillRect(0, 0, W, H);
+  } else {
+    const bg = ctx.createRadialGradient(cx, H*0.35, 60, cx, H*0.35, W*0.9);
+    bg.addColorStop(0, '#FBF6EA');
+    bg.addColorStop(1, '#EFE7D2');
+    ctx.fillStyle = bg;
+    ctx.fillRect(0, 0, W, H);
+  }
   ctx.strokeStyle = gold; ctx.lineWidth = 3;
   ctx.strokeRect(40, 40, W-80, H-80);
   ctx.lineWidth = 1.5;
@@ -3294,7 +3315,7 @@ async function drawCertificateCard(includeLogo, opts){
   ctx.font = '600 19px "IBM Plex Mono"';
   wrapText(ctx, declaration, cx, y, W-200, 30);
   y += 110;
-  ctx.fillStyle = lastResult.isGood ? '#0F7A50' : '#A82A30';
+  ctx.fillStyle = lastResult.isGood ? goodColor : badColor;
   ctx.font = '700 68px "IBM Plex Mono"';
   ctx.fillText(lastResult.resultFmt, cx, y);
   y += 40;
@@ -3306,7 +3327,9 @@ async function drawCertificateCard(includeLogo, opts){
   const sealY = y + sealR;
   ctx.fillStyle = gold;
   ctx.beginPath(); ctx.arc(cx, sealY, sealR, 0, Math.PI*2); ctx.fill();
-  ctx.strokeStyle = ink; ctx.lineWidth = 2;
+  // это внутреннее кольцо лежит поверх золотой заливки, а не фона страницы,
+  // поэтому остаётся фиксированного тёмного тона в обеих темах для контраста
+  ctx.strokeStyle = '#2A2418'; ctx.lineWidth = 2;
   ctx.beginPath(); ctx.arc(cx, sealY, sealR-6, 0, Math.PI*2); ctx.stroke();
   ctx.fillStyle = gold;
   ctx.beginPath();
@@ -3336,7 +3359,7 @@ async function drawCertificateCard(includeLogo, opts){
   ctx.font = 'italic 400 13px "IBM Plex Mono"';
   wrapText(ctx, 'Этот сертификат не имеет денежной ценности, не даёт налоговых льгот и не является инвестиционной рекомендацией — но математика верна.', cx, y, W-280, 20);
   const footerY = H - 130;
-  ctx.strokeStyle = 'rgba(42,36,24,0.25)';
+  ctx.strokeStyle = dividerColor;
   ctx.setLineDash([5,5]);
   ctx.beginPath(); ctx.moveTo(80, footerY); ctx.lineTo(W-80, footerY); ctx.stroke();
   ctx.setLineDash([]);
@@ -3351,7 +3374,7 @@ async function drawCertificateCard(includeLogo, opts){
   ctx.fillStyle = ink;
   ctx.font = '32px "Marck Script"';
   ctx.fillText('Отдел Сожалений', W-80, footerY+32);
-  ctx.strokeStyle = 'rgba(42,36,24,0.4)'; ctx.lineWidth = 1;
+  ctx.strokeStyle = underlineColor; ctx.lineWidth = 1;
   ctx.beginPath(); ctx.moveTo(W-260, footerY+44); ctx.lineTo(W-80, footerY+44); ctx.stroke();
   ctx.fillStyle = inkFaint;
   ctx.font = '600 11px "IBM Plex Mono"';
@@ -3439,9 +3462,9 @@ function updatePremiumUI(){
 async function generatePremiumExport(){
   let certDataUrl;
   try{
-    certDataUrl = await drawCertificateCard(true, { scale: 2, hideWatermark: true });
+    certDataUrl = await drawCertificateCard(true, { scale: 2, hideWatermark: true, dark: true });
   }catch(err){
-    certDataUrl = await drawCertificateCard(false, { scale: 2, hideWatermark: true });
+    certDataUrl = await drawCertificateCard(false, { scale: 2, hideWatermark: true, dark: true });
   }
   const certImg = await loadImageSafe(certDataUrl);
   const storyCanvas = document.getElementById('storyCanvas');
