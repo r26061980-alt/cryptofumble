@@ -42,7 +42,7 @@
 <meta name="twitter:description" content="See exactly what your money would be worth today if you'd bought any crypto, any amount, on any date.">
 <meta name="twitter:image" content="https://cryptofumble.com/og-image.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&family=Playfair+Display:wght@700;800&family=Dancing+Script:wght@600;700&display=swap" rel="stylesheet">
 <style>
   :root{
     --bg:#0A0B10;
@@ -1195,10 +1195,16 @@
     <div class="invest-note" id="investNote" style="display:none;">Affiliate link — we may earn a small commission, at no extra cost to you.</div>
     <button class="share-cta" id="shareBtn">📸 Generate share card</button>
     <button class="share-cta" id="shareXBtn">𝕏 Share on X</button>
+    <button class="share-cta" id="certBtn">🎖️ Get certificate</button>
     <div id="shareCardWrap" style="display:none; margin-top:14px; text-align:center;">
       <canvas id="shareCanvas" width="640" height="800" style="display:none;"></canvas>
       <img id="shareCardImg" style="width:100%; border-radius:14px; box-shadow:0 12px 40px rgba(0,0,0,0.5);">
       <a id="shareDownload" class="share-cta" style="display:block; text-decoration:none; margin-top:10px; box-sizing:border-box;" download="crypto-regret-card.png">⬇️ Download PNG</a>
+    </div>
+    <div id="certCardWrap" style="display:none; margin-top:14px; text-align:center;">
+      <canvas id="certCanvas" width="900" height="1020" style="display:none;"></canvas>
+      <img id="certCardImg" style="width:100%; border-radius:8px; box-shadow:0 12px 40px rgba(0,0,0,0.5);">
+      <a id="certDownload" class="share-cta" style="display:block; text-decoration:none; margin-top:10px; box-sizing:border-box;" download="cryptofumble-certificate.png">⬇️ Download certificate</a>
     </div>
     <div class="compare-block" id="compareBlock" style="display:none;">
       <button type="button" class="compare-toggle" id="compareToggle">⚖️ Compare with another coin</button>
@@ -2564,6 +2570,7 @@ async function runLumpSumCalculation(coin){
   };
   // reset any previously generated share card since the numbers changed
   document.getElementById('shareCardWrap').style.display = 'none';
+  document.getElementById('certCardWrap').style.display = 'none';
   precacheShareCard(); // draw the share-card PNG in the background now, ready before the user clicks Share
   precacheShareId(); // also fetch the short share link in the background, same reasoning
   // "compare with another coin" only makes sense for a straight "I bought" purchase —
@@ -2696,8 +2703,11 @@ async function runDcaCalculation(coin){
       mult,
       isGood,
       chartValues: null,
+      investedRaw: totalInvested,
+      resultRaw: result,
     };
     document.getElementById('shareCardWrap').style.display = 'none';
+    document.getElementById('certCardWrap').style.display = 'none';
     precacheShareCard(); // draw the share-card PNG in the background now, ready before the user clicks Share
     precacheShareId(); // also fetch the short share link in the background, same reasoning
     // coin-comparison only applies to a single lump-sum purchase, not DCA
@@ -2994,6 +3004,224 @@ function wrapText(ctx, text, x, y, maxWidth, lineHeight){
   const startY = y - (lines.length-1)*lineHeight/2;
   lines.forEach((l,i)=> ctx.fillText(l.trim(), x, startY + i*lineHeight));
 }
+// ---- "Get certificate" — a more ornate, printable/giftable spin on the same
+// result data as the Receipt of Regret card above (growth-ledger Phase 6 idea:
+// "regret certificate" as its own format). Free as-is for now, no watermark-
+// removal paid tier yet — that's a separate later decision once we see if
+// people actually use this.
+function certNumberFor(coinSymbol, dateStr, investedRaw){
+  // purely decorative, deterministic "certificate number" — same inputs
+  // always produce the same number, just for flavor, no real meaning
+  const str = `${coinSymbol}|${dateStr}|${Math.round(investedRaw || 0)}`;
+  let h = 0;
+  for(let i=0;i<str.length;i++){ h = (h*31 + str.charCodeAt(i)) >>> 0; }
+  return String((h % 900000) + 100000); // 6 digits, never leading zero
+}
+function certDeclarationFor(mode, amountFmt, coinName, dateHuman){
+  if(mode === 'dca') return `Had ${amountFmt} been invested monthly into ${coinName} since ${dateHuman}, the resulting position would, as of today, be valued at:`;
+  if(mode === 'sold') return `Had ${amountFmt} of ${coinName} not been sold on ${dateHuman}, that position would, as of today, be valued at:`;
+  return `Had ${amountFmt} been used to purchase ${coinName} on ${dateHuman}, that position would, as of today, be valued at:`;
+}
+function drawDiamond(ctx, x, y, r){
+  ctx.beginPath();
+  ctx.moveTo(x, y-r); ctx.lineTo(x+r, y); ctx.lineTo(x, y+r); ctx.lineTo(x-r, y);
+  ctx.closePath();
+  ctx.fill();
+}
+async function drawCertificateCard(includeLogo){
+  const canvas = document.getElementById('certCanvas');
+  const W = canvas.width, H = canvas.height; // 900 x 1200 — portrait, meant to print/frame as-is
+  const ctx = canvas.getContext('2d');
+  await Promise.all([
+    document.fonts.load('800 46px "Playfair Display"'),
+    document.fonts.load('700 30px "Dancing Script"'),
+    document.fonts.load('700 68px "IBM Plex Mono"'),
+    document.fonts.load('600 13px "IBM Plex Mono"'),
+    document.fonts.load('400 16px "IBM Plex Mono"'),
+  ]);
+  const ink = '#2A2418';
+  const inkSoft = 'rgba(42,36,24,0.6)';
+  const inkFaint = 'rgba(42,36,24,0.4)';
+  const gold = '#B8860B';
+  const cx = W/2;
+
+  // parchment background fills the whole canvas (unlike the receipt card,
+  // which floats on a dark backdrop) — this one is meant to look like a full
+  // printable page, not a screenshot of a card
+  const bg = ctx.createRadialGradient(cx, H*0.35, 60, cx, H*0.35, W*0.9);
+  bg.addColorStop(0, '#FBF6EA');
+  bg.addColorStop(1, '#EFE7D2');
+  ctx.fillStyle = bg;
+  ctx.fillRect(0, 0, W, H);
+
+  // double border frame + corner flourishes, classic diploma look
+  ctx.strokeStyle = gold;
+  ctx.lineWidth = 3;
+  ctx.strokeRect(40, 40, W-80, H-80);
+  ctx.lineWidth = 1.5;
+  ctx.strokeRect(54, 54, W-108, H-108);
+  ctx.fillStyle = gold;
+  [[54,54],[W-54,54],[54,H-54],[W-54,H-54]].forEach(([x,y])=> drawDiamond(ctx, x, y, 7));
+
+  let y = 130;
+  ctx.textAlign = 'center';
+  ctx.fillStyle = gold;
+  ctx.font = '600 13px "IBM Plex Mono"';
+  ctx.save(); ctx.letterSpacing = '4px';
+  ctx.fillText('THE CRYPTOFUMBLE REGRET SOCIETY', cx, y);
+  ctx.restore();
+
+  y += 60;
+  ctx.fillStyle = ink;
+  ctx.font = '800 46px "Playfair Display"';
+  ctx.fillText('Certificate of Fumble', cx, y);
+
+  y += 26;
+  ctx.strokeStyle = gold; ctx.lineWidth = 1.5;
+  ctx.beginPath(); ctx.moveTo(cx-140, y); ctx.lineTo(cx-14, y); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(cx+14, y); ctx.lineTo(cx+140, y); ctx.stroke();
+  ctx.fillStyle = gold;
+  drawDiamond(ctx, cx, y, 6);
+
+  y += 56;
+  ctx.fillStyle = inkSoft;
+  ctx.font = '400 16px "IBM Plex Mono"';
+  wrapText(ctx, 'This certifies that, upon rigorous mathematical review, the following has been conclusively established:', cx, y, W-260, 24);
+
+  y += 78;
+  if(includeLogo){
+    const logoImg = await loadImageSafe(iconUrl(lastResult.coinSymbol));
+    if(logoImg){
+      const r = 22;
+      ctx.save();
+      ctx.beginPath(); ctx.arc(cx, y, r, 0, Math.PI*2); ctx.closePath(); ctx.clip();
+      ctx.drawImage(logoImg, cx-r, y-r, r*2, r*2);
+      ctx.restore();
+      ctx.strokeStyle = gold; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.arc(cx, y, r, 0, Math.PI*2); ctx.stroke();
+      y += 50;
+    }
+  }
+
+  const dateHuman = humanDate(lastResult.dateStr);
+  const declaration = certDeclarationFor(lastResult.mode, lastResult.investedFmt, lastResult.coinName, dateHuman);
+  ctx.fillStyle = ink;
+  ctx.font = '600 19px "IBM Plex Mono"';
+  wrapText(ctx, declaration, cx, y, W-200, 30);
+
+  y += 110;
+  ctx.fillStyle = lastResult.isGood ? '#0F7A50' : '#A82A30';
+  ctx.font = '700 68px "IBM Plex Mono"';
+  ctx.fillText(lastResult.resultFmt, cx, y);
+
+  y += 40;
+  ctx.fillStyle = inkSoft;
+  ctx.font = '600 17px "IBM Plex Mono"';
+  ctx.fillText(`a return of ×${lastResult.mult.toFixed(1)}`, cx, y);
+
+  // wax-seal-style badge with the same tier emoji/label already used elsewhere
+  y += 70;
+  const sealR = 58;
+  const sealY = y + sealR;
+  ctx.fillStyle = gold;
+  ctx.beginPath(); ctx.arc(cx, sealY, sealR, 0, Math.PI*2); ctx.fill();
+  ctx.strokeStyle = ink; ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.arc(cx, sealY, sealR-6, 0, Math.PI*2); ctx.stroke();
+  ctx.fillStyle = gold;
+  ctx.beginPath();
+  ctx.moveTo(cx-24, sealY+sealR-10); ctx.lineTo(cx-40, sealY+sealR+55); ctx.lineTo(cx-10, sealY+sealR+30);
+  ctx.closePath(); ctx.fill();
+  ctx.beginPath();
+  ctx.moveTo(cx+24, sealY+sealR-10); ctx.lineTo(cx+40, sealY+sealR+55); ctx.lineTo(cx+10, sealY+sealR+30);
+  ctx.closePath(); ctx.fill();
+  ctx.font = '46px sans-serif';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(lastResult.tier.emoji, cx, sealY+2);
+  ctx.textBaseline = 'alphabetic';
+
+  y = sealY + sealR + 75;
+  ctx.fillStyle = gold;
+  ctx.font = '600 12px "IBM Plex Mono"';
+  ctx.save(); ctx.letterSpacing = '3px';
+  ctx.fillText('OFFICIALLY CLASSIFIED AS', cx, y);
+  ctx.restore();
+  y += 32;
+  ctx.fillStyle = ink;
+  ctx.font = '700 22px "IBM Plex Mono"';
+  ctx.save(); ctx.letterSpacing = '1px';
+  ctx.fillText(lastResult.tier.label, cx, y);
+  ctx.restore();
+
+  y += 54;
+  ctx.fillStyle = inkFaint;
+  ctx.font = 'italic 400 13px "IBM Plex Mono"';
+  wrapText(ctx, 'This certificate carries no cash value, tax deduction, or investment advice — but the math checks out.', cx, y, W-280, 20);
+
+  // footer: certificate number / issue date on the left, "signature" on the right
+  const footerY = H - 130;
+  ctx.strokeStyle = 'rgba(42,36,24,0.25)';
+  ctx.setLineDash([5,5]);
+  ctx.beginPath(); ctx.moveTo(80, footerY); ctx.lineTo(W-80, footerY); ctx.stroke();
+  ctx.setLineDash([]);
+
+  const certNo = certNumberFor(lastResult.coinSymbol, lastResult.dateStr, lastResult.investedRaw);
+  const issuedStr = new Date().toLocaleDateString('en-US', { year:'numeric', month:'long', day:'numeric' });
+
+  ctx.textAlign = 'left';
+  ctx.fillStyle = inkFaint;
+  ctx.font = '600 12px "IBM Plex Mono"';
+  ctx.fillText(`CERTIFICATE NO. CF-${certNo}`, 80, footerY+34);
+  ctx.fillText(`ISSUED ${issuedStr.toUpperCase()}`, 80, footerY+54);
+
+  ctx.textAlign = 'right';
+  ctx.fillStyle = ink;
+  ctx.font = '700 30px "Dancing Script"';
+  ctx.fillText('The Regret Dept.', W-80, footerY+32);
+  ctx.strokeStyle = 'rgba(42,36,24,0.4)'; ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(W-260, footerY+44); ctx.lineTo(W-80, footerY+44); ctx.stroke();
+  ctx.fillStyle = inkFaint;
+  ctx.font = '600 11px "IBM Plex Mono"';
+  ctx.save(); ctx.letterSpacing = '1.5px';
+  ctx.fillText('CHIEF REGRET OFFICER', W-80, footerY+60);
+  ctx.restore();
+
+  ctx.textAlign = 'center';
+  ctx.fillStyle = inkFaint;
+  ctx.font = '600 12px "IBM Plex Mono"';
+  ctx.save(); ctx.letterSpacing = '2px';
+  ctx.fillText('CRYPTOFUMBLE.COM · MAKE YOUR OWN', cx, H-70);
+  ctx.restore();
+
+  return canvas.toDataURL('image/png');
+}
+document.getElementById('certBtn').addEventListener('click', async ()=>{
+  if(!lastResult){
+    alert('First hit "Show me what I missed" to calculate a result.');
+    return;
+  }
+  const certBtn = document.getElementById('certBtn');
+  const origLabel = certBtn.textContent;
+  certBtn.textContent = 'Drawing certificate…';
+  certBtn.disabled = true;
+  let dataUrl;
+  try{
+    dataUrl = await drawCertificateCard(true);
+  }catch(err){
+    // same "tainted canvas" fallback pattern as the receipt card above
+    dataUrl = await drawCertificateCard(false);
+  }
+  const img = document.getElementById('certCardImg');
+  const dl = document.getElementById('certDownload');
+  img.src = dataUrl;
+  dl.href = dataUrl;
+  document.getElementById('certCardWrap').style.display = 'block';
+  document.getElementById('certCardWrap').scrollIntoView({behavior:'smooth', block:'nearest'});
+  certBtn.textContent = origLabel;
+  certBtn.disabled = false;
+  if(typeof gtag === 'function'){
+    gtag('event', 'certificate_generate', { outcome: lastResult.isGood?'win':'loss', coin: lastResult.coinSymbol });
+  }
+});
 document.getElementById('shareBtn').addEventListener('click', async ()=>{
   if(!lastResult){
     alert('First hit "Show me what I missed" to calculate a result.');
