@@ -781,6 +781,8 @@
     transition:background .2s var(--ease), transform .2s var(--ease);
   }
   .share-cta:hover{background:rgba(240,185,11,0.08); transform:translateY(-1px);}
+  .share-cta:disabled{opacity:0.55; cursor:default; transform:none;}
+  .share-cta:disabled:hover{background:var(--field-bg);}
   .cta-invest{
     display:block;
     width:100%;
@@ -1203,6 +1205,7 @@
     <button class="share-cta" id="shareBtn">📸 Generate share card</button>
     <button class="share-cta" id="shareXBtn">𝕏 Share on X</button>
     <button class="share-cta" id="certBtn">🎖️ Get certificate</button>
+    <button class="share-cta" id="addToPfBtn" style="display:none;">➕ Add to portfolio</button>
     <div id="shareCardWrap" style="display:none; margin-top:14px; text-align:center;">
       <canvas id="shareCanvas" width="640" height="800" style="display:none;"></canvas>
       <img id="shareCardImg" style="width:100%; border-radius:14px; box-shadow:0 12px 40px rgba(0,0,0,0.5);">
@@ -2680,6 +2683,7 @@ async function runLumpSumCalculation(coin){
   lastResult = {
     coinName: coin.name,
     coinSymbol: coin.symbol,
+    geckoId: coin.geckoId,
     dateStr,
     mode: currentMode,
     tier,
@@ -2693,11 +2697,18 @@ async function runLumpSumCalculation(coin){
     isGood,
     chartValues,
     investedRaw: baseValue,
-    resultRaw: result
+    resultRaw: result,
+    coinsRaw: coins
   };
   // reset any previously generated share card since the numbers changed
   document.getElementById('shareCardWrap').style.display = 'none';
   document.getElementById('certCardWrap').style.display = 'none';
+  // "Add to portfolio" only makes sense for coins you'd actually be holding —
+  // hidden in "sold" mode, re-enabled fresh on every new calculation
+  const addToPfBtn = document.getElementById('addToPfBtn');
+  addToPfBtn.style.display = currentMode === 'sold' ? 'none' : 'block';
+  addToPfBtn.disabled = false;
+  addToPfBtn.textContent = '➕ Add to portfolio';
   saveLastCalc();
   precacheShareCard(); // draw the share-card PNG in the background now, ready before the user clicks Share
   precacheShareId(); // also fetch the short share link in the background, same reasoning
@@ -2821,6 +2832,7 @@ async function runDcaCalculation(coin){
     lastResult = {
       coinName: coin.name,
       coinSymbol: coin.symbol,
+      geckoId: coin.geckoId,
       dateStr,
       mode: currentMode,
       tier,
@@ -2835,9 +2847,15 @@ async function runDcaCalculation(coin){
       chartValues: null,
       investedRaw: totalInvested,
       resultRaw: result,
+      coinsRaw: totalCoins,
     };
     document.getElementById('shareCardWrap').style.display = 'none';
     document.getElementById('certCardWrap').style.display = 'none';
+    // DCA also represents coins you'd be holding — offer the same bridge
+    const addToPfBtn = document.getElementById('addToPfBtn');
+    addToPfBtn.style.display = 'block';
+    addToPfBtn.disabled = false;
+    addToPfBtn.textContent = '➕ Add to portfolio';
     saveLastCalc();
     precacheShareCard(); // draw the share-card PNG in the background now, ready before the user clicks Share
     precacheShareId(); // also fetch the short share link in the background, same reasoning
@@ -3342,6 +3360,32 @@ async function drawCertificateCard(includeLogo){
 
   return canvas.toDataURL('image/png');
 }
+// ---- "Add to portfolio" — one-click bridge from a calculator result into
+// the "My Portfolio" tracker (pfEntries/PF_KEY, defined further down this
+// script — function/let hoisting means both are safely defined by the time
+// a user can actually click this, since it only runs after page load).
+// Only offered for "bought"/"dca" (coins you'd actually be holding) — "sold"
+// mode represents coins no longer held, so adding it would misrepresent the
+// portfolio's current-holdings tracker. The exact day is unknown (calculator
+// works at month granularity) so it's logged as the 1st of the month.
+document.getElementById('addToPfBtn').addEventListener('click', ()=>{
+  if(!lastResult || !lastResult.coinsRaw) return;
+  pfEntries.push({
+    id: Date.now() + Math.random(),
+    symbol: lastResult.coinSymbol,
+    name: lastResult.coinName,
+    geckoId: lastResult.geckoId,
+    dateStr: `${lastResult.dateStr}-01`,
+    qty: lastResult.coinsRaw,
+    spent: lastResult.investedRaw,
+  });
+  pfSave(pfEntries);
+  pfRender();
+  const btn = document.getElementById('addToPfBtn');
+  btn.textContent = '✓ Added to portfolio';
+  btn.disabled = true;
+  if(typeof gtag === 'function') gtag('event', 'portfolio_entry_added', { coin: lastResult.coinSymbol, source: 'receipt' });
+});
 document.getElementById('certBtn').addEventListener('click', async ()=>{
   if(!lastResult){
     alert('First hit "Show me what I missed" to calculate a result.');
