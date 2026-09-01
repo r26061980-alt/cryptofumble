@@ -333,6 +333,52 @@
     padding:0;
   }
   .daily-regret-cta:hover{text-decoration:underline;}
+  /* ═══ Пасхалка про биткоин-пиццу (31.08.2026) — тот же визуальный язык,
+     что и .daily-regret, но отдельный класс: блок всегда виден и не зависит
+     от live-ленты (в отличие от loadDailyRegret()). ═══ */
+  .pizza-fact{
+    background:linear-gradient(135deg, rgba(240,185,11,0.09), rgba(240,185,11,0.02));
+    border:1px solid rgba(240,185,11,0.22);
+    border-radius:var(--r-lg);
+    padding:18px 20px;
+    margin-bottom:28px;
+    box-shadow:0 1px 0 rgba(255,255,255,0.04) inset;
+    animation:fadeUp .5s var(--ease) .15s both;
+  }
+  .pizza-fact-label{
+    font-family:var(--mono);
+    font-size:10px;
+    letter-spacing:0.12em;
+    color:var(--gold);
+    margin-bottom:8px;
+    font-weight:700;
+  }
+  .pizza-fact-text{
+    font-size:14px;
+    line-height:1.5;
+    color:var(--text);
+    margin-bottom:10px;
+  }
+  .pizza-fact-cta{
+    background:none;
+    border:none;
+    color:var(--gold);
+    font-family:var(--sans);
+    font-weight:700;
+    font-size:13px;
+    cursor:pointer;
+    padding:0;
+  }
+  .pizza-fact-cta:hover{text-decoration:underline;}
+  .pizza-fact-reveal{
+    margin-top:12px;
+    padding-top:12px;
+    border-top:1px dashed rgba(240,185,11,0.25);
+    font-size:15px;
+    line-height:1.5;
+    color:var(--text);
+  }
+  .pizza-fact-reveal b{color:var(--gold);}
   .panel{
     background:linear-gradient(180deg, rgba(255,255,255,0.035), rgba(255,255,255,0) 42%), var(--panel);
     border:1px solid var(--panel-border);
@@ -1296,6 +1342,12 @@
     <div class="daily-regret-label">📅 РЕГРЕТ ДНЯ</div>
     <div class="daily-regret-text" id="dailyRegretText">Загрузка…</div>
     <button type="button" class="daily-regret-cta" id="dailyRegretCta">Попробовать самому →</button>
+  </div>
+  <div class="pizza-fact" id="pizzaFact">
+    <div class="pizza-fact-label">🍕 РЕАЛЬНАЯ ИСТОРИЯ</div>
+    <div class="pizza-fact-text">22 мая 2010 года программист по имени Ласло заплатил 10 000 BTC за две пиццы — тогда это было около $41. Никто не придал этому значения.</div>
+    <button type="button" class="pizza-fact-cta" id="pizzaFactBtn">Сколько бы это стоило сейчас? →</button>
+    <div class="pizza-fact-reveal" id="pizzaFactReveal" style="display:none;"></div>
   </div>
   <div class="panel">
     <div class="field">
@@ -2374,6 +2426,38 @@ async function loadDailyRegret(){
   }
 }
 loadDailyRegret();
+// ---- Пасхалка про биткоин-пиццу ----
+// Намеренно НЕ проходит через обычный расчёт (монета/дата/сумма -> getPrices) —
+// самый ранний год, который понимает пикер дат — 2013 (PICKER_MIN_YEAR), а май
+// 2010 вообще вне диапазона данных сайта. Поэтому это отдельный, самодостаточный
+// факт: фиксированные исторические цифры (10 000 BTC, $41) плюс один живой
+// запрос цены "сейчас", с тем же резервным значением из DATA.BTC, что и везде
+// на сайте, если живой запрос не удался.
+document.getElementById('pizzaFactBtn').addEventListener('click', async ()=>{
+  const btn = document.getElementById('pizzaFactBtn');
+  const reveal = document.getElementById('pizzaFactReveal');
+  const origLabel = btn.textContent;
+  btn.textContent = 'Считаем…';
+  btn.disabled = true;
+  let price = null;
+  try{
+    price = await fetchCurrentPrice('bitcoin');
+  }catch(err){
+    price = DATA.BTC?.points?.[DATA.BTC.points.length-1]?.[1] || null;
+  }
+  if(price){
+    const value = 10000 * price;
+    reveal.innerHTML = `Эти 10 000 BTC сегодня стоили бы <b>${fmtBig(value)}</b>. Надеюсь, пицца была вкусной. 🍕`;
+    reveal.style.display = 'block';
+    btn.style.display = 'none';
+    if(typeof gtag === 'function') gtag('event', 'pizza_easter_egg_reveal');
+  }else{
+    reveal.innerHTML = `Не удалось получить живые цены прямо сейчас — попробуйте чуть позже.`;
+    reveal.style.display = 'block';
+    btn.textContent = origLabel;
+    btn.disabled = false;
+  }
+});
 // ---- Счётчик "N человек проверили свой регрет сегодня" ----
 // (это реальное число обращений к калькулятору — в отличие от старой ленты
 // ниже, здесь не выдаём чужие гипотетические расчёты за похожее на рыночные данные)
@@ -3273,10 +3357,70 @@ function loadImageSafe(src){
     img.src = src;
   });
 }
+// ---- Постерный фон под настроение (31.08.2026) ----
+// Руслан хотел, чтобы шеринг-карточка выглядела более драматично и по-разному
+// в зависимости от результата — но генерировать настоящую ИИ-картинку под
+// каждый результат плохая идея для инструмента, вся ценность которого — точные
+// цифры (ИИ-модели регулярно портят текст/цифры на картинке, плюс это платно
+// и не мгновенно). Это честный средний вариант: фон под неизменным (всё так
+// же точным) бумажным чеком теперь — процедурный градиент+свечение+зерно,
+// завязанный на тот же tier, что уже показывает бейдж на странице — бесплатно,
+// мгновенно, никогда не может показать неверную цифру.
+const POSTER_MOODS = {
+  rekt:      { top:'#2b0808', bottom:'#000000', glow:'rgba(216,64,64,0.55)',  accent:'#FF6B6B' },
+  bagholder: { top:'#2a2118', bottom:'#0d0a08', glow:'rgba(180,140,60,0.35)', accent:'#E0B84D' },
+  solid:     { top:'#132a1c', bottom:'#0a1410', glow:'rgba(60,200,140,0.4)',  accent:'#4FD69C' },
+  legendary: { top:'#3a2600', bottom:'#140d00', glow:'rgba(240,185,11,0.55)', accent:'#FFD34D' },
+  diamond:   { top:'#0a2630', bottom:'#050d14', glow:'rgba(80,220,255,0.5)',  accent:'#7CE8FF' },
+};
+const TIER_MOOD = {
+  'ПОЛНЫЙ РЕКТ': 'rekt',
+  'СЕРТИФИЦИРОВАННЫЙ БЭГХОЛДЕР': 'bagholder',
+  'ЛЁГКИЙ ПРОМАХ': 'bagholder',
+  'НЕПЛОХОЙ ХОД': 'solid',
+  'ХОРОШИЙ УЛОВ': 'solid',
+  'ЛЕГЕНДАРНЫЙ ТАЙМИНГ': 'legendary',
+  'АЛМАЗНЫЕ РУКИ ОКУПИЛИСЬ': 'diamond',
+};
+function getPosterMood(tierLabel){
+  return POSTER_MOODS[TIER_MOOD[tierLabel]] || POSTER_MOODS.solid;
+}
+// Уменьшает жирный заголовок, пока он не влезет в maxWidth — чтобы длинные
+// названия тиров («АЛМАЗНЫЕ РУКИ ОКУПИЛИСЬ») не вылезали за карточку.
+function fitFontSize(ctx, text, maxWidth, startSize, minSize, weight, family){
+  let size = startSize;
+  while(size > minSize){
+    ctx.font = `${weight} ${size}px "${family}"`;
+    if(ctx.measureText(text).width <= maxWidth) return size;
+    size -= 2;
+  }
+  return minSize;
+}
+function drawPosterBackdrop(ctx, W, H, tierLabel){
+  const mood = getPosterMood(tierLabel);
+  const base = ctx.createLinearGradient(0,0,0,H);
+  base.addColorStop(0, mood.top);
+  base.addColorStop(1, mood.bottom);
+  ctx.fillStyle = base; ctx.fillRect(0,0,W,H);
+  const glow = ctx.createRadialGradient(W/2, H*0.2, 10, W/2, H*0.2, W*0.8);
+  glow.addColorStop(0, mood.glow);
+  glow.addColorStop(1, 'rgba(0,0,0,0)');
+  ctx.fillStyle = glow; ctx.fillRect(0,0,W,H);
+  // дешёвая процедурная зернистость — пара сотен едва заметных точек читаются
+  // как шершавая текстура, без реального файла-изображения
+  for(let i=0;i<900;i++){
+    const gx = Math.random()*W, gy = Math.random()*H;
+    const shade = Math.random()<0.5 ? '255,255,255' : '0,0,0';
+    ctx.fillStyle = `rgba(${shade},${(Math.random()*0.05).toFixed(3)})`;
+    ctx.fillRect(gx, gy, 1.4, 1.4);
+  }
+}
 async function drawShareCard(includeLogo){
   const canvas = document.getElementById('shareCanvas');
+  const POSTER_BAND_H = 176; // драматичная полоса-заголовок над чеком
+  const CARD_SECTION_H = 818; // + место под график динамики позиции — расчёты карточки не менялись
   canvas.width = 640;
-  canvas.height = 818; // + место под график динамики позиции
+  canvas.height = POSTER_BAND_H + CARD_SECTION_H;
   const ctx = canvas.getContext('2d');
   const W = canvas.width, H = canvas.height;
   // ensure custom fonts are actually loaded before canvas text uses them
@@ -3286,19 +3430,43 @@ async function drawShareCard(includeLogo){
     document.fonts.load('400 16px "IBM Plex Mono"'),
     document.fonts.load('800 26px "Manrope"'),
   ]);
-  // dark backdrop (so the paper card "pops" like a receipt on a desk)
-  const bg = ctx.createRadialGradient(W/2,60,40, W/2,60,W);
-  bg.addColorStop(0,'#171C24'); bg.addColorStop(1,'#0D1117');
-  ctx.fillStyle = bg; ctx.fillRect(0,0,W,H);
+  const cx = W/2;
+  // ---- полоса-заголовок: фон-настроение на весь холст, затем название
+  // тира как большой драматичный заголовок, с автоподбором размера ----
+  drawPosterBackdrop(ctx, W, H, lastResult.tier.label);
+  const mood = getPosterMood(lastResult.tier.label);
+  ctx.textAlign = 'center';
+  ctx.fillStyle = 'rgba(255,255,255,0.55)';
+  ctx.font = '600 12px "IBM Plex Mono"';
+  ctx.save(); ctx.letterSpacing = '3px';
+  const posterContext = lastResult.mode === 'dca'
+    ? `${lastResult.coinName.toUpperCase()} · ПОМЕСЯЧНО С ${lastResult.dateStr}`
+    : `${lastResult.coinName.toUpperCase()} · ${lastResult.mode === 'sold' ? 'ПРОДАНО' : 'КУПЛЕНО'} ${lastResult.dateStr}`;
+  ctx.fillText(posterContext, cx, 42);
+  ctx.restore();
+  const headline = `${lastResult.tier.emoji} ${lastResult.tier.label}`;
+  const fitSize = fitFontSize(ctx, headline, W-100, 44, 24, 800, 'Manrope');
+  ctx.font = `800 ${fitSize}px "Manrope"`;
+  ctx.fillStyle = mood.accent;
+  ctx.shadowColor = mood.glow; ctx.shadowBlur = 26;
+  ctx.fillText(headline, cx, 102);
+  ctx.shadowBlur = 0;
+  ctx.font = '700 16px "IBM Plex Mono"';
+  ctx.fillStyle = 'rgba(255,255,255,0.85)';
+  ctx.fillText(`×${lastResult.mult.toFixed(1)}`, cx, 142);
+  // ---- всё ниже — исходная, неизменная бумажная карточка: те же самые
+  // цифры/раскладка, что и раньше, просто сдвинутые под полосу-заголовок ----
+  ctx.save();
+  ctx.translate(0, POSTER_BAND_H);
+  const H_CARD = CARD_SECTION_H;
   // paper card
-  const pad=30, cardTop=60, cardH=H-120;
+  const pad=30, cardTop=60, cardH=H_CARD-120;
   roundedZigzagPath(ctx, pad, cardTop, W-pad*2, cardH, 26, 7);
   ctx.fillStyle = '#F7F1E3';
   ctx.shadowColor = 'rgba(0,0,0,0.5)'; ctx.shadowBlur = 40; ctx.shadowOffsetY = 20;
   ctx.fill();
   ctx.shadowColor = 'transparent';
   const ink = '#2A2418';
-  const cx = W/2;
   let y = 140;
   ctx.textAlign='center';
   ctx.fillStyle = 'rgba(42,36,24,0.55)';
@@ -3394,6 +3562,7 @@ async function drawShareCard(includeLogo){
   ctx.save(); ctx.letterSpacing='2px';
   ctx.fillText('CRYPTOFUMBLE.COM/RU · СДЕЛАЙ СВОЙ', cx, cardTop+cardH-24);
   ctx.restore();
+  ctx.restore(); // закрывает translate(0, POSTER_BAND_H), открытый выше
   return canvas.toDataURL('image/png');
 }
 // ---- Карточка для шеринга портфеля («моя реальная прибыль/убыток», не гипотеза) ----
