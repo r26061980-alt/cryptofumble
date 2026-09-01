@@ -335,6 +335,52 @@
     padding:0;
   }
   .daily-regret-cta:hover{text-decoration:underline;}
+  /* ═══ Bitcoin pizza easter egg (31.08.2026) — same visual language as
+     .daily-regret, kept as its own class since it's always-on (no live-feed
+     dependency to wait on) rather than toggled by loadDailyRegret(). ═══ */
+  .pizza-fact{
+    background:linear-gradient(135deg, rgba(240,185,11,0.09), rgba(240,185,11,0.02));
+    border:1px solid rgba(240,185,11,0.22);
+    border-radius:var(--r-lg);
+    padding:18px 20px;
+    margin-bottom:28px;
+    box-shadow:0 1px 0 rgba(255,255,255,0.04) inset;
+    animation:fadeUp .5s var(--ease) .15s both;
+  }
+  .pizza-fact-label{
+    font-family:var(--mono);
+    font-size:10px;
+    letter-spacing:0.12em;
+    color:var(--gold);
+    margin-bottom:8px;
+    font-weight:700;
+  }
+  .pizza-fact-text{
+    font-size:14px;
+    line-height:1.5;
+    color:var(--text);
+    margin-bottom:10px;
+  }
+  .pizza-fact-cta{
+    background:none;
+    border:none;
+    color:var(--gold);
+    font-family:var(--sans);
+    font-weight:700;
+    font-size:13px;
+    cursor:pointer;
+    padding:0;
+  }
+  .pizza-fact-cta:hover{text-decoration:underline;}
+  .pizza-fact-reveal{
+    margin-top:12px;
+    padding-top:12px;
+    border-top:1px dashed rgba(240,185,11,0.25);
+    font-size:15px;
+    line-height:1.5;
+    color:var(--text);
+  }
+  .pizza-fact-reveal b{color:var(--gold);}
   .panel{
     background:linear-gradient(180deg, rgba(255,255,255,0.035), rgba(255,255,255,0) 42%), var(--panel);
     border:1px solid var(--panel-border);
@@ -1300,6 +1346,12 @@
     <div class="daily-regret-label">📅 TODAY'S REGRET</div>
     <div class="daily-regret-text" id="dailyRegretText">Loading…</div>
     <button type="button" class="daily-regret-cta" id="dailyRegretCta">Try it yourself →</button>
+  </div>
+  <div class="pizza-fact" id="pizzaFact">
+    <div class="pizza-fact-label">🍕 TRUE STORY</div>
+    <div class="pizza-fact-text">On May 22, 2010, a guy named Laszlo paid 10,000 BTC for two pizzas — about $41 at the time. Nobody thought twice about it.</div>
+    <button type="button" class="pizza-fact-cta" id="pizzaFactBtn">What would that be worth today? →</button>
+    <div class="pizza-fact-reveal" id="pizzaFactReveal" style="display:none;"></div>
   </div>
   <div class="panel">
     <div class="field">
@@ -2374,6 +2426,38 @@ async function loadDailyRegret(){
   }
 }
 loadDailyRegret();
+// ---- Bitcoin pizza easter egg ----
+// Deliberately NOT routed through the normal calculator (coin/date/amount ->
+// getPrices) — the picker's earliest supported year is 2013 (PICKER_MIN_YEAR),
+// so May 2010 is out of range for the site's date data entirely. This is a
+// self-contained fun fact instead: fixed historical numbers (10,000 BTC, $41)
+// plus one live price lookup for "today", with the same DATA.BTC fallback
+// price used everywhere else if the live fetch fails.
+document.getElementById('pizzaFactBtn').addEventListener('click', async ()=>{
+  const btn = document.getElementById('pizzaFactBtn');
+  const reveal = document.getElementById('pizzaFactReveal');
+  const origLabel = btn.textContent;
+  btn.textContent = 'Crunching…';
+  btn.disabled = true;
+  let price = null;
+  try{
+    price = await fetchCurrentPrice('bitcoin');
+  }catch(err){
+    price = DATA.BTC?.points?.[DATA.BTC.points.length-1]?.[1] || null;
+  }
+  if(price){
+    const value = 10000 * price;
+    reveal.innerHTML = `Those 10,000 BTC would be worth <b>${fmtBig(value)}</b> today. Hope the pizza was worth it. 🍕`;
+    reveal.style.display = 'block';
+    btn.style.display = 'none';
+    if(typeof gtag === 'function') gtag('event', 'pizza_easter_egg_reveal');
+  }else{
+    reveal.innerHTML = `Couldn't reach live prices right now — try again in a bit.`;
+    reveal.style.display = 'block';
+    btn.textContent = origLabel;
+    btn.disabled = false;
+  }
+});
 // ---- Daily "N people checked their regret today" counter ----
 // (this is a real usage count, backed by actual calculator submissions —
 // unlike the old feed below it, it's not shown as if it were market data)
@@ -3269,10 +3353,70 @@ function loadImageSafe(src){
     img.src = src;
   });
 }
+// ---- Poster-mood backdrop (31.08.2026) ----
+// Ruslan wanted the share card to look more like a dramatic poster and vary
+// with how good/bad the result is — but generating an actual AI image per
+// result is a bad idea for a tool whose whole point is exact numbers (image
+// models routinely mangle text/digits, plus per-call cost+latency). This is
+// the honest middle ground: the backdrop behind the (unchanged, still 100%
+// accurate) paper receipt is now a procedural gradient+glow+grain poster
+// treatment, keyed off the same tier the on-page badge already shows — free,
+// instant, and never at risk of showing a wrong number.
+const POSTER_MOODS = {
+  rekt:      { top:'#2b0808', bottom:'#000000', glow:'rgba(216,64,64,0.55)',  accent:'#FF6B6B' },
+  bagholder: { top:'#2a2118', bottom:'#0d0a08', glow:'rgba(180,140,60,0.35)', accent:'#E0B84D' },
+  solid:     { top:'#132a1c', bottom:'#0a1410', glow:'rgba(60,200,140,0.4)',  accent:'#4FD69C' },
+  legendary: { top:'#3a2600', bottom:'#140d00', glow:'rgba(240,185,11,0.55)', accent:'#FFD34D' },
+  diamond:   { top:'#0a2630', bottom:'#050d14', glow:'rgba(80,220,255,0.5)',  accent:'#7CE8FF' },
+};
+const TIER_MOOD = {
+  'TOTAL REKT': 'rekt',
+  'CERTIFIED BAG HOLDER': 'bagholder',
+  'MILD FUMBLE': 'bagholder',
+  'SOLID MOVE': 'solid',
+  'NICE CATCH': 'solid',
+  'LEGENDARY TIMING': 'legendary',
+  'DIAMOND HANDS VINDICATED': 'diamond',
+};
+function getPosterMood(tierLabel){
+  return POSTER_MOODS[TIER_MOOD[tierLabel]] || POSTER_MOODS.solid;
+}
+// Shrinks a bold headline down until it fits maxWidth, so long tier labels
+// ("DIAMOND HANDS VINDICATED") don't run off the edge of a fixed-width card.
+function fitFontSize(ctx, text, maxWidth, startSize, minSize, weight, family){
+  let size = startSize;
+  while(size > minSize){
+    ctx.font = `${weight} ${size}px "${family}"`;
+    if(ctx.measureText(text).width <= maxWidth) return size;
+    size -= 2;
+  }
+  return minSize;
+}
+function drawPosterBackdrop(ctx, W, H, tierLabel){
+  const mood = getPosterMood(tierLabel);
+  const base = ctx.createLinearGradient(0,0,0,H);
+  base.addColorStop(0, mood.top);
+  base.addColorStop(1, mood.bottom);
+  ctx.fillStyle = base; ctx.fillRect(0,0,W,H);
+  const glow = ctx.createRadialGradient(W/2, H*0.2, 10, W/2, H*0.2, W*0.8);
+  glow.addColorStop(0, mood.glow);
+  glow.addColorStop(1, 'rgba(0,0,0,0)');
+  ctx.fillStyle = glow; ctx.fillRect(0,0,W,H);
+  // cheap procedural grain — a few hundred faint dots read as gritty texture
+  // without needing an actual image asset
+  for(let i=0;i<900;i++){
+    const gx = Math.random()*W, gy = Math.random()*H;
+    const shade = Math.random()<0.5 ? '255,255,255' : '0,0,0';
+    ctx.fillStyle = `rgba(${shade},${(Math.random()*0.05).toFixed(3)})`;
+    ctx.fillRect(gx, gy, 1.4, 1.4);
+  }
+}
 async function drawShareCard(includeLogo){
   const canvas = document.getElementById('shareCanvas');
+  const POSTER_BAND_H = 176; // dramatic headline strip above the receipt card
+  const CARD_SECTION_H = 818; // + место под график динамики позиции — unchanged card layout math
   canvas.width = 640;
-  canvas.height = 818; // + место под график динамики позиции
+  canvas.height = POSTER_BAND_H + CARD_SECTION_H;
   const ctx = canvas.getContext('2d');
   const W = canvas.width, H = canvas.height;
   // ensure custom fonts are actually loaded before canvas text uses them
@@ -3282,19 +3426,43 @@ async function drawShareCard(includeLogo){
     document.fonts.load('400 16px "IBM Plex Mono"'),
     document.fonts.load('800 26px "Manrope"'),
   ]);
-  // dark backdrop (so the paper card "pops" like a receipt on a desk)
-  const bg = ctx.createRadialGradient(W/2,60,40, W/2,60,W);
-  bg.addColorStop(0,'#171C24'); bg.addColorStop(1,'#0D1117');
-  ctx.fillStyle = bg; ctx.fillRect(0,0,W,H);
+  const cx = W/2;
+  // ---- poster headline band: mood backdrop across the whole canvas, then
+  // the tier label as a big dramatic headline, sized to fit ----
+  drawPosterBackdrop(ctx, W, H, lastResult.tier.label);
+  const mood = getPosterMood(lastResult.tier.label);
+  ctx.textAlign = 'center';
+  ctx.fillStyle = 'rgba(255,255,255,0.55)';
+  ctx.font = '600 12px "IBM Plex Mono"';
+  ctx.save(); ctx.letterSpacing = '3px';
+  const posterContext = lastResult.mode === 'dca'
+    ? `${lastResult.coinName.toUpperCase()} · MONTHLY SINCE ${lastResult.dateStr}`
+    : `${lastResult.coinName.toUpperCase()} · ${lastResult.mode === 'sold' ? 'SOLD' : 'BOUGHT'} ${lastResult.dateStr}`;
+  ctx.fillText(posterContext, cx, 42);
+  ctx.restore();
+  const headline = `${lastResult.tier.emoji} ${lastResult.tier.label}`;
+  const fitSize = fitFontSize(ctx, headline, W-100, 44, 24, 800, 'Manrope');
+  ctx.font = `800 ${fitSize}px "Manrope"`;
+  ctx.fillStyle = mood.accent;
+  ctx.shadowColor = mood.glow; ctx.shadowBlur = 26;
+  ctx.fillText(headline, cx, 102);
+  ctx.shadowBlur = 0;
+  ctx.font = '700 16px "IBM Plex Mono"';
+  ctx.fillStyle = 'rgba(255,255,255,0.85)';
+  ctx.fillText(`×${lastResult.mult.toFixed(1)}`, cx, 142);
+  // ---- everything below is the original, unchanged receipt card — same
+  // exact numbers/layout as before, just shifted down under the poster band ----
+  ctx.save();
+  ctx.translate(0, POSTER_BAND_H);
+  const H_CARD = CARD_SECTION_H;
   // paper card
-  const pad=30, cardTop=60, cardH=H-120;
+  const pad=30, cardTop=60, cardH=H_CARD-120;
   roundedZigzagPath(ctx, pad, cardTop, W-pad*2, cardH, 26, 7);
   ctx.fillStyle = '#F7F1E3';
   ctx.shadowColor = 'rgba(0,0,0,0.5)'; ctx.shadowBlur = 40; ctx.shadowOffsetY = 20;
   ctx.fill();
   ctx.shadowColor = 'transparent';
   const ink = '#2A2418';
-  const cx = W/2;
   let y = 140;
   ctx.textAlign='center';
   ctx.fillStyle = 'rgba(42,36,24,0.55)';
@@ -3390,6 +3558,7 @@ async function drawShareCard(includeLogo){
   ctx.save(); ctx.letterSpacing='2px';
   ctx.fillText('CRYPTOFUMBLE.COM · MAKE YOUR OWN', cx, cardTop+cardH-24);
   ctx.restore();
+  ctx.restore(); // closes the translate(0, POSTER_BAND_H) opened above
   return canvas.toDataURL('image/png');
 }
 // ---- Portfolio share card ("my real P/L", not a hypothetical) ----
