@@ -1428,9 +1428,11 @@
       <span id="ctaInvestText">Начать на бирже →</span>
     </a>
     <div class="invest-note" id="investNote" style="display:none;">Партнёрская ссылка — можем получить небольшую комиссию, без доплаты с твоей стороны.</div>
+    <button type="button" class="share-cta donate-nudge" id="donateNudgeTop" style="background:transparent; border:1px dashed var(--panel-border); color:var(--gold-soft); box-shadow:none; font-size:12.5px;">☕ Понравилось? Поддержи проект →</button>
     <button class="share-cta" id="addToPfBtn" style="display:none;">➕ Добавить в портфель</button>
     <button class="share-cta" id="shareBtn">📸 Сгенерировать карточку для шеринга</button>
     <button class="share-cta" id="shareTgBtn">✈️ Поделиться в Telegram</button>
+    <div id="shareTgThanks" style="display:none; font-size:11.5px; color:var(--muted); text-align:center; margin-top:-4px;"></div>
     <div id="shareCardWrap" style="display:none; margin-top:14px; text-align:center;">
       <canvas id="shareCanvas" width="640" height="800" style="display:none;"></canvas>
       <img id="shareCardImg" style="width:100%; border-radius:14px; box-shadow:0 12px 40px rgba(0,0,0,0.5);">
@@ -1442,18 +1444,12 @@
       <canvas id="storyCanvas" width="1080" height="1920" style="display:none;"></canvas>
       <img id="certCardImg" style="width:62%; max-width:320px; border-radius:8px; box-shadow:0 12px 40px rgba(0,0,0,0.5);">
       <a id="certDownload" class="share-cta" style="display:block; text-decoration:none; margin-top:10px; box-sizing:border-box;" download="cryptofumble-certificate.png">⬇️ Скачать сертификат</a>
-      <div id="premiumPreviewWrap" style="display:none; margin-top:16px;">
-        <p style="font-size:12.5px; color:var(--muted); margin:0 0 8px; letter-spacing:0.02em;">✨ Вот как выглядит премиум-версия:</p>
-        <canvas id="premiumPreviewCanvas" width="1080" height="1920" style="display:none;"></canvas>
-        <img id="premiumPreviewImg" style="width:56%; max-width:230px; border-radius:14px; box-shadow:0 12px 40px rgba(0,0,0,0.5);">
-      </div>
-      <button class="share-cta" id="premiumUnlockBtn" style="display:none;">🌟 Премиум-экспорт — без водяного знака, формат сторис ($3)</button>
-      <button class="share-cta" id="premiumUnlockCryptoBtn" style="display:none; margin-top:8px; background:#14161f; border:1px solid #34384a; color:#e7e7ee; box-shadow:none;">₮ Карта не проходит? Оплати $3 в USDT</button>
       <div id="premiumDownloads" style="display:none;">
         <button class="share-cta" id="premiumDownloadPngBtn">⬇️ Скачать PNG (сторис, без водяного знака)</button>
         <button class="share-cta" id="premiumDownloadPdfBtn">⬇️ Скачать PDF (сторис, без водяного знака)</button>
       </div>
       <div id="premiumStatus" style="font-size:11.5px; color:var(--muted); margin-top:8px;"></div>
+      <button type="button" class="share-cta donate-nudge" id="donateNudgeCert" style="background:transparent; border:1px dashed var(--panel-border); color:var(--gold-soft); box-shadow:none; font-size:12.5px; margin-top:10px;">☕ Понравилось? Поддержи проект →</button>
     </div>
     <div class="compare-block" id="compareBlock" style="display:none;">
       <button type="button" class="compare-toggle" id="compareToggle">⚖️ Сравнить с другой монетой</button>
@@ -1576,6 +1572,26 @@
       <a href="/ru/dogecoin-2021/" style="padding:8px 14px;background:var(--panel);border:1px solid var(--panel-border);border-radius:999px;text-decoration:none;font-size:12px;font-family:var(--mono);color:var(--gold-soft);">Dogecoin в 2021</a>
       <a href="/ru/solana-2022/" style="padding:8px 14px;background:var(--panel);border:1px solid var(--panel-border);border-radius:999px;text-decoration:none;font-size:12px;font-family:var(--mono);color:var(--gold-soft);">Solana в 2022</a>
     </div>
+  </div>
+  <div id="donateWidgetSection" style="max-width:360px;margin:32px auto 0;padding-top:24px;border-top:1px solid var(--panel-border-soft);text-align:center;border-radius:12px;transition:box-shadow 0.4s ease;">
+    <div style="font-family:var(--mono);font-size:10px;letter-spacing:0.1em;color:var(--muted);text-transform:uppercase;margin-bottom:8px;">☕ поддержать проект</div>
+    <div style="font-size:12px;color:var(--muted);margin-bottom:12px;">Если понравилось (или было слишком больно смотреть на цифры) — крипто-донат всегда приятен, но никогда не обязателен:</div>
+    <div style="display:flex;gap:6px;justify-content:center;margin-bottom:10px;font-family:var(--mono);font-size:11px;">
+      <label style="display:flex;align-items:center;gap:4px;padding:6px 10px;background:var(--panel);border:1px solid var(--panel-border);border-radius:999px;color:var(--muted);cursor:pointer;">
+        <input type="radio" name="donateNetwork" value="btc" checked style="margin:0;"> BTC
+      </label>
+      <label style="display:flex;align-items:center;gap:4px;padding:6px 10px;background:var(--panel);border:1px solid var(--panel-border);border-radius:999px;color:var(--muted);cursor:pointer;">
+        <input type="radio" name="donateNetwork" value="eth" style="margin:0;"> ETH
+      </label>
+      <label style="display:flex;align-items:center;gap:4px;padding:6px 10px;background:var(--panel);border:1px solid var(--panel-border);border-radius:999px;color:var(--muted);cursor:pointer;">
+        <input type="radio" name="donateNetwork" value="usdt_trc20" style="margin:0;"> USDT (TRC20)
+      </label>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px;justify-content:center;flex-wrap:wrap;">
+      <code id="donateAddress" style="font-family:var(--mono);font-size:11px;color:var(--gold-soft);background:var(--panel);border:1px solid var(--panel-border);border-radius:8px;padding:8px 10px;word-break:break-all;max-width:230px;">bc1qqfmsf2ksh9zjaj4zejrler9cxtu6lwryptq83l</code>
+      <button type="button" id="donateCopyBtn" style="padding:8px 12px;background:var(--panel);border:1px solid var(--panel-border);border-radius:8px;font-size:12px;font-family:var(--mono);color:var(--gold-soft);cursor:pointer;">📋 Копировать</button>
+    </div>
+    <div id="donateStatus" style="font-size:11px;color:var(--muted);margin-top:10px;min-height:14px;"></div>
   </div>
   <div style="max-width:480px;margin:24px auto 0;padding-top:20px;text-align:center;font-family:var(--mono);font-size:11.5px;color:var(--muted);">
     <a href="/ru/about.html" style="color:var(--muted);text-decoration:underline;text-underline-offset:2px;">О проекте</a>
@@ -3007,14 +3023,9 @@ async function runLumpSumCalculation(coin){
   // reset any previously generated share card since the numbers changed
   document.getElementById('shareCardWrap').style.display = 'none';
   document.getElementById('certCardWrap').style.display = 'none';
-  // разблокировка премиум-экспорта за $3 покрывает только тот результат, за
-  // который заплатили — новый расчёт всегда возвращает к платному экрану
-  premiumUnlocked = false;
   document.getElementById('premiumDownloads').style.display = 'none';
-  document.getElementById('premiumPreviewWrap').style.display = 'none';
   document.getElementById('premiumStatus').textContent = '';
-  stopCryptoPoll();
-  clearCryptoInvoice();
+  document.getElementById('shareTgThanks').style.display = 'none';
   // "Добавить в портфель" имеет смысл только для монет, которые реально
   // остаются на руках — прячем в режиме "sold", на каждом новом расчёте
   // сбрасываем в исходное состояние
@@ -3170,12 +3181,9 @@ async function runDcaCalculation(coin){
     addToPfBtn.disabled = false;
     addToPfBtn.textContent = '➕ Добавить в портфель';
     document.getElementById('certCardWrap').style.display = 'none';
-    premiumUnlocked = false;
     document.getElementById('premiumDownloads').style.display = 'none';
-    document.getElementById('premiumPreviewWrap').style.display = 'none';
     document.getElementById('premiumStatus').textContent = '';
-    stopCryptoPoll();
-    clearCryptoInvoice();
+    document.getElementById('shareTgThanks').style.display = 'none';
     saveLastCalc();
     precacheShareCard(); // рисуем PNG-карточку в фоне заранее, чтобы она была готова к моменту клика на "Share"
     precacheShareId(); // заодно запрашиваем короткую ссылку в фоне, по той же логике
@@ -3210,12 +3218,6 @@ async function runDcaCalculation(coin){
 }
 // keep the last computed result around so the share card can use it
 let lastResult = null;
-// есть ли у текущего lastResult активная разблокировка премиум-экспорта за
-// $3 — привязано к конкретному результату, а не ко всему сайту: сбрасывается
-// в false в начале каждого нового расчёта (см. runLumpSumCalculation/
-// runDcaCalculation), чтобы один платёж разблокировывал только тот результат,
-// за который заплатили.
-let premiumUnlocked = false;
 // ---- Запоминаем последний расчёт, чтобы форма не была пустой при возврате
 // (тот же паттерн localStorage, что и для избранных монет). Восстанавливается
 // при загрузке, но никогда не запускает расчёт сам — только подставляет поля.
@@ -3961,56 +3963,17 @@ document.getElementById('certBtn').addEventListener('click', async ()=>{
     gtag('event', 'certificate_generate', { outcome: lastResult.isGood?'win':'loss', coin: lastResult.coinSymbol });
   }
 });
-// ---- Премиум-экспорт ($3 через Stripe Checkout) ----
-// Показывает либо платную кнопку, либо разблокированные кнопки скачивания —
-// в зависимости от `premiumUnlocked`, который сбрасывается в false при
-// каждом новом расчёте (см. runLumpSumCalculation/runDcaCalculation) —
-// один платёж покрывает один результат.
-// До оплаты дополнительно рендерит живое превью настоящего премиум-дизайна
-// со штампом «PREVIEW» — не общую картинку-пример, а именно результат
-// пользователя, — чтобы не просить заплатить $3 за картинку, которую он
-// ни разу не видел. Штамп тайловый и полупрозрачный специально для того,
-// чтобы скриншот превью не заменял настоящую чистую версию.
+// ---- Премиум-экспорт (бесплатно для всех) ----
+// Раньше это был платный экспорт — сначала $3 через Stripe, потом 1 USDT
+// через Trybit — оба варианта убраны полностью (01.09.2026). Владелец
+// сайта гражданин России: Stripe вообще не открывает аккаунты продавцов
+// для России, так что этот путь никогда не позволил бы вывести деньги, а
+// комиссии и хлопоты Trybit того не стоили при таких суммах. Самое честное
+// решение — сделать экспорт без водяного знака в формате сторис бесплатным
+// для всех. Поддержка теперь отдельная, без всяких условий — донат криптой
+// напрямую (см. виджет в подвале страницы).
 function updatePremiumUI(){
-  document.getElementById('premiumUnlockBtn').style.display = premiumUnlocked ? 'none' : 'block';
-  document.getElementById('premiumUnlockCryptoBtn').style.display = premiumUnlocked ? 'none' : 'block';
-  document.getElementById('premiumDownloads').style.display = premiumUnlocked ? 'block' : 'none';
-  const previewWrap = document.getElementById('premiumPreviewWrap');
-  if(premiumUnlocked){
-    previewWrap.style.display = 'none';
-  } else {
-    previewWrap.style.display = 'block';
-    generatePremiumPreview().catch(()=>{ previewWrap.style.display = 'none'; });
-  }
-}
-async function generatePremiumPreview(){
-  const cleanDataUrl = await generatePremiumExport();
-  const srcImg = await loadImageSafe(cleanDataUrl);
-  if(!srcImg) throw new Error('превью не отрендерилось');
-  const canvas = document.getElementById('premiumPreviewCanvas');
-  const W = canvas.width, H = canvas.height; // 1080x1920, как и настоящий экспорт
-  const ctx = canvas.getContext('2d');
-  ctx.clearRect(0, 0, W, H);
-  ctx.drawImage(srcImg, 0, 0, W, H);
-  ctx.save();
-  ctx.translate(W/2, H/2);
-  ctx.rotate(-Math.PI/7);
-  ctx.translate(-W/2, -H/2);
-  ctx.fillStyle = 'rgba(255,255,255,0.16)';
-  ctx.strokeStyle = 'rgba(0,0,0,0.18)';
-  ctx.lineWidth = 2;
-  ctx.font = '800 64px "IBM Plex Mono", monospace';
-  ctx.textAlign = 'center';
-  for(let row = -1; row < 6; row++){
-    for(let col = -1; col < 3; col++){
-      const x = col * 520 + (row % 2 === 0 ? 0 : 260);
-      const y = row * 300 + 150;
-      ctx.strokeText('PREVIEW', x, y);
-      ctx.fillText('PREVIEW', x, y);
-    }
-  }
-  ctx.restore();
-  document.getElementById('premiumPreviewImg').src = canvas.toDataURL('image/png');
+  document.getElementById('premiumDownloads').style.display = 'block';
 }
 // Рисует тот же дизайн сертификата в 2x разрешении без водяного знака, затем
 // компонует его на холсте 1080×1920 (формат сторис Instagram/Telegram) с
@@ -4056,30 +4019,6 @@ function triggerDownload(dataUrl, filename){
   a.click();
   a.remove();
 }
-document.getElementById('premiumUnlockBtn').addEventListener('click', async ()=>{
-  if(!lastResult) return;
-  const btn = document.getElementById('premiumUnlockBtn');
-  const statusEl = document.getElementById('premiumStatus');
-  btn.disabled = true;
-  btn.textContent = 'Переходим к оплате…';
-  statusEl.textContent = '';
-  try{
-    const res = await fetch('/.netlify/functions/create-checkout-session', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ returnPath: location.pathname }),
-    });
-    if(!res.ok) throw new Error('checkout session failed');
-    const { url } = await res.json();
-    if(!url) throw new Error('no checkout url returned');
-    if(typeof gtag === 'function') gtag('event', 'premium_checkout_start', { coin: lastResult.coinSymbol });
-    window.location.href = url; // полный переход на страницу оплаты Stripe
-  }catch(err){
-    btn.disabled = false;
-    btn.textContent = '🌟 Премиум-экспорт — без водяного знака, формат сторис ($3)';
-    statusEl.textContent = 'Не удалось начать оплату — попробуй ещё раз через минуту.';
-  }
-});
 document.getElementById('premiumDownloadPngBtn').addEventListener('click', async ()=>{
   const btn = document.getElementById('premiumDownloadPngBtn');
   const orig = btn.textContent;
@@ -4109,159 +4048,50 @@ document.getElementById('premiumDownloadPdfBtn').addEventListener('click', async
     btn.disabled = false; btn.textContent = orig;
   }
 });
-// ---- Возврат из Stripe Checkout ----
-// success_url содержит ?premium_unlock=1&session_id=cs_... — сначала
-// проверяем сессию на стороне сервера (verify-checkout-session.js), потом
-// восстанавливаем и заново считаем тот расчёт, за который заплатили
-// (браузер полностью уходил на Stripe и обратно, так что состояние
-// калькулятора сохраняется только через тот же cf_last_calc localStorage,
-// что уже использует восстановление последнего расчёта) и генерируем сертификат.
-(async function handlePremiumCheckoutReturn(){
-  const params = new URLSearchParams(location.search);
-  if(!params.has('premium_unlock') && !params.has('premium_cancelled')) return;
-  const cleanUrl = location.pathname;
-  if(params.has('premium_cancelled')){
-    history.replaceState(null, '', cleanUrl);
-    return;
-  }
-  const sessionId = params.get('session_id');
-  history.replaceState(null, '', cleanUrl); // убираем параметры сразу — чтобы обновление страницы не запускало проверку заново
-  if(!sessionId) return;
-  const statusEl = document.getElementById('premiumStatus');
+// ---- Донат (прямые адреса кошельков, без посредников) ----
+// Простой виджет "адрес + кнопка копирования" в подвале страницы — без
+// API счетов, без комиссии платёжного сервиса, без запроса на сервер
+// вообще. Всё, что придёт, идёт напрямую на кошелёк владельца. Три сети
+// на выбор — под то, что уже есть у человека: BTC, ETH или USDT на TRON
+// (TRC20 — самая дешёвая сеть для переводов USDT).
+const DONATE_ADDRESSES = {
+  btc: 'bc1qqfmsf2ksh9zjaj4zejrler9cxtu6lwryptq83l',
+  usdt_trc20: 'TLNypsqguvAmmwXNv8NYz7EtcYrA8c2Ho8',
+  eth: '0xEbC98c142f2450E704f5fF72Bca4E1a8ca1D14D3',
+};
+function updateDonateAddress(){
+  const network = document.querySelector('input[name="donateNetwork"]:checked').value;
+  document.getElementById('donateAddress').textContent = DONATE_ADDRESSES[network];
+  document.getElementById('donateStatus').textContent = '';
+}
+document.querySelectorAll('input[name="donateNetwork"]').forEach((el) => {
+  el.addEventListener('change', updateDonateAddress);
+});
+// Виджет доната в подвале — единственная каноничная копия. Эти кнопки-«напоминалки»
+// (сразу под результатом и сразу под сертификатом) просто прокручивают к нему и
+// подсвечивают рамку, вместо дублирования всего выбора сети/адреса в нескольких
+// местах (что привело бы к коллизии id).
+function scrollToDonateWidget(source){
+  const section = document.getElementById('donateWidgetSection');
+  section.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  section.style.boxShadow = '0 0 0 2px var(--gold-soft)';
+  setTimeout(()=>{ section.style.boxShadow = 'none'; }, 1600);
+  if(typeof gtag === 'function') gtag('event', 'donate_nudge_click', { source });
+}
+document.getElementById('donateNudgeTop').addEventListener('click', ()=> scrollToDonateWidget('top'));
+document.getElementById('donateNudgeCert').addEventListener('click', ()=> scrollToDonateWidget('certificate'));
+document.getElementById('donateCopyBtn').addEventListener('click', async () => {
+  const addr = document.getElementById('donateAddress').textContent.trim();
+  const statusEl = document.getElementById('donateStatus');
+  const network = document.querySelector('input[name="donateNetwork"]:checked').value;
   try{
-    const res = await fetch(`/.netlify/functions/verify-checkout-session?session_id=${encodeURIComponent(sessionId)}`);
-    const json = await res.json();
-    if(!res.ok || !json.paid){
-      alert('Не получилось подтвердить оплату для этой сессии. Если деньги списались — напиши @CryptoFumble_bot в Telegram, разберёмся.');
-      return;
-    }
-    const saved = readLastCalc();
-    if(!saved){
-      alert('Оплата подтверждена, но расчёт, который нужно разблокировать, потерялся — посчитай ещё раз, кнопка премиум-экспорта вспомнит про этот платёж в течение минуты.');
-      return;
-    }
-    if(currentMode === 'dca'){
-      await runDcaCalculation(currentCoin);
-    } else {
-      await runLumpSumCalculation(currentCoin);
-    }
-    premiumUnlocked = true;
-    document.getElementById('certBtn').click();
-    if(typeof gtag === 'function') gtag('event', 'premium_unlocked', { coin: currentCoin.symbol });
+    await navigator.clipboard.writeText(addr);
+    statusEl.textContent = '✅ Адрес скопирован — спасибо! 🙏';
+    if(typeof gtag === 'function') gtag('event', 'donate_address_copied', { network });
   }catch(err){
-    if(statusEl) statusEl.textContent = 'Не удалось проверить оплату — обнови страницу через минуту, или напиши @CryptoFumble_bot, если не поможет.';
-  }
-})();
-// ---- Премиум-экспорт за $3 через Trybit (USDT/крипта — для карт, которые
-// не проходят через Stripe, например российских) ----
-// У API Trybit нет success/cancel URL для конкретного запроса — они один
-// раз фиксируются на уровне проекта в личном кабинете Trybit. Поэтому, в
-// отличие от Stripe, тут нельзя полагаться на то, что браузер сам вернётся
-// на сайт: вместо этого открываем страницу оплаты в новой вкладке и сами
-// спрашиваем нашу функцию verify-crypto-invoice, оплачен ли счёт — сначала
-// каждые несколько секунд, пока открыта вкладка с оплатой, и ещё раз при
-// следующей загрузке страницы на случай, если вкладку закрыли раньше, чем
-// пришло подтверждение (крипто-платежи иногда подтверждаются не сразу).
-const CRYPTO_INVOICE_KEY = 'cf_pending_crypto_invoice';
-function writeCryptoInvoice(data){
-  try{ localStorage.setItem(CRYPTO_INVOICE_KEY, JSON.stringify(data)); }catch(err){}
-}
-function readCryptoInvoice(){
-  try{
-    const raw = localStorage.getItem(CRYPTO_INVOICE_KEY);
-    return raw ? JSON.parse(raw) : null;
-  }catch(err){ return null; }
-}
-function clearCryptoInvoice(){
-  try{ localStorage.removeItem(CRYPTO_INVOICE_KEY); }catch(err){}
-}
-let cryptoPollTimer = null;
-function stopCryptoPoll(){
-  if(cryptoPollTimer){ clearInterval(cryptoPollTimer); cryptoPollTimer = null; }
-}
-async function onCryptoPaymentConfirmed(){
-  clearCryptoInvoice();
-  const saved = readLastCalc();
-  if(!saved){
-    alert('Оплата подтверждена, но расчёт, который нужно разблокировать, потерялся — посчитай ещё раз, платёж вспомнится в течение минуты.');
-    return;
-  }
-  if(currentMode === 'dca'){
-    await runDcaCalculation(currentCoin);
-  } else {
-    await runLumpSumCalculation(currentCoin);
-  }
-  premiumUnlocked = true;
-  document.getElementById('certBtn').click();
-  if(typeof gtag === 'function') gtag('event', 'premium_unlocked', { coin: currentCoin.symbol, method: 'crypto' });
-}
-function pollCryptoInvoice(uuid, btn, origLabel, statusEl){
-  stopCryptoPoll();
-  let attempts = 0;
-  const MAX_ATTEMPTS = 120; // ~20 минут по 10 секунд — с запасом на подтверждение в блокчейне
-  cryptoPollTimer = setInterval(async ()=>{
-    attempts++;
-    if(attempts > MAX_ATTEMPTS){
-      stopCryptoPoll();
-      if(btn){ btn.disabled = false; btn.textContent = origLabel; }
-      if(statusEl) statusEl.textContent = 'Подтверждение всё ещё не пришло — если оплата прошла, напиши @CryptoFumble_bot в Telegram, разберёмся.';
-      return;
-    }
-    try{
-      const res = await fetch(`/.netlify/functions/verify-crypto-invoice?uuid=${encodeURIComponent(uuid)}`);
-      const json = await res.json();
-      if(res.ok && json.paid){
-        stopCryptoPoll();
-        await onCryptoPaymentConfirmed();
-      }
-    }catch(err){ /* временный сбой сети — следующая попытка через 10 секунд */ }
-  }, 10000);
-}
-document.getElementById('premiumUnlockCryptoBtn').addEventListener('click', async ()=>{
-  if(!lastResult) return;
-  const btn = document.getElementById('premiumUnlockCryptoBtn');
-  const statusEl = document.getElementById('premiumStatus');
-  const origLabel = btn.textContent;
-  btn.disabled = true;
-  btn.textContent = 'Создаём счёт…';
-  statusEl.textContent = '';
-  try{
-    const res = await fetch('/.netlify/functions/create-crypto-invoice', { method: 'POST' });
-    if(!res.ok) throw new Error('invoice creation failed');
-    const { uuid, link } = await res.json();
-    if(!uuid || !link) throw new Error('no invoice returned');
-    writeCryptoInvoice({ uuid, ts: Date.now() });
-    window.open(link, '_blank', 'noopener');
-    if(typeof gtag === 'function') gtag('event', 'premium_crypto_start', { coin: lastResult.coinSymbol });
-    btn.textContent = '⏳ Ждём оплату…';
-    statusEl.textContent = 'Оплати в открывшейся вкладке, потом вернись сюда — проверка идёт автоматически каждые несколько секунд.';
-    pollCryptoInvoice(uuid, btn, origLabel, statusEl);
-  }catch(err){
-    btn.disabled = false;
-    btn.textContent = origLabel;
-    statusEl.textContent = 'Не получилось создать счёт на оплату — попробуй ещё раз через момент.';
+    statusEl.textContent = 'Не получилось скопировать автоматически — выдели и скопируй адрес вручную.';
   }
 });
-// Возобновление платежа, оставшегося незавершённым с прошлого визита
-// (вкладку закрыли раньше, чем сработала проверка выше) — проверяем один
-// раз при загрузке страницы.
-(async function resumePendingCryptoInvoice(){
-  const pending = readCryptoInvoice();
-  if(!pending || !pending.uuid) return;
-  // Через 24 часа просто забываем про счёт — он и сам к этому моменту уже
-  // истечёт, бесконечно проверять мёртвый счёт смысла нет.
-  if(Date.now() - (pending.ts || 0) > 24 * 60 * 60 * 1000){
-    clearCryptoInvoice();
-    return;
-  }
-  try{
-    const res = await fetch(`/.netlify/functions/verify-crypto-invoice?uuid=${encodeURIComponent(pending.uuid)}`);
-    const json = await res.json();
-    if(res.ok && json.paid){
-      await onCryptoPaymentConfirmed();
-    }
-  }catch(err){ /* просто попробуем ещё раз при следующей загрузке */ }
-})();
 document.getElementById('shareBtn').addEventListener('click', async ()=>{
   if(!lastResult){
     alert('Сначала нажми «Покажи, что я упустил», чтобы посчитать результат.');
@@ -4317,6 +4147,12 @@ document.getElementById('shareTgBtn').addEventListener('click', ()=>{
   const shareUrl = buildShareUrl('ru');
   const intentUrl = `https://t.me/share/url?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(text)}`;
   window.open(intentUrl, '_blank', 'noopener,noreferrer');
+  // вкладка Telegram, которую мы только что открыли — вот куда сейчас смотрит
+  // человек, так что не уводим его прокруткой — просто оставляем тихое
+  // напоминание здесь, на случай если он вернётся на эту вкладку
+  const thanksEl = document.getElementById('shareTgThanks');
+  thanksEl.innerHTML = 'Спасибо, что поделился! ☕ <a href="#donateWidgetSection" style="color:var(--gold-soft);">Если хочешь, ниже есть ссылка на донат</a>.';
+  thanksEl.style.display = 'block';
   if(typeof gtag === 'function'){
     gtag('event', 'share_tg_click', { outcome: lastResult.isGood?'win':'loss', coin: lastResult.coinSymbol });
   }
