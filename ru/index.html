@@ -1471,7 +1471,7 @@
   </div>
   <p class="disclaimer">Цены идут через собственный кэширующий прокси (Netlify function → CoinGecko), с fallback на прямой запрос и на демо-данные, если всё недоступно. Источник виден на чеке.</p>
   </div>
-  <div class="side-col">
+  <div class="side-col" id="sideCol">
   <div class="live-feed" id="marketTicker" style="display:none;">
     <div class="live-feed-title">📊 ТОП-10 ПО КАПИТАЛИЗАЦИИ</div>
     <div class="live-feed-list" id="marketTickerList"></div>
@@ -1562,7 +1562,14 @@
       <p>Это значит, что живой API CoinGecko был временно недоступен (лимиты запросов, сбой сети), поэтому чек использовал приблизительный резервный набор данных вместо точных исторических цен. Он покрывает только BTC, ETH, SOL, DOGE, ADA, XRP и BNB — для любой другой монеты, если живые данные недоступны, ты увидишь ошибку, а не неверную цифру.</p>
     </details>
   </div>
-  <div class="scenario-links" style="max-width:480px;margin:40px auto 0;padding-top:28px;border-top:1px solid var(--panel-border-soft);">
+  <!-- Якорь, отмечающий место блока scenario-links в обычном (мобильном) потоке —
+       repositionScenarioLinks() ниже переносит сам блок в десктопный сайдбар
+       (под тикер топ-10) при ширине ≥980px и возвращает его обратно сюда при
+       меньшей ширине, так что в DOM всегда ровно одна копия блока (без скрытого
+       дубликата контента для SEO/доступности и без двух списков ссылок для
+       поддержки). -->
+  <div id="scenarioLinksAnchor"></div>
+  <div class="scenario-links" id="scenarioLinksBlock" style="max-width:480px;margin:40px auto 0;padding-top:28px;border-top:1px solid var(--panel-border-soft);">
     <div style="font-family:var(--mono);font-size:10px;letter-spacing:0.1em;color:var(--muted);text-align:center;margin-bottom:16px;text-transform:uppercase;">📈 популярные сценарии</div>
     <div style="display:flex;flex-wrap:wrap;gap:8px;justify-content:center;">
       <a href="/ru/bitcoin-2013/" style="padding:8px 14px;background:var(--panel);border:1px solid var(--panel-border);border-radius:999px;text-decoration:none;font-size:12px;font-family:var(--mono);color:var(--gold-soft);">Bitcoin в 2013</a>
@@ -2502,6 +2509,33 @@ async function loadRegretCounter(){
   }
 }
 loadRegretCounter();
+// ---- Перенос блока «популярные сценарии»: под тикер топ-10 на десктопе,
+// обратно на своё обычное место (после FAQ) на мобильном ----
+// Один и тот же блок ссылок — просто переносится между двумя родителями
+// в зависимости от ширины экрана, по той же точке 980px, что использует
+// CSS для превращения .side-col в настоящую вторую колонку
+// (см. .layout-grid / @media (min-width:980px) в <style> выше).
+(function(){
+  const DESKTOP_QUERY = '(min-width: 980px)';
+  const block = document.getElementById('scenarioLinksBlock');
+  const anchor = document.getElementById('scenarioLinksAnchor');
+  const sideCol = document.getElementById('sideCol');
+  if(!block || !anchor || !sideCol) return;
+  function positionScenarioLinks(){
+    const isDesktop = window.matchMedia(DESKTOP_QUERY).matches;
+    if(isDesktop && block.parentElement !== sideCol){
+      sideCol.appendChild(block);
+    }else if(!isDesktop && block.parentElement !== anchor.parentElement){
+      anchor.parentElement.insertBefore(block, anchor.nextSibling);
+    }
+  }
+  positionScenarioLinks();
+  let resizeTimer;
+  window.addEventListener('resize', ()=>{
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(positionScenarioLinks, 150);
+  });
+})();
 // ---- Живой тикер топ-10 монет по капитализации в сайдбаре ----
 // Заменяет старую ленту "регретов со всего мира": та лента выглядела как
 // реальная торговая история, а на самом деле показывала чужие гипотетические
