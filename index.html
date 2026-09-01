@@ -1432,9 +1432,11 @@
       <span id="ctaInvestText">Start on an exchange →</span>
     </a>
     <div class="invest-note" id="investNote" style="display:none;">Affiliate link — we may earn a small commission, at no extra cost to you.</div>
+    <button type="button" class="share-cta donate-nudge" id="donateNudgeTop" style="background:transparent; border:1px dashed var(--panel-border); color:var(--gold-soft); box-shadow:none; font-size:12.5px;">☕ Enjoyed this? Support the project →</button>
     <button class="share-cta" id="addToPfBtn" style="display:none;">➕ Add to portfolio</button>
     <button class="share-cta" id="shareBtn">📸 Generate share card</button>
     <button class="share-cta" id="shareXBtn">𝕏 Share on X</button>
+    <div id="shareXThanks" style="display:none; font-size:11.5px; color:var(--muted); text-align:center; margin-top:-4px;"></div>
     <button class="share-cta" id="certBtn">🎖️ Get certificate</button>
     <div id="shareCardWrap" style="display:none; margin-top:14px; text-align:center;">
       <canvas id="shareCanvas" width="640" height="800" style="display:none;"></canvas>
@@ -1446,18 +1448,12 @@
       <canvas id="storyCanvas" width="1080" height="1920" style="display:none;"></canvas>
       <img id="certCardImg" style="width:62%; max-width:320px; border-radius:8px; box-shadow:0 12px 40px rgba(0,0,0,0.5);">
       <a id="certDownload" class="share-cta" style="display:block; text-decoration:none; margin-top:10px; box-sizing:border-box;" download="cryptofumble-certificate.png">⬇️ Download certificate</a>
-      <div id="premiumPreviewWrap" style="display:none; margin-top:16px;">
-        <p style="font-size:12.5px; color:var(--muted); margin:0 0 8px; letter-spacing:0.02em;">✨ This is what the premium version looks like:</p>
-        <canvas id="premiumPreviewCanvas" width="1080" height="1920" style="display:none;"></canvas>
-        <img id="premiumPreviewImg" style="width:56%; max-width:230px; border-radius:14px; box-shadow:0 12px 40px rgba(0,0,0,0.5);">
-      </div>
-      <button class="share-cta" id="premiumUnlockBtn" style="display:none;">🌟 Premium export — no watermark, story format ($3)</button>
-      <button class="share-cta" id="premiumUnlockCryptoBtn" style="display:none; margin-top:8px; background:#14161f; border:1px solid #34384a; color:#e7e7ee; box-shadow:none;">₮ Card not working? Pay $3 in USDT</button>
       <div id="premiumDownloads" style="display:none;">
         <button class="share-cta" id="premiumDownloadPngBtn">⬇️ Download PNG (story, no watermark)</button>
         <button class="share-cta" id="premiumDownloadPdfBtn">⬇️ Download PDF (story, no watermark)</button>
       </div>
       <div id="premiumStatus" style="font-size:11.5px; color:var(--muted); margin-top:8px;"></div>
+      <button type="button" class="share-cta donate-nudge" id="donateNudgeCert" style="background:transparent; border:1px dashed var(--panel-border); color:var(--gold-soft); box-shadow:none; font-size:12.5px; margin-top:10px;">☕ Enjoyed this? Support the project →</button>
     </div>
     <div class="compare-block" id="compareBlock" style="display:none;">
       <button type="button" class="compare-toggle" id="compareToggle">⚖️ Compare with another coin</button>
@@ -1581,6 +1577,26 @@
       <a href="/dogecoin-2021/" style="padding:8px 14px;background:var(--panel);border:1px solid var(--panel-border);border-radius:999px;text-decoration:none;font-size:12px;font-family:var(--mono);color:var(--gold-soft);">Dogecoin in 2021</a>
       <a href="/solana-2022/" style="padding:8px 14px;background:var(--panel);border:1px solid var(--panel-border);border-radius:999px;text-decoration:none;font-size:12px;font-family:var(--mono);color:var(--gold-soft);">Solana in 2022</a>
     </div>
+  </div>
+  <div id="donateWidgetSection" style="max-width:360px;margin:32px auto 0;padding-top:24px;border-top:1px solid var(--panel-border-soft);text-align:center;border-radius:12px;transition:box-shadow 0.4s ease;">
+    <div style="font-family:var(--mono);font-size:10px;letter-spacing:0.1em;color:var(--muted);text-transform:uppercase;margin-bottom:8px;">☕ support the project</div>
+    <div style="font-size:12px;color:var(--muted);margin-bottom:12px;">Enjoyed the fumble? A crypto tip is always appreciated, never expected:</div>
+    <div style="display:flex;gap:6px;justify-content:center;margin-bottom:10px;font-family:var(--mono);font-size:11px;">
+      <label style="display:flex;align-items:center;gap:4px;padding:6px 10px;background:var(--panel);border:1px solid var(--panel-border);border-radius:999px;color:var(--muted);cursor:pointer;">
+        <input type="radio" name="donateNetwork" value="btc" checked style="margin:0;"> BTC
+      </label>
+      <label style="display:flex;align-items:center;gap:4px;padding:6px 10px;background:var(--panel);border:1px solid var(--panel-border);border-radius:999px;color:var(--muted);cursor:pointer;">
+        <input type="radio" name="donateNetwork" value="eth" style="margin:0;"> ETH
+      </label>
+      <label style="display:flex;align-items:center;gap:4px;padding:6px 10px;background:var(--panel);border:1px solid var(--panel-border);border-radius:999px;color:var(--muted);cursor:pointer;">
+        <input type="radio" name="donateNetwork" value="usdt_trc20" style="margin:0;"> USDT (TRC20)
+      </label>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px;justify-content:center;flex-wrap:wrap;">
+      <code id="donateAddress" style="font-family:var(--mono);font-size:11px;color:var(--gold-soft);background:var(--panel);border:1px solid var(--panel-border);border-radius:8px;padding:8px 10px;word-break:break-all;max-width:230px;">bc1qqfmsf2ksh9zjaj4zejrler9cxtu6lwryptq83l</code>
+      <button type="button" id="donateCopyBtn" style="padding:8px 12px;background:var(--panel);border:1px solid var(--panel-border);border-radius:8px;font-size:12px;font-family:var(--mono);color:var(--gold-soft);cursor:pointer;">📋 Copy</button>
+    </div>
+    <div id="donateStatus" style="font-size:11px;color:var(--muted);margin-top:10px;min-height:14px;"></div>
   </div>
   <div style="max-width:480px;margin:24px auto 0;padding-top:20px;text-align:center;font-family:var(--mono);font-size:11.5px;color:var(--muted);">
     <a href="/about.html" style="color:var(--muted);text-decoration:underline;text-underline-offset:2px;">About</a>
@@ -3010,14 +3026,9 @@ async function runLumpSumCalculation(coin){
   addToPfBtn.style.display = currentMode === 'sold' ? 'none' : 'block';
   addToPfBtn.disabled = false;
   addToPfBtn.textContent = '➕ Add to portfolio';
-  // a $3 premium-export unlock only ever covers the result it was paid for —
-  // a fresh calculation always starts back at the paywalled state
-  premiumUnlocked = false;
   document.getElementById('premiumDownloads').style.display = 'none';
-  document.getElementById('premiumPreviewWrap').style.display = 'none';
-  stopCryptoPoll();
-  clearCryptoInvoice();
   document.getElementById('premiumStatus').textContent = '';
+  document.getElementById('shareXThanks').style.display = 'none';
   saveLastCalc();
   precacheShareCard(); // draw the share-card PNG in the background now, ready before the user clicks Share
   precacheShareId(); // also fetch the short share link in the background, same reasoning
@@ -3160,12 +3171,9 @@ async function runDcaCalculation(coin){
     };
     document.getElementById('shareCardWrap').style.display = 'none';
     document.getElementById('certCardWrap').style.display = 'none';
-    premiumUnlocked = false;
     document.getElementById('premiumDownloads').style.display = 'none';
-    document.getElementById('premiumPreviewWrap').style.display = 'none';
-    stopCryptoPoll();
-    clearCryptoInvoice();
     document.getElementById('premiumStatus').textContent = '';
+    document.getElementById('shareXThanks').style.display = 'none';
     // DCA also represents coins you'd be holding — offer the same bridge
     const addToPfBtn = document.getElementById('addToPfBtn');
     addToPfBtn.style.display = 'block';
@@ -3205,11 +3213,6 @@ async function runDcaCalculation(coin){
 }
 // keep the last computed result around so the share card can use it
 let lastResult = null;
-// whether the current lastResult has an active $3 premium-export unlock —
-// per-result, not site-wide: reset to false at the top of every new
-// calculation (see runLumpSumCalculation/runDcaCalculation) so one payment
-// only ever unlocks the one result it was made for.
-let premiumUnlocked = false;
 // ---- Remember the last calculation so a returning visitor's form isn't
 // blank (client-side only, same localStorage pattern as favorite coins).
 // Restored on load, never auto-submitted — just prefills the form.
@@ -3986,56 +3989,16 @@ document.getElementById('certBtn').addEventListener('click', async ()=>{
     gtag('event', 'certificate_generate', { outcome: lastResult.isGood?'win':'loss', coin: lastResult.coinSymbol });
   }
 });
-// ---- Premium export ($3, via Stripe Checkout) ----
-// Shows the paywall button or the unlocked download buttons depending on
-// `premiumUnlocked`, which is reset to false on every new calculation (see
-// runLumpSumCalculation/runDcaCalculation) — one payment covers one result.
-// Before payment, also renders a live "PREVIEW"-stamped thumbnail of the
-// actual premium design (not a generic stock example) so people aren't
-// asked to pay $3 for an image they've never seen — the stamp is tiled and
-// semi-transparent specifically so a screenshot of the preview isn't a
-// usable substitute for the real, clean download.
+// ---- Premium export (free for everyone) ----
+// Used to be a $3 Stripe paywall, then a 1 USDT Trybit crypto paywall —
+// both removed entirely (01.09.2026). The site owner is a Russian citizen:
+// Stripe never opens merchant accounts for Russia, so that path could never
+// actually pay out, and Trybit's fees/hassle weren't worth it either for
+// what this earns. Simplest honest option: make the no-watermark,
+// story-format export free for everyone. Support is now a separate,
+// no-strings-attached crypto donation link (see the footer widget).
 function updatePremiumUI(){
-  document.getElementById('premiumUnlockBtn').style.display = premiumUnlocked ? 'none' : 'block';
-  document.getElementById('premiumUnlockCryptoBtn').style.display = premiumUnlocked ? 'none' : 'block';
-  document.getElementById('premiumDownloads').style.display = premiumUnlocked ? 'block' : 'none';
-  const previewWrap = document.getElementById('premiumPreviewWrap');
-  if(premiumUnlocked){
-    previewWrap.style.display = 'none';
-  } else {
-    previewWrap.style.display = 'block';
-    generatePremiumPreview().catch(()=>{ previewWrap.style.display = 'none'; });
-  }
-}
-async function generatePremiumPreview(){
-  const cleanDataUrl = await generatePremiumExport();
-  const srcImg = await loadImageSafe(cleanDataUrl);
-  if(!srcImg) throw new Error('preview render failed');
-  const canvas = document.getElementById('premiumPreviewCanvas');
-  const W = canvas.width, H = canvas.height; // 1080x1920, same as the real export
-  const ctx = canvas.getContext('2d');
-  ctx.clearRect(0, 0, W, H);
-  ctx.drawImage(srcImg, 0, 0, W, H);
-  // tiled, rotated, semi-transparent "PREVIEW" stamp across the whole frame
-  ctx.save();
-  ctx.translate(W/2, H/2);
-  ctx.rotate(-Math.PI/7);
-  ctx.translate(-W/2, -H/2);
-  ctx.fillStyle = 'rgba(255,255,255,0.16)';
-  ctx.strokeStyle = 'rgba(0,0,0,0.18)';
-  ctx.lineWidth = 2;
-  ctx.font = '800 64px "IBM Plex Mono", monospace';
-  ctx.textAlign = 'center';
-  for(let row = -1; row < 6; row++){
-    for(let col = -1; col < 3; col++){
-      const x = col * 520 + (row % 2 === 0 ? 0 : 260);
-      const y = row * 300 + 150;
-      ctx.strokeText('PREVIEW', x, y);
-      ctx.fillText('PREVIEW', x, y);
-    }
-  }
-  ctx.restore();
-  document.getElementById('premiumPreviewImg').src = canvas.toDataURL('image/png');
+  document.getElementById('premiumDownloads').style.display = 'block';
 }
 // Renders the same certificate design at 2x resolution with the watermark
 // removed, then composites it onto a 1080×1920 "story" canvas (Instagram/
@@ -4082,30 +4045,6 @@ function triggerDownload(dataUrl, filename){
   a.click();
   a.remove();
 }
-document.getElementById('premiumUnlockBtn').addEventListener('click', async ()=>{
-  if(!lastResult) return;
-  const btn = document.getElementById('premiumUnlockBtn');
-  const statusEl = document.getElementById('premiumStatus');
-  btn.disabled = true;
-  btn.textContent = 'Redirecting to checkout…';
-  statusEl.textContent = '';
-  try{
-    const res = await fetch('/.netlify/functions/create-checkout-session', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ returnPath: location.pathname }),
-    });
-    if(!res.ok) throw new Error('checkout session failed');
-    const { url } = await res.json();
-    if(!url) throw new Error('no checkout url returned');
-    if(typeof gtag === 'function') gtag('event', 'premium_checkout_start', { coin: lastResult.coinSymbol });
-    window.location.href = url; // full navigation to Stripe's hosted checkout page
-  }catch(err){
-    btn.disabled = false;
-    btn.textContent = '🌟 Premium export — no watermark, story format ($3)';
-    statusEl.textContent = "Couldn't start checkout — try again in a moment.";
-  }
-});
 document.getElementById('premiumDownloadPngBtn').addEventListener('click', async ()=>{
   const btn = document.getElementById('premiumDownloadPngBtn');
   const orig = btn.textContent;
@@ -4138,158 +4077,50 @@ document.getElementById('premiumDownloadPdfBtn').addEventListener('click', async
     btn.disabled = false; btn.textContent = orig;
   }
 });
-// ---- Returning from Stripe Checkout ----
-// success_url includes ?premium_unlock=1&session_id=cs_... — verify with
-// Stripe server-side (see verify-checkout-session.js) before unlocking
-// anything, then restore + re-run the calculation the user paid for (the
-// browser fully navigated away to Stripe and back, so calculator state
-// only survives via the same cf_last_calc localStorage the "restore last
-// calculation" feature already uses) and generate its certificate.
-(async function handlePremiumCheckoutReturn(){
-  const params = new URLSearchParams(location.search);
-  if(!params.has('premium_unlock') && !params.has('premium_cancelled')) return;
-  const cleanUrl = location.pathname;
-  if(params.has('premium_cancelled')){
-    history.replaceState(null, '', cleanUrl);
-    return;
-  }
-  const sessionId = params.get('session_id');
-  history.replaceState(null, '', cleanUrl); // strip params immediately either way — never re-verify on a refresh
-  if(!sessionId) return;
-  const statusEl = document.getElementById('premiumStatus');
+// ---- Donate (direct wallet addresses, no middleman) ----
+// A plain address-and-copy-button widget in the footer — no invoice API,
+// no fees taken by a payment processor, no server call at all. Whatever
+// arrives goes straight to the owner's own wallet. Two networks so people
+// can pick whichever they already hold: BTC, or USDT on TRON (TRC20, the
+// cheapest network for USDT transfers).
+const DONATE_ADDRESSES = {
+  btc: 'bc1qqfmsf2ksh9zjaj4zejrler9cxtu6lwryptq83l',
+  usdt_trc20: 'TLNypsqguvAmmwXNv8NYz7EtcYrA8c2Ho8',
+  eth: '0xEbC98c142f2450E704f5fF72Bca4E1a8ca1D14D3',
+};
+function updateDonateAddress(){
+  const network = document.querySelector('input[name="donateNetwork"]:checked').value;
+  document.getElementById('donateAddress').textContent = DONATE_ADDRESSES[network];
+  document.getElementById('donateStatus').textContent = '';
+}
+document.querySelectorAll('input[name="donateNetwork"]').forEach((el) => {
+  el.addEventListener('change', updateDonateAddress);
+});
+document.getElementById('donateCopyBtn').addEventListener('click', async () => {
+  const addr = document.getElementById('donateAddress').textContent.trim();
+  const statusEl = document.getElementById('donateStatus');
+  const network = document.querySelector('input[name="donateNetwork"]:checked').value;
   try{
-    const res = await fetch(`/.netlify/functions/verify-checkout-session?session_id=${encodeURIComponent(sessionId)}`);
-    const json = await res.json();
-    if(!res.ok || !json.paid){
-      alert("We couldn't confirm the payment for this session. If you were charged, message @CryptoFumble_bot on Telegram and it'll get sorted.");
-      return;
-    }
-    const saved = readLastCalc();
-    if(!saved){
-      alert('Payment confirmed, but the calculation to unlock got lost — run it again and the premium export button will remember this payment for a minute.');
-      return;
-    }
-    if(currentMode === 'dca'){
-      await runDcaCalculation(currentCoin);
-    } else {
-      await runLumpSumCalculation(currentCoin);
-    }
-    premiumUnlocked = true;
-    document.getElementById('certBtn').click();
-    if(typeof gtag === 'function') gtag('event', 'premium_unlocked', { coin: currentCoin.symbol });
+    await navigator.clipboard.writeText(addr);
+    statusEl.textContent = '✅ Address copied — thank you! 🙏';
+    if(typeof gtag === 'function') gtag('event', 'donate_address_copied', { network });
   }catch(err){
-    if(statusEl) statusEl.textContent = "Couldn't verify the payment — refresh in a moment, or message @CryptoFumble_bot if this persists.";
-  }
-})();
-// ---- Premium export ($3, via Trybit — USDT/crypto, for cards Stripe can't
-// take, e.g. Russia) ----
-// Trybit's invoice API has no per-request success/cancel URL (those are
-// fixed once at the project level in the Trybit dashboard), so unlike
-// Stripe this flow never relies on the browser being redirected back here.
-// Instead: open the hosted payment page in a new tab and poll our own
-// verify-crypto-invoice function for the invoice's real status — first
-// every few seconds while the tab that started it is still open, and once
-// more on a later page load in case that tab got closed before payment
-// confirmed (crypto confirmations can take a few minutes).
-const CRYPTO_INVOICE_KEY = 'cf_pending_crypto_invoice';
-function writeCryptoInvoice(data){
-  try{ localStorage.setItem(CRYPTO_INVOICE_KEY, JSON.stringify(data)); }catch(err){}
-}
-function readCryptoInvoice(){
-  try{
-    const raw = localStorage.getItem(CRYPTO_INVOICE_KEY);
-    return raw ? JSON.parse(raw) : null;
-  }catch(err){ return null; }
-}
-function clearCryptoInvoice(){
-  try{ localStorage.removeItem(CRYPTO_INVOICE_KEY); }catch(err){}
-}
-let cryptoPollTimer = null;
-function stopCryptoPoll(){
-  if(cryptoPollTimer){ clearInterval(cryptoPollTimer); cryptoPollTimer = null; }
-}
-async function onCryptoPaymentConfirmed(){
-  clearCryptoInvoice();
-  const saved = readLastCalc();
-  if(!saved){
-    alert('Payment confirmed, but the calculation to unlock got lost — run it again and it will remember this payment for a minute.');
-    return;
-  }
-  if(currentMode === 'dca'){
-    await runDcaCalculation(currentCoin);
-  } else {
-    await runLumpSumCalculation(currentCoin);
-  }
-  premiumUnlocked = true;
-  document.getElementById('certBtn').click();
-  if(typeof gtag === 'function') gtag('event', 'premium_unlocked', { coin: currentCoin.symbol, method: 'crypto' });
-}
-function pollCryptoInvoice(uuid, btn, origLabel, statusEl){
-  stopCryptoPoll();
-  let attempts = 0;
-  const MAX_ATTEMPTS = 120; // ~20 minutes at 10s each — plenty for a blockchain confirmation
-  cryptoPollTimer = setInterval(async ()=>{
-    attempts++;
-    if(attempts > MAX_ATTEMPTS){
-      stopCryptoPoll();
-      if(btn){ btn.disabled = false; btn.textContent = origLabel; }
-      if(statusEl) statusEl.textContent = "Still no confirmation — if you paid, message @CryptoFumble_bot on Telegram and it'll get sorted.";
-      return;
-    }
-    try{
-      const res = await fetch(`/.netlify/functions/verify-crypto-invoice?uuid=${encodeURIComponent(uuid)}`);
-      const json = await res.json();
-      if(res.ok && json.paid){
-        stopCryptoPoll();
-        await onCryptoPaymentConfirmed();
-      }
-    }catch(err){ /* transient network hiccup — the next tick just tries again */ }
-  }, 10000);
-}
-document.getElementById('premiumUnlockCryptoBtn').addEventListener('click', async ()=>{
-  if(!lastResult) return;
-  const btn = document.getElementById('premiumUnlockCryptoBtn');
-  const statusEl = document.getElementById('premiumStatus');
-  const origLabel = btn.textContent;
-  btn.disabled = true;
-  btn.textContent = 'Creating invoice…';
-  statusEl.textContent = '';
-  try{
-    const res = await fetch('/.netlify/functions/create-crypto-invoice', { method: 'POST' });
-    if(!res.ok) throw new Error('invoice creation failed');
-    const { uuid, link } = await res.json();
-    if(!uuid || !link) throw new Error('no invoice returned');
-    writeCryptoInvoice({ uuid, ts: Date.now() });
-    window.open(link, '_blank', 'noopener');
-    if(typeof gtag === 'function') gtag('event', 'premium_crypto_start', { coin: lastResult.coinSymbol });
-    btn.textContent = '⏳ Waiting for payment…';
-    statusEl.textContent = 'Pay in the new tab that just opened, then come back here — this checks automatically every few seconds.';
-    pollCryptoInvoice(uuid, btn, origLabel, statusEl);
-  }catch(err){
-    btn.disabled = false;
-    btn.textContent = origLabel;
-    statusEl.textContent = "Couldn't start the crypto payment — try again in a moment.";
+    statusEl.textContent = "Couldn't copy automatically — just select and copy the address above.";
   }
 });
-// Resume a payment left pending from an earlier visit (tab closed before the
-// poll above caught the confirmation) — check once on page load.
-(async function resumePendingCryptoInvoice(){
-  const pending = readCryptoInvoice();
-  if(!pending || !pending.uuid) return;
-  // Give up quietly on anything older than 24h — the invoice itself expires
-  // well before that, so re-checking a dead invoice forever is pointless.
-  if(Date.now() - (pending.ts || 0) > 24 * 60 * 60 * 1000){
-    clearCryptoInvoice();
-    return;
-  }
-  try{
-    const res = await fetch(`/.netlify/functions/verify-crypto-invoice?uuid=${encodeURIComponent(pending.uuid)}`);
-    const json = await res.json();
-    if(res.ok && json.paid){
-      await onCryptoPaymentConfirmed();
-    }
-  }catch(err){ /* will just get picked up next page load */ }
-})();
+// The footer donate widget is the one canonical copy — these "nudge" buttons
+// (right under the result, and right under the certificate) just scroll to
+// it and pulse the border briefly, instead of duplicating the whole
+// address/network picker in multiple places (which would collide on ids).
+function scrollToDonateWidget(source){
+  const section = document.getElementById('donateWidgetSection');
+  section.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  section.style.boxShadow = '0 0 0 2px var(--gold-soft)';
+  setTimeout(()=>{ section.style.boxShadow = 'none'; }, 1600);
+  if(typeof gtag === 'function') gtag('event', 'donate_nudge_click', { source });
+}
+document.getElementById('donateNudgeTop').addEventListener('click', ()=> scrollToDonateWidget('top'));
+document.getElementById('donateNudgeCert').addEventListener('click', ()=> scrollToDonateWidget('certificate'));
 document.getElementById('shareBtn').addEventListener('click', async ()=>{
   if(!lastResult){
     alert('First hit "Show me what I missed" to calculate a result.');
@@ -4344,6 +4175,12 @@ document.getElementById('shareXBtn').addEventListener('click', ()=>{
   const shareLink = buildShareUrl();
   const intentUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(shareLink)}`;
   window.open(intentUrl, '_blank', 'noopener,noreferrer');
+  // The X tab just opened is where the person's attention goes next, so
+  // don't scroll them away from it — just leave a quiet nudge waiting here
+  // for when they come back to this tab.
+  const thanksEl = document.getElementById('shareXThanks');
+  thanksEl.innerHTML = 'Thanks for sharing! ☕ <a href="#donateWidgetSection" style="color:var(--gold-soft);">If you\'d like, there\'s a support link below</a>.';
+  thanksEl.style.display = 'block';
   if(typeof gtag === 'function'){
     gtag('event', 'share_x_click', { outcome: lastResult.isGood?'win':'loss', coin: lastResult.coinSymbol });
   }
