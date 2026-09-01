@@ -1475,7 +1475,7 @@
   </div>
   <p class="disclaimer">Prices flow through our own caching proxy (Netlify function → CoinGecko), with a fallback to a direct call and then to demo data if everything else is unavailable. The source is always shown on the receipt.</p>
   </div>
-  <div class="side-col">
+  <div class="side-col" id="sideCol">
   <div class="live-feed" id="marketTicker" style="display:none;">
     <div class="live-feed-title">📊 TOP 10 BY MARKET CAP</div>
     <div class="live-feed-list" id="marketTickerList"></div>
@@ -1567,7 +1567,14 @@
       <p>That means the live CoinGecko API was temporarily unreachable (rate limits, a network hiccup), so the receipt used an approximate backup dataset instead of exact historical prices. It only covers BTC, ETH, SOL, DOGE, ADA, XRP and BNB — for any other coin, if live data fails you'll see an error instead of a wrong number.</p>
     </details>
   </div>
-  <div class="scenario-links" style="max-width:480px;margin:40px auto 0;padding-top:28px;border-top:1px solid var(--panel-border-soft);">
+  <!-- Anchor marking where scenario-links lives in the normal (mobile) document
+       flow — repositionScenarioLinks() below moves the block itself into the
+       desktop sidebar (under the Top 10 ticker) at ≥980px, and moves it back
+       here below that width, so there's exactly one copy of this block in the
+       DOM either way (no hidden-duplicate content for SEO/accessibility, and
+       no separate maintenance of two link lists). -->
+  <div id="scenarioLinksAnchor"></div>
+  <div class="scenario-links" id="scenarioLinksBlock" style="max-width:480px;margin:40px auto 0;padding-top:28px;border-top:1px solid var(--panel-border-soft);">
     <div style="font-family:var(--mono);font-size:10px;letter-spacing:0.1em;color:var(--muted);text-align:center;margin-bottom:16px;text-transform:uppercase;">📈 popular scenarios</div>
     <div style="display:flex;flex-wrap:wrap;gap:8px;justify-content:center;">
       <a href="/bitcoin-2013/" style="padding:8px 14px;background:var(--panel);border:1px solid var(--panel-border);border-radius:999px;text-decoration:none;font-size:12px;font-family:var(--mono);color:var(--gold-soft);">Bitcoin in 2013</a>
@@ -2500,6 +2507,33 @@ async function loadRegretCounter(){
   }
 }
 loadRegretCounter();
+// ---- Reposition "popular scenarios" links: under the Top 10 ticker on
+// desktop, back in their normal spot (after the FAQ) on mobile ----
+// Same single block of links either way — just moved between two parent
+// containers depending on viewport width, keyed off the same 980px
+// breakpoint the CSS uses to turn .side-col into a real second column
+// (see .layout-grid / @media (min-width:980px) in the <style> above).
+(function(){
+  const DESKTOP_QUERY = '(min-width: 980px)';
+  const block = document.getElementById('scenarioLinksBlock');
+  const anchor = document.getElementById('scenarioLinksAnchor');
+  const sideCol = document.getElementById('sideCol');
+  if(!block || !anchor || !sideCol) return;
+  function positionScenarioLinks(){
+    const isDesktop = window.matchMedia(DESKTOP_QUERY).matches;
+    if(isDesktop && block.parentElement !== sideCol){
+      sideCol.appendChild(block);
+    }else if(!isDesktop && block.parentElement !== anchor.parentElement){
+      anchor.parentElement.insertBefore(block, anchor.nextSibling);
+    }
+  }
+  positionScenarioLinks();
+  let resizeTimer;
+  window.addEventListener('resize', ()=>{
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(positionScenarioLinks, 150);
+  });
+})();
 // ---- Live top-10-by-market-cap ticker in the sidebar ----
 // Replaces the old "recent regrets from around the world" feed: that feed
 // looked like real trading history but was really just other visitors'
