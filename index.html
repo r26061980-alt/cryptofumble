@@ -3316,6 +3316,31 @@ async function runLumpSumCalculation(coin, opts){
 // just asking for more points) and let each sample "stand in" for an equal-sized
 // chunk of the real months in between — an honest approximation, consistent with
 // how this whole calculator already treats itself as illustrative, not exact.
+// Фаза 30 fix: CoinGecko's free/demo tier only serves history within the last
+// 365 days ("Your request exceeds the allowed time range" — the exact same
+// wall already worked around for single-price lookups in price.js, see the
+// infra fix from 30.08.2026), and range.js (used here for DCA month-by-month
+// averaging) never got the same treatment — so any DCA start date older than
+// ~a year was silently failing with "Couldn't get monthly price history".
+// Reuses the site's own rough anchor-point table (DATA[symbol].points, same
+// one lump-sum mode already falls back to) and the same interpPrice()
+// log-interpolation helper used for SP500/AAPL/GOLD/CPI above, rather than
+// failing the whole calculation.
+function buildMonthlyPointsFromAnchors(anchors, fromDateStr){
+  const [fy, fm] = fromDateStr.split('-').map(Number);
+  const fromIdx = fy*12 + (fm-1);
+  const toIdx = monthToTs('2026-08'); // same fixed "now" anchor as SP500/AAPL/GOLD/CPI
+  const totalMonths = Math.max(1, toIdx - fromIdx + 1);
+  const n = Math.min(24, totalMonths);
+  const points = [];
+  for(let i=0;i<n;i++){
+    const idx = fromIdx + Math.round(i * (totalMonths-1) / Math.max(1, n-1));
+    const y = Math.floor(idx/12), m = (idx % 12) + 1;
+    const dstr = `${y}-${String(m).padStart(2,'0')}`;
+    points.push({ date: dstr, price: interpPrice(anchors, dstr) });
+  }
+  return points;
+}
 async function runDcaCalculation(coin, opts){
   const silent = opts && opts.silent;
   const monthlyAmount = parseFloat(document.getElementById('amount').value) || 0;
@@ -3323,10 +3348,18 @@ async function runDcaCalculation(coin, opts){
   calcBtn.innerHTML = '<span class="spin"></span>Crunching months of price history…';
   try{
     const nowPrice = await fetchCurrentPrice(coin.geckoId);
-    const res = await fetch(`/.netlify/functions/range?coin=${coin.geckoId}&from=${dateStr}&points=24`);
-    if(!res.ok) throw new Error('range proxy failed');
-    const { points } = await res.json();
-    if(!points || points.length < 1) throw new Error('not enough points');
+    let points;
+    try{
+      const res = await fetch(`/.netlify/functions/range?coin=${coin.geckoId}&from=${dateStr}&points=24`);
+      if(!res.ok) throw new Error('range proxy failed');
+      const data = await res.json();
+      if(!data.points || data.points.length < 1) throw new Error('not enough points');
+      points = data.points;
+    }catch(rangeErr){
+      const anchors = DATA[coin.symbol]?.points;
+      if(!anchors) throw rangeErr; // no anchor table for this coin — genuinely can't compute offline
+      points = buildMonthlyPointsFromAnchors(anchors, dateStr);
+    }
     points[points.length-1] = { date: points[points.length-1].date, price: nowPrice };
     const [fy, fm] = dateStr.split('-').map(Number);
     const now = new Date();
