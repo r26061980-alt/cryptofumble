@@ -1065,6 +1065,22 @@
   }
   .period-btn:hover{border-color:var(--gold); color:var(--text);}
   .period-btn.active{background:rgba(240,185,11,0.13); border-color:var(--gold); color:var(--gold);}
+  /* ═══ Новое: пресеты в один клик (Фаза 30, быстрые правки) ═══ */
+  .preset-btn{
+    width:100%;
+    background:transparent;
+    border:1px dashed var(--panel-border);
+    color:var(--muted);
+    font-family:var(--mono);
+    font-size:11.5px;
+    padding:9px 10px;
+    border-radius:9px;
+    cursor:pointer;
+    transition:border-color .2s var(--ease), color .2s var(--ease);
+  }
+  .preset-btn:hover{border-color:var(--gold); color:var(--gold);}
+  .preset-row{display:flex; gap:8px; flex-wrap:wrap; margin-top:10px;}
+  .preset-row .preset-btn{width:auto; flex:1 1 auto;}
   /* ═══ New: value-by-year breakdown table on the receipt ═══ */
   .r-year-table{margin:16px 0 4px;}
   .r-year-table-title{
@@ -1463,6 +1479,9 @@
         <button type="button" class="period-btn" data-period="max">ВСЕ</button>
       </div>
     </div>
+    <div class="field" style="margin-top:2px;">
+      <button type="button" class="preset-btn" id="coffeePresetBtn">☕ Или посмотри, сколько бы стоил отказ от ежедневного кофе за 5 лет →</button>
+    </div>
     <div class="field" style="margin-top:4px;">
       <button class="cta" id="calcBtn">Покажи, что я упустил →</button>
     </div>
@@ -1490,7 +1509,7 @@
         <div class="r-chart-caption" id="rChartCaption"></div>
       </div>
       <div class="r-year-table" id="rYearTable" style="display:none;"></div>
-      <div class="r-compare" id="rCompare">Для сравнения: та же сумма сейчас стоила бы $2,063 в S&amp;P 500, $3,609 в акциях Apple (AAPL), или $2,166 в золоте.</div>
+      <div class="r-compare" id="rCompare">Для сравнения: та же сумма сейчас стоила бы $2,063 в S&amp;P 500, $3,609 в акциях Apple (AAPL), или $2,166 в золоте — или всего $1,296, если бы просто не отставала от инфляции.</div>
       <div class="r-sold-peak" id="rSoldPeak"></div>
       <div class="r-disclaimer">Просто для развлечения — не инвестиционный совет.</div>
       <div class="r-footer">ЧЕК УПУЩЕННОЙ ПРИБЫЛИ · ВРЕМЯ <span id="rStamp"></span></div>
@@ -1534,6 +1553,10 @@
     </div>
     <div class="compare-block" id="portfolioBlock">
       <button type="button" class="compare-toggle" id="portfolioToggle">🧺 Разбить на несколько монет</button>
+      <div class="preset-row">
+        <button type="button" class="preset-btn" id="presetBtcEth">⚡ Быстро: BTC/ETH 50/50</button>
+        <button type="button" class="preset-btn" id="presetTop4">⚡ Быстро: топ-4 монеты поровну</button>
+      </div>
       <div class="compare-picker" id="portfolioPicker" style="display:none;">
         <div class="compare-picker-label">Выбери 2–4 монеты, чтобы разбить ту же сумму между ними:</div>
         <div class="compare-coin-grid" id="portfolioCoinGrid"></div>
@@ -1817,6 +1840,18 @@ const GOLD = [
   ['2013-01',1671],['2015-01',1218],['2017-01',1151],['2019-01',1287],['2020-01',1560],
   ['2020-12',1895],['2021-11',1790],['2022-12',1824],['2023-12',2063],['2024-12',2641],
   ['2025-06',3300],['2026-08',3500]
+];
+// Индекс потребительских цен США (CPI-U, база 1982-84=100), город. усреднение,
+// все товары, без сезонной коррекции — официальные значения BLS (bls.gov/cpi)
+// вплоть до последнего опубликованного месяца (июль 2026: 333.918), последняя
+// точка «на сегодня» — грубая ручная оценка, тем же методом «грубые опорные
+// точки + лог-интерполяция», что и AAPL/SP500/GOLD выше (Фаза 30, быстрая
+// правка: переиспользует interpPrice(), новой математики нет). Последнюю
+// точку нужно обновлять руками раз в несколько месяцев, как и остальные три.
+const CPI = [
+  ['2013-01',230.280],['2015-01',233.707],['2017-01',242.839],['2019-01',251.712],['2020-01',257.971],
+  ['2020-12',260.474],['2021-11',277.948],['2022-12',296.797],['2023-12',306.746],['2024-12',315.605],
+  ['2025-06',322.561],['2026-08',334.9]
 ];
 function monthToTs(m){ const [y,mo]=m.split('-').map(Number); return y*12+mo; }
 function interpPrice(points, dateStr){
@@ -2932,6 +2967,23 @@ document.querySelectorAll('.period-btn').forEach(btn=>{
     calcBtn.click();
   });
 });
+// ---- Пресет «Пропусти кофе» для DCA (Фаза 30, быстрая правка) ----
+// Никакой новой логики расчёта: переключает режим на «Ежемесячно» через уже
+// существующий обработчик клика по mode-btn, подставляет сумму, а затем
+// переиспользует уже существующую кнопку периода «5Л» — она сама уже ставит
+// дату И запускает настоящий клик по calcBtn — так что весь пресет проходит
+// через тот же протестированный код, что и обычный ручной клик, просто цепочкой.
+const coffeePresetBtn = document.getElementById('coffeePresetBtn');
+if(coffeePresetBtn){
+  coffeePresetBtn.addEventListener('click', ()=>{
+    const dcaModeBtn = modeToggle.querySelector('.mode-btn[data-mode="dca"]');
+    if(dcaModeBtn && !dcaModeBtn.classList.contains('active')) dcaModeBtn.click();
+    amountInputEl.value = '150';
+    const fiveYearBtn = document.querySelector('.period-btn[data-period="60"]');
+    if(fiveYearBtn) fiveYearBtn.click();
+    if(typeof gtag === 'function'){ gtag('event', 'coffee_preset_click', {}); }
+  });
+}
 // ---- Regret tiers — turns the bare multiplier into a shareable status ----
 function getTier(mult){
   if(mult < 0.3)  return { label: 'ПОЛНЫЙ РЕКТ', emoji: '💀' };
@@ -3153,8 +3205,11 @@ async function runLumpSumCalculation(coin, opts){
   const goldBuy = interpPrice(GOLD, dateStr);
   const goldNow = interpPrice(GOLD, '2026-08');
   const goldResult = baseValue * (goldNow/goldBuy);
+  const cpiBuy = interpPrice(CPI, dateStr);
+  const cpiNow = interpPrice(CPI, '2026-08');
+  const inflResult = baseValue * (cpiNow/cpiBuy);
   document.getElementById('rCompare').textContent =
-    `Для сравнения: та же сумма сейчас стоила бы ${fmtBig(spResult)} в S&P 500, ${fmtBig(aaplResult)} в акциях Apple (AAPL), или ${fmtBig(goldResult)} в золоте.`;
+    `Для сравнения: та же сумма сейчас стоила бы ${fmtBig(spResult)} в S&P 500, ${fmtBig(aaplResult)} в акциях Apple (AAPL), или ${fmtBig(goldResult)} в золоте — или всего ${fmtBig(inflResult)}, если бы просто не отставала от инфляции.`;
   // в режиме "sold" запрашиваем чуть больше точек, чем нужно самому графику —
   // ниже это даёт поиску пика (computeSoldPeakFromCurve) не 10 широко
   // разнесённых месяцев, а более плотную сетку, тем же одним запросом
@@ -3344,8 +3399,11 @@ async function runDcaCalculation(coin, opts){
     const goldBuy = interpPrice(GOLD, dateStr);
     const goldNow = interpPrice(GOLD, '2026-08');
     const goldResult = totalInvested * (goldNow/goldBuy);
+    const cpiBuy = interpPrice(CPI, dateStr);
+    const cpiNow = interpPrice(CPI, '2026-08');
+    const inflResult = totalInvested * (cpiNow/cpiBuy);
     document.getElementById('rCompare').textContent =
-      `Если бы вложил всю эту сумму (${fmt(totalInvested)}) сразу, одним платежом, сегодня было бы ${fmtBig(lumpSumValue)}. Для сравнения: та же сумма в S&P 500 стоила бы ${fmtBig(spResult)}, в акциях Apple (AAPL) — ${fmtBig(aaplResult)}, а в золоте — ${fmtBig(goldResult)}.`;
+      `Если бы вложил всю эту сумму (${fmt(totalInvested)}) сразу, одним платежом, сегодня было бы ${fmtBig(lumpSumValue)}. Для сравнения: та же сумма в S&P 500 стоила бы ${fmtBig(spResult)}, в акциях Apple (AAPL) — ${fmtBig(aaplResult)}, а в золоте — ${fmtBig(goldResult)} — или всего ${fmtBig(inflResult)} с поправкой только на инфляцию.`;
     // у DCA нет смысла показывать "кривую одной покупки" — прячем график
     // и таблицу по годам вместо того, чтобы показывать вводящую в заблуждение картинку.
     // "Продал слишком рано" тоже относится только к режиму sold — прячем и её.
@@ -4533,6 +4591,34 @@ portfolioCalcBtn.addEventListener('click', async ()=>{
     portfolioResult.innerHTML = `Не удалось получить данные по одной из выбранных монет — попробуй другую комбинацию.`;
   }
   portfolioCalcBtn.disabled = false;
+});
+// ---- Пресеты разбивки портфеля (Фаза 30, быстрая правка) ----
+// Та же идея, что и у пресета с кофе выше: без новой логики расчёта, просто
+// заранее выбирает монеты в уже существующем пикере и кликает по уже
+// существующей кнопке «Посчитать разбивку». Ограничение в 4 монеты — потому
+// что сам ручной пикер ограничен четырьмя (см. renderPortfolioGrid выше) —
+// поэтому взяли «топ-4», а не «топ-10», а не тихо подняли существующий лимит
+// на число запросов к API.
+function applyPortfolioPreset(symbols){
+  if(!lastResult) return; // разбивать пока нечего — сначала нужен расчёт
+  if(portfolioPicker.style.display === 'none'){
+    portfolioToggle.click(); // открывает пикер + вызывает renderPortfolioGrid()
+  } else {
+    renderPortfolioGrid(); // уже открыт — сбрасываем выбор перед применением пресета
+  }
+  symbols.forEach(sym=>{
+    const btn = Array.from(portfolioCoinGrid.children).find(b=>b.textContent.trim() === sym);
+    if(btn) btn.click();
+  });
+  if(portfolioSelection.size >= 2) portfolioCalcBtn.click();
+}
+document.getElementById('presetBtcEth').addEventListener('click', ()=>{
+  applyPortfolioPreset(['BTC','ETH']);
+  if(typeof gtag === 'function'){ gtag('event', 'portfolio_preset_click', { preset: 'btc_eth' }); }
+});
+document.getElementById('presetTop4').addEventListener('click', ()=>{
+  applyPortfolioPreset(['BTC','ETH','SOL','XRP']);
+  if(typeof gtag === 'function'){ gtag('event', 'portfolio_preset_click', { preset: 'top4' }); }
 });
 // трекинг клика по инвест-CTA — не мешает переходу по ссылке (открывается в новой
 // вкладке), просто параллельно шлёт событие в GA, если аналитика подключена и не
