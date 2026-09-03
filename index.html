@@ -3079,7 +3079,8 @@ calcBtn.addEventListener('click', async ()=>{
   }
 });
 // ---- "I bought" / "I sold too early" — single lump-sum purchase ----
-async function runLumpSumCalculation(coin){
+async function runLumpSumCalculation(coin, opts){
+  const silent = opts && opts.silent;
   const amountInputVal = parseFloat(document.getElementById('amount').value) || 0;
   const dateStr = currentDateStr;
   calcBtn.innerHTML = '<span class="spin"></span>Crunching market data…';
@@ -3087,7 +3088,7 @@ async function runLumpSumCalculation(coin){
   if(priceData.error){
     calcBtn.disabled = false;
     calcBtn.textContent = calcBtnLabelForMode();
-    alert(`Couldn't get prices for ${coin.symbol} — the API is unavailable and there's no demo data for this coin. Try BTC/ETH/SOL/DOGE/ADA/XRP/BNB, or try again.`);
+    if(!silent) alert(`Couldn't get prices for ${coin.symbol} — the API is unavailable and there's no demo data for this coin. Try BTC/ETH/SOL/DOGE/ADA/XRP/BNB, or try again.`);
     return;
   }
   const { buyPrice, nowPrice, source } = priceData;
@@ -3212,9 +3213,16 @@ async function runLumpSumCalculation(coin){
   document.getElementById('premiumDownloads').style.display = 'none';
   document.getElementById('premiumStatus').textContent = '';
   document.getElementById('shareXThanks').style.display = 'none';
-  saveLastCalc();
-  precacheShareCard(); // draw the share-card PNG in the background now, ready before the user clicks Share
-  precacheShareId(); // also fetch the short share link in the background, same reasoning
+  // silent (first-screen prefill) doesn't count this as a "personal" calc —
+  // otherwise the daily scenario would get stuck as this visitor's "last
+  // calc" forever, and they'd never see tomorrow's new scenario. Also skip
+  // pre-fetching the short share link (a network call that creates a server
+  // record) on every plain page load — only do it for a real calculation.
+  if(!silent){
+    saveLastCalc();
+    precacheShareId(); // also fetch the short share link in the background, same reasoning
+  }
+  precacheShareCard(); // draw the share-card PNG in the background now, ready before the user clicks Share (purely local, no network — always fine)
   // "compare with another coin" only makes sense for a straight "I bought" purchase —
   // reset it on every fresh calculation, only surface the toggle in bought mode
   document.getElementById('comparePicker').style.display = 'none';
@@ -3226,20 +3234,24 @@ async function runLumpSumCalculation(coin){
   document.getElementById('portfolioResult').innerHTML = '';
   document.getElementById('portfolioCalcBtn').style.display = 'none';
   document.getElementById('portfolioBlock').style.display = currentMode === 'bought' ? 'block' : 'none';
-  // делимся анонимной записью в живой ленте — не блокируем интерфейс,
-  // если это не сработает (ошибка сети / лента не настроена), тихо игнорируем
-  fetch('/.netlify/functions/feed', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      coin: coin.symbol,
-      mode: currentMode,
-      mult,
-      tierEmoji: tier.emoji,
-      tierLabel: tier.label,
-      resultFmt: fmtBig(result),
-    }),
-  }).catch(()=>{});
+  // share an anonymous entry in the live feed — don't block the UI, and
+  // silently ignore it if it fails (network error / feed not configured).
+  // silent (first-screen prefill) skips this — otherwise every plain visit
+  // would create a fake feed entry as if someone had actually calculated it.
+  if(!silent){
+    fetch('/.netlify/functions/feed', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        coin: coin.symbol,
+        mode: currentMode,
+        mult,
+        tierEmoji: tier.emoji,
+        tierLabel: tier.label,
+        resultFmt: fmtBig(result),
+      }),
+    }).catch(()=>{});
+  }
   calcBtn.disabled = false;
   calcBtn.textContent = calcBtnLabelForMode();
 }
@@ -3250,7 +3262,8 @@ async function runLumpSumCalculation(coin){
 // just asking for more points) and let each sample "stand in" for an equal-sized
 // chunk of the real months in between — an honest approximation, consistent with
 // how this whole calculator already treats itself as illustrative, not exact.
-async function runDcaCalculation(coin){
+async function runDcaCalculation(coin, opts){
+  const silent = opts && opts.silent;
   const monthlyAmount = parseFloat(document.getElementById('amount').value) || 0;
   const dateStr = currentDateStr;
   calcBtn.innerHTML = '<span class="spin"></span>Crunching months of price history…';
@@ -3362,9 +3375,11 @@ async function runDcaCalculation(coin){
     addToPfBtn.style.display = 'block';
     addToPfBtn.disabled = false;
     addToPfBtn.textContent = '➕ Add to portfolio';
-    saveLastCalc();
-    precacheShareCard(); // draw the share-card PNG in the background now, ready before the user clicks Share
-    precacheShareId(); // also fetch the short share link in the background, same reasoning
+    if(!silent){
+      saveLastCalc();
+      precacheShareId(); // also fetch the short share link in the background, same reasoning
+    }
+    precacheShareCard(); // draw the share-card PNG in the background now, ready before the user clicks Share (purely local, no network — always fine)
     // coin-comparison only applies to a single lump-sum purchase, not DCA
     document.getElementById('comparePicker').style.display = 'none';
     document.getElementById('compareResult').style.display = 'none';
@@ -3375,20 +3390,22 @@ async function runDcaCalculation(coin){
     document.getElementById('portfolioResult').innerHTML = '';
     document.getElementById('portfolioCalcBtn').style.display = 'none';
     document.getElementById('portfolioBlock').style.display = 'none';
-    fetch('/.netlify/functions/feed', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        coin: coin.symbol,
-        mode: currentMode,
-        mult,
-        tierEmoji: tier.emoji,
-        tierLabel: tier.label,
-        resultFmt: fmtBig(result),
-      }),
-    }).catch(()=>{});
+    if(!silent){
+      fetch('/.netlify/functions/feed', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          coin: coin.symbol,
+          mode: currentMode,
+          mult,
+          tierEmoji: tier.emoji,
+          tierLabel: tier.label,
+          resultFmt: fmtBig(result),
+        }),
+      }).catch(()=>{});
+    }
   }catch(err){
-    alert(`Couldn't get monthly price history for ${coin.symbol} — try again in a moment, or pick a different coin.`);
+    if(!silent) alert(`Couldn't get monthly price history for ${coin.symbol} — try again in a moment, or pick a different coin.`);
   }finally{
     calcBtn.disabled = false;
     calcBtn.textContent = calcBtnLabelForMode();
@@ -5091,6 +5108,45 @@ async function pfRender(){
     });
   });
 }
+</script>
+<script>
+// ---- First screen opens with a ready receipt, not an empty form ----
+// If the visitor arrived via a deep link (?coin=&date=, Phase 2) or has a
+// saved personal calculation (cf_last_calc) — just finish computing and
+// show THAT, nothing overridden. If neither applies (a normal first visit)
+// — fill in today's scenario of the day (the same DAILY_SCENARIOS used by
+// the "Win/Regret of the Day" banner above and by the daily Telegram
+// autopost), so people see a finished example immediately instead of zeros.
+// silent:true on runLumpSumCalculation/runDcaCalculation skips the anonymous
+// live-feed entry and the error alert — otherwise every ordinary page visit
+// would create a fake feed entry as if someone had actually run a calc.
+(async function prefillReceiptOnLoad(){
+  try{
+    const params = new URLSearchParams(location.search);
+    const hasDeepLink = !!params.get('coin');
+    const hasSavedCalc = !!readLastCalc();
+    if(!hasDeepLink && !hasSavedCalc){
+      const dayOfYear = Math.floor((Date.now() - new Date(new Date().getFullYear(), 0, 0)) / 86400000);
+      const scenario = DAILY_SCENARIOS[dayOfYear % DAILY_SCENARIOS.length];
+      currentCoin = { symbol: scenario.symbol, name: DATA[scenario.symbol].name, geckoId: GECKO_ID[scenario.symbol] };
+      const [y, m] = scenario.date.split('-');
+      pickedYear = parseInt(y, 10);
+      pickedMonth = parseInt(m, 10);
+      currentDateStr = scenario.date;
+      dateTrigger.textContent = `${MONTH_NAMES[parseInt(m, 10) - 1]} ${y}`;
+      document.getElementById('amount').value = 1000;
+      updateSelectedUI();
+    }
+    if(currentMode === 'dca'){
+      await runDcaCalculation(currentCoin, { silent: true });
+    } else {
+      await runLumpSumCalculation(currentCoin, { silent: true });
+    }
+  }catch(err){
+    // the pre-filled first screen is a nice bonus, not critical — if
+    // anything goes wrong, it just falls back to the normal empty form
+  }
+})();
 </script>
 </body>
 </html>
