@@ -1586,6 +1586,7 @@
       <a href="/ru/dogecoin-2020/" style="padding:8px 14px;background:var(--panel);border:1px solid var(--panel-border);border-radius:999px;text-decoration:none;font-size:12px;font-family:var(--mono);color:var(--gold-soft);">Dogecoin в 2020</a>
       <a href="/ru/xrp-2018/" style="padding:8px 14px;background:var(--panel);border:1px solid var(--panel-border);border-radius:999px;text-decoration:none;font-size:12px;font-family:var(--mono);color:var(--gold-soft);">XRP в 2018</a>
       <a href="/ru/cardano-2021/" style="padding:8px 14px;background:var(--panel);border:1px solid var(--panel-border);border-radius:999px;text-decoration:none;font-size:12px;font-family:var(--mono);color:var(--gold-soft);">Cardano в 2021</a>
+      <a href="/ru/hyperliquid-2024/" style="padding:8px 14px;background:var(--panel);border:1px solid var(--panel-border);border-radius:999px;text-decoration:none;font-size:12px;font-family:var(--mono);color:var(--gold-soft);">Hyperliquid в 2024</a>
     </div>
   </div>
   <div id="donateWidgetSection" style="max-width:360px;margin:32px auto 0;padding-top:24px;border-top:1px solid var(--panel-border-soft);text-align:center;border-radius:12px;transition:box-shadow 0.4s ease;">
@@ -1689,6 +1690,17 @@ const DATA = {
     ['2023-01',245],['2023-06',240],['2023-12',310],
     ['2024-01',310],['2024-03',410],['2024-06',580],['2024-12',700],
     ['2025-06',780],['2026-01',850],['2026-08',920]
+  ]},
+  // У HYPE всего ~22 месяца истории (токен запущен через "genesis event" —
+  // раздачу airdrop 29 ноября 2024), поэтому таблица гуще по месяцам, чем у
+  // старых монет выше — точки взяты из CoinGecko (тот же источник, которым
+  // уже пользуется живой калькулятор): цена запуска $3.81 — это официальный
+  // исторический минимум по CoinGecko, а $86-87 — исторический максимум,
+  // достигнутый 27 августа 2026.
+  HYPE: { name:'Hyperliquid', points:[
+    ['2024-11',3.81],['2024-12',23.92],
+    ['2025-03',12.99],['2025-06',39.38],['2025-09',45.24],['2025-12',25.47],
+    ['2026-04',48],['2026-08',83]
   ]}
 };
 // Rough Apple (AAPL) split-adjusted price anchors — same "boring alternative"
@@ -1814,9 +1826,24 @@ const MONTH_NAMES = ['Январь','Февраль','Март','Апрель','
 // в дате покупки на вкладке «Портфель»; именительный падеж выше используется
 // везде, где месяц идёт один, без числа дня (например "Март 2020")
 const MONTH_NAMES_GEN = ['января','февраля','марта','апреля','мая','июня','июля','августа','сентября','октября','ноября','декабря'];
+// предложный падеж — нужен для "в марте 2020" (после предлога "в"), в отличие
+// от родительного выше (после "с") и именительного (отдельная подпись без предлога).
+const MONTH_NAMES_PREP = ['январе','феврале','марте','апреле','мае','июне','июле','августе','сентябре','октябре','ноябре','декабре'];
 function humanDate(dateStr){
   const [y,m] = dateStr.split('-');
   return `${MONTH_NAMES[parseInt(m,10)-1]} ${y}`;
+}
+// используется везде, где месяц идёт после предлога "в" ("в марте 2020",
+// не "в Март 2020") — сертификат, шеринг в Telegram, "продал слишком рано".
+function humanDatePrep(dateStr){
+  const [y,m] = dateStr.split('-');
+  return `${MONTH_NAMES_PREP[parseInt(m,10)-1]} ${y}`;
+}
+// то же самое, но после предлога "с" ("с марта 2020", родительный падеж) —
+// для DCA-формулировок "инвестировал(ись) ... с <месяц>".
+function humanDateGen(dateStr){
+  const [y,m] = dateStr.split('-');
+  return `${MONTH_NAMES_GEN[parseInt(m,10)-1]} ${y}`;
 }
 const PICKER_MIN_YEAR = 2013;
 // "Максимум" считается от реальной даты браузера в момент загрузки страницы,
@@ -2098,7 +2125,7 @@ document.getElementById('dateDone').addEventListener('click', ()=>{
 // CoinGecko coin ids for live lookups
 const GECKO_ID = {
   BTC:'bitcoin', ETH:'ethereum', SOL:'solana', DOGE:'dogecoin',
-  ADA:'cardano', XRP:'ripple', BNB:'binancecoin'
+  ADA:'cardano', XRP:'ripple', BNB:'binancecoin', HYPE:'hyperliquid'
 };
 // ---- Ротация партнёрских ссылок между биржами ----
 // Каждый показ CTA выбирает следующую биржу по кругу, чтобы трафик более-менее
@@ -2438,8 +2465,9 @@ async function loadDailyRegret(){
     const tier = getTier(mult);
     const [y, m] = scenario.date.split('-');
     const monthLabel = MONTH_NAMES[parseInt(m,10)-1];
+    const monthLabelPrep = MONTH_NAMES_PREP[parseInt(m,10)-1];
     document.getElementById('dailyRegretText').innerHTML =
-      `Если бы ты купил $1,000 <b>${coin.name}</b> в ${monthLabel} ${y}, сегодня у тебя было бы <b>${fmtBig(result)}</b>. ${tier.emoji} ${tier.label}`;
+      `Если бы ты купил $1,000 <b>${coin.name}</b> в ${monthLabelPrep} ${y}, сегодня у тебя было бы <b>${fmtBig(result)}</b>. ${tier.emoji} ${tier.label}`;
     document.getElementById('dailyRegret').style.display = 'block';
     document.getElementById('dailyRegretCta').addEventListener('click', ()=>{
       currentCoin = coin;
@@ -2848,7 +2876,7 @@ function renderSoldPeak(peakValue, peakDate, resultToday){
     el.style.display = 'none';
     return;
   }
-  el.innerHTML = `Продал слишком рано? Между продажей и сегодня эта позиция достигала пика примерно в <b>${humanDate(peakDate)}</b> — на пике она стоила бы около <b>${fmtBig(peakValue)}</b>.`;
+  el.innerHTML = `Продал слишком рано? Между продажей и сегодня эта позиция достигала пика примерно в <b>${humanDatePrep(peakDate)}</b> — на пике она стоила бы около <b>${fmtBig(peakValue)}</b>.`;
   el.style.display = 'block';
 }
 
@@ -3295,6 +3323,15 @@ async function precacheShareCard(){
 // никакого ожидания внутри обработчика клика). Если не успела прийти или
 // запрос не удался — buildShareUrl() подставит старую длинную ссылку.
 let cachedShareId = null;
+// Увеличивается в начале каждого вызова precacheShareId() и сверяется заново,
+// когда его сетевой запрос завершается — защита от гонки, когда более быстрый
+// повторный расчёт обгоняет более медленный предыдущий. Без этого два расчёта
+// подряд (например, попробовал пару монет, прежде чем выбрать, какую
+// расшарить) могли привести к тому, что ответ от ПЕРВОГО запроса приходит
+// позже ВТОРОГО и тихо перезаписывает cachedShareId старым (не тем) id — из-за
+// этого «Поделиться» постило текст текущего результата, но совсем другую,
+// устаревшую картинку.
+let shareIdRequestSeq = 0;
 async function createShortLink(payload){
   try{
     const res = await fetch('/.netlify/functions/shorten', {
@@ -3308,10 +3345,14 @@ async function createShortLink(payload){
   }catch(e){ return null; }
 }
 async function precacheShareId(){
+  const requestSeq = ++shareIdRequestSeq;
   cachedShareId = null;
   const obj = shareParamsObject('ru');
   if(!obj) return;
-  cachedShareId = await createShortLink(obj);
+  const id = await createShortLink(obj);
+  if(requestSeq === shareIdRequestSeq){
+    cachedShareId = id;
+  }
 }
 function showShareToast(msg){
   let toast = document.getElementById('shareToast');
@@ -3765,10 +3806,13 @@ function certNumberFor(coinSymbol, dateStr, investedRaw){
   for(let i=0;i<str.length;i++){ h = (h*31 + str.charCodeAt(i)) >>> 0; }
   return String((h % 900000) + 100000);
 }
-function certDeclarationFor(mode, amountFmt, coinName, dateHuman){
-  if(mode === 'dca') return `Если бы ${amountFmt} инвестировались ежемесячно в ${coinName} с ${dateHuman}, эта позиция сегодня стоила бы:`;
-  if(mode === 'sold') return `Если бы ${amountFmt} в ${coinName} не были проданы в ${dateHuman}, эта позиция сегодня стоила бы:`;
-  return `Если бы ${amountFmt} были потрачены на покупку ${coinName} в ${dateHuman}, эта позиция сегодня стоила бы:`;
+function certDeclarationFor(mode, amountFmt, coinName, dateStr){
+  // "с" требует родительного падежа ("с марта"), "в" — предложного ("в марте") —
+  // разных форм одного и того же месяца, поэтому считаем обе из сырой даты
+  // прямо здесь, а не передаём один уже готовый (и неправильный для части веток) dateHuman.
+  if(mode === 'dca') return `Если бы ${amountFmt} инвестировались ежемесячно в ${coinName} с ${humanDateGen(dateStr)}, эта позиция сегодня стоила бы:`;
+  if(mode === 'sold') return `Если бы ${amountFmt} в ${coinName} не были проданы в ${humanDatePrep(dateStr)}, эта позиция сегодня стоила бы:`;
+  return `Если бы ${amountFmt} были потрачены на покупку ${coinName} в ${humanDatePrep(dateStr)}, эта позиция сегодня стоила бы:`;
 }
 function drawDiamond(ctx, x, y, r){
   ctx.beginPath();
@@ -3868,8 +3912,7 @@ async function drawCertificateCard(includeLogo, opts){
       y += 50;
     }
   }
-  const dateHuman = humanDate(lastResult.dateStr);
-  const declaration = certDeclarationFor(lastResult.mode, lastResult.investedFmt, lastResult.coinName, dateHuman);
+  const declaration = certDeclarationFor(lastResult.mode, lastResult.investedFmt, lastResult.coinName, lastResult.dateStr);
   ctx.fillStyle = ink;
   ctx.font = '600 19px "IBM Plex Mono"';
   wrapText(ctx, declaration, cx, y, W-200, 30);
@@ -4173,15 +4216,18 @@ document.getElementById('shareTgBtn').addEventListener('click', ()=>{
     alert('Сначала нажми «Покажи, что я упустил», чтобы посчитать результат.');
     return;
   }
-  const dateHuman = humanDate(lastResult.dateStr);
+  // "с" (DCA) требует родительного падежа, "в" (купил/продал) — предложного —
+  // это разные формы месяца, считаем обе сразу из сырой даты.
+  const dateHumanGen = humanDateGen(lastResult.dateStr);
+  const dateHumanPrep = humanDatePrep(lastResult.dateStr);
   const verb = lastResult.mode === 'sold' ? 'продал' : 'купил';
   const text = lastResult.mode === 'dca'
     ? (lastResult.isGood
-        ? `${lastResult.tier.emoji} У меня было бы ${lastResult.resultFmt}, если бы я инвестировал каждый месяц в ${lastResult.coinName} с ${dateHuman}.\n\nПроверь, сколько было бы у тебя →`
-        : `${lastResult.tier.emoji} ${lastResult.tier.label}: у меня было бы ${lastResult.resultFmt}, если бы я инвестировал каждый месяц в ${lastResult.coinName} с ${dateHuman}.\n\nПроверь свой →`)
+        ? `${lastResult.tier.emoji} У меня было бы ${lastResult.resultFmt}, если бы я инвестировал каждый месяц в ${lastResult.coinName} с ${dateHumanGen}.\n\nПроверь, сколько было бы у тебя →`
+        : `${lastResult.tier.emoji} ${lastResult.tier.label}: у меня было бы ${lastResult.resultFmt}, если бы я инвестировал каждый месяц в ${lastResult.coinName} с ${dateHumanGen}.\n\nПроверь свой →`)
     : lastResult.isGood
-      ? `${lastResult.tier.emoji} У меня было бы ${lastResult.resultFmt}, если бы я ${verb} ${lastResult.coinName} в ${dateHuman}.\n\nПроверь, что упустил ты →`
-      : `${lastResult.tier.emoji} ${lastResult.tier.label}: у меня было бы ${lastResult.resultFmt}, если бы я ${verb} ${lastResult.coinName} в ${dateHuman}.\n\nПроверь свой →`;
+      ? `${lastResult.tier.emoji} У меня было бы ${lastResult.resultFmt}, если бы я ${verb} ${lastResult.coinName} в ${dateHumanPrep}.\n\nПроверь, что упустил ты →`
+      : `${lastResult.tier.emoji} ${lastResult.tier.label}: у меня было бы ${lastResult.resultFmt}, если бы я ${verb} ${lastResult.coinName} в ${dateHumanPrep}.\n\nПроверь свой →`;
   // Ссылка ведёт на netlify/functions/share.js с параметром lang=ru — там
   // og:image указывает на og-image.js с картинкой именно этого результата
   // (см. share.js/og-image.js), а не на страницу /ru с одной и той же
