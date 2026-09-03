@@ -413,6 +413,31 @@
     color:var(--text);
   }
   .pizza-fact-reveal b{color:var(--gold);}
+  /* Скрыт на десктопе/планшете — там блок и так короткий и помещается
+     нормально; показывается только в мобильном @media-блоке ниже, где
+     .pizza-fact-body сворачивается целиком (та же идея, что и с топ-10
+     тикером выше, только сворачивается весь блок, а не часть строк). */
+  .pizza-toggle{
+    display:none;
+    align-items:center;
+    gap:5px;
+    background:none;
+    border:none;
+    color:var(--muted);
+    font-family:var(--sans);
+    font-weight:600;
+    font-size:12px;
+    cursor:pointer;
+    padding:0;
+    margin-bottom:8px;
+  }
+  .pizza-toggle:hover{color:var(--gold);}
+  .pizza-toggle .chev{
+    display:inline-block;
+    font-size:10px;
+    transition:transform .2s var(--ease);
+  }
+  .pizza-toggle.open .chev{transform:rotate(180deg);}
   .panel{
     background:linear-gradient(180deg, rgba(255,255,255,0.035), rgba(255,255,255,0) 42%), var(--panel);
     border:1px solid var(--panel-border);
@@ -1281,6 +1306,13 @@
        ниже, для тех, кто листает до конца страницы. */
     .live-feed-list:not(.expanded) .live-feed-row:nth-child(n+6){ display:none; }
     .ticker-toggle{ display:block; }
+    /* "Реальная история" (пасхалка про пиццу) сворачивается на телефоне —
+       по умолчанию виден только заголовок и стрелка, весь текст+кнопка
+       открываются по тапу, чтобы не удлинять страницу тем, кто не хочет
+       читать именно эту историю прямо сейчас. */
+    .pizza-toggle{ display:inline-flex; }
+    .pizza-fact-body{ display:none; }
+    .pizza-fact-body.open{ display:block; }
   }
 </style>
 <!-- FAQPage structured data — дословно повторяет FAQ-аккордеон ниже, чтобы
@@ -1383,9 +1415,12 @@
   </div>
   <div class="pizza-fact" id="pizzaFact">
     <div class="pizza-fact-label">🍕 РЕАЛЬНАЯ ИСТОРИЯ</div>
-    <div class="pizza-fact-text">22 мая 2010 года программист по имени Ласло заплатил 10 000 BTC за две пиццы — тогда это было около $41. Никто не придал этому значения.</div>
-    <button type="button" class="pizza-fact-cta" id="pizzaFactBtn">Сколько бы это стоило сейчас? →</button>
-    <div class="pizza-fact-reveal" id="pizzaFactReveal" style="display:none;"></div>
+    <button type="button" class="pizza-toggle" id="pizzaToggle" aria-expanded="false"><span class="chev">▼</span><span class="toggle-label">Читать</span></button>
+    <div class="pizza-fact-body" id="pizzaFactBody">
+      <div class="pizza-fact-text">22 мая 2010 года программист по имени Ласло заплатил 10 000 BTC за две пиццы — тогда это было около $41. Никто не придал этому значения.</div>
+      <button type="button" class="pizza-fact-cta" id="pizzaFactBtn">Сколько бы это стоило сейчас? →</button>
+      <div class="pizza-fact-reveal" id="pizzaFactReveal" style="display:none;"></div>
+    </div>
   </div>
   <div class="panel">
     <div class="field">
@@ -2691,6 +2726,21 @@ setInterval(loadMarketTicker, 60000); // держим цены свежими, �
     const expanded = list.classList.toggle('expanded');
     tickerToggle.textContent = expanded ? '▲ Свернуть' : '▼ Показать ещё 5';
     tickerToggle.setAttribute('aria-expanded', expanded ? 'true' : 'false');
+  });
+})();
+// Разворот блока "Реальная история" на телефоне (см. .pizza-toggle/
+// .pizza-fact-body в мобильном @media) — на десктопе кнопка скрыта CSS'ом
+// и блок всегда открыт, здесь просто вешаем обработчик на случай мобильного.
+(function(){
+  const pizzaToggle = document.getElementById('pizzaToggle');
+  if (!pizzaToggle) return;
+  pizzaToggle.addEventListener('click', function(){
+    const body = document.getElementById('pizzaFactBody');
+    if (!body) return;
+    const expanded = body.classList.toggle('open');
+    pizzaToggle.classList.toggle('open', expanded);
+    pizzaToggle.querySelector('.toggle-label').textContent = expanded ? 'Свернуть' : 'Читать';
+    pizzaToggle.setAttribute('aria-expanded', expanded ? 'true' : 'false');
   });
 })();
 // ---- Free-text coin search via CoinGecko /search ----
