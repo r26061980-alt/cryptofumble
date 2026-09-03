@@ -1184,6 +1184,16 @@
   .pf-totals .pf-tot-val{font-family:var(--mono); font-weight:700; font-size:19px; overflow-wrap:anywhere;}
   .pf-totals .pf-tot-val.pos{color:#16C784;}
   .pf-totals .pf-tot-val.neg{color:#EA3943;}
+  .pf-percentile{
+    background:rgba(240,185,11,0.09); border:1px solid rgba(240,185,11,0.28);
+    border-radius:var(--r-lg); padding:14px 16px; margin-bottom:20px;
+    font-size:13.5px; line-height:1.5;
+  }
+  .pf-percentile b{color:var(--gold);}
+  .pf-percentile-note{
+    font-family:var(--mono); font-size:10.5px; color:var(--muted);
+    margin-top:6px; line-height:1.5;
+  }
   .pf-share-btn{margin-bottom:20px;}
   .pf-coin-card{
     background:var(--panel); border:1px solid var(--panel-border);
@@ -5069,6 +5079,41 @@ function pfFmtQty(n){
   return parseFloat(n.toFixed(6)).toString();
 }
 
+// Грубое распределение адресов BTC по балансу, публичные данные
+// bitinfocharts.com (сверено с newhedge.io), снимок 09/2026 — [верхняя
+// граница корзины в BTC, накопленный % адресов на этом уровне и ниже].
+// Тот же метод «грубая таблица опорных точек + интерполяция», что уже
+// используется для SP500/AAPL/GOLD/CPI, только по логарифму суммы, а не даты.
+const BTC_PERCENTILE_TABLE = [
+  [0.00001, 13.14],
+  [0.0001, 34.44],
+  [0.001, 58.14],
+  [0.01, 78.54],
+  [0.1, 92.47],
+  [1, 98.36],
+  [10, 99.75],
+  [100, 99.966],
+  [1000, 99.9966],
+  [10000, 99.99985],
+  [100000, 100],
+];
+function btcHolderPercentile(qty){
+  if(!(qty > 0)) return null;
+  const first = BTC_PERCENTILE_TABLE[0];
+  if(qty <= first[0]) return (qty / first[0]) * first[1];
+  const last = BTC_PERCENTILE_TABLE[BTC_PERCENTILE_TABLE.length - 1];
+  if(qty >= last[0]) return 99.9999;
+  for(let i = 0; i < BTC_PERCENTILE_TABLE.length - 1; i++){
+    const [x1, y1] = BTC_PERCENTILE_TABLE[i];
+    const [x2, y2] = BTC_PERCENTILE_TABLE[i + 1];
+    if(qty >= x1 && qty <= x2){
+      const t = (Math.log(qty) - Math.log(x1)) / (Math.log(x2) - Math.log(x1));
+      return y1 + t * (y2 - y1);
+    }
+  }
+  return null;
+}
+
 async function pfRender(){
   const container = document.getElementById('pfContent');
   // Цифры вот-вот изменятся (или портфель только что опустел) — любая ранее
@@ -5090,6 +5135,13 @@ async function pfRender(){
   const prices = await Promise.all(geckoIds.map(id => fetchCurrentPrice(id).catch(()=>null)));
   const priceMap = {};
   geckoIds.forEach((id, i)=> priceMap[id] = prices[i]);
+
+  // Строке про процентиль живая цена не нужна, только количество BTC — считаем
+  // заранее, чтобы она отрисовывалась даже если цена другой монеты не загрузилась
+  // и полоса итогов выше скрыта.
+  const btcQty = groups['bitcoin'] ? groups['bitcoin'].entries.reduce((s,e)=>s+e.qty, 0) : 0;
+  const btcPct = btcQty > 0 ? btcHolderPercentile(btcQty) : null;
+  const percentileHtml = btcPct !== null ? `<div class="pf-percentile">🏆 Твои ${pfFmtQty(btcQty)} BTC — это больше, чем примерно у <b>${btcPct.toFixed(1)}%</b> адресов биткоина по балансу.<div class="pf-percentile-note">Грубая оценка по публичным ончейн-данным (bitinfocharts.com) — один «адрес» не то же самое, что один человек: биржи держат средства многих пользователей на нескольких адресах, а у одного человека может быть несколько адресов.</div></div>` : '';
 
   let totalSpentAll = 0, totalValueAll = 0, anyPriceMissing = false;
   // Цифры по каждой монете ниже питают и карточки на странице, И карточку для
@@ -5169,7 +5221,7 @@ async function pfRender(){
     coins: coinSummaries.slice().sort((a,b)=> b.curValue - a.curValue)
   };
 
-  container.innerHTML = (anyPriceMissing ? '' : totalsHtml) + cardsHtml;
+  container.innerHTML = (anyPriceMissing ? '' : totalsHtml) + percentileHtml + cardsHtml;
 
   container.querySelectorAll('.pf-coin-icon-slot').forEach(slot=>{
     const sym = slot.getAttribute('data-symbol');
