@@ -1068,6 +1068,22 @@
   }
   .period-btn:hover{border-color:var(--gold); color:var(--text);}
   .period-btn.active{background:rgba(240,185,11,0.13); border-color:var(--gold); color:var(--gold);}
+  /* ═══ New: one-click presets (Фаза 30 quick wins) ═══ */
+  .preset-btn{
+    width:100%;
+    background:transparent;
+    border:1px dashed var(--panel-border);
+    color:var(--muted);
+    font-family:var(--mono);
+    font-size:11.5px;
+    padding:9px 10px;
+    border-radius:9px;
+    cursor:pointer;
+    transition:border-color .2s var(--ease), color .2s var(--ease);
+  }
+  .preset-btn:hover{border-color:var(--gold); color:var(--gold);}
+  .preset-row{display:flex; gap:8px; flex-wrap:wrap; margin-top:10px;}
+  .preset-row .preset-btn{width:auto; flex:1 1 auto;}
   /* ═══ New: value-by-year breakdown table on the receipt ═══ */
   .r-year-table{margin:16px 0 4px;}
   .r-year-table-title{
@@ -1468,6 +1484,9 @@
         <button type="button" class="period-btn" data-period="max">MAX</button>
       </div>
     </div>
+    <div class="field" style="margin-top:2px;">
+      <button type="button" class="preset-btn" id="coffeePresetBtn">☕ Or see what skipping your daily coffee for 5 years would be worth →</button>
+    </div>
     <div class="field" style="margin-top:4px;">
       <button class="cta" id="calcBtn">Show me what I missed →</button>
     </div>
@@ -1495,7 +1514,7 @@
         <div class="r-chart-caption" id="rChartCaption"></div>
       </div>
       <div class="r-year-table" id="rYearTable" style="display:none;"></div>
-      <div class="r-compare" id="rCompare">For comparison: the same amount would be worth $2,063 in the S&amp;P 500, $3,609 in Apple (AAPL) stock, or $2,166 in gold, today.</div>
+      <div class="r-compare" id="rCompare">For comparison: the same amount would be worth $2,063 in the S&amp;P 500, $3,609 in Apple (AAPL) stock, or $2,166 in gold, today — or just $1,296 if it had only kept pace with inflation.</div>
       <div class="r-sold-peak" id="rSoldPeak"></div>
       <div class="r-disclaimer">Just for fun — not investment advice.</div>
       <div class="r-footer">RECEIPT OF REGRET · TIMESTAMP <span id="rStamp"></span></div>
@@ -1539,6 +1558,10 @@
     </div>
     <div class="compare-block" id="portfolioBlock">
       <button type="button" class="compare-toggle" id="portfolioToggle">🧺 Split it across a few coins</button>
+      <div class="preset-row">
+        <button type="button" class="preset-btn" id="presetBtcEth">⚡ Quick: BTC/ETH 50/50</button>
+        <button type="button" class="preset-btn" id="presetTop4">⚡ Quick: Top-4 majors, equal split</button>
+      </div>
       <div class="compare-picker" id="portfolioPicker" style="display:none;">
         <div class="compare-picker-label">Pick 2–4 coins to split the same amount across:</div>
         <div class="compare-coin-grid" id="portfolioCoinGrid"></div>
@@ -1820,6 +1843,17 @@ const GOLD = [
   ['2013-01',1671],['2015-01',1218],['2017-01',1151],['2019-01',1287],['2020-01',1560],
   ['2020-12',1895],['2021-11',1790],['2022-12',1824],['2023-12',2063],['2024-12',2641],
   ['2025-06',3300],['2026-08',3500]
+];
+// US CPI-U index (1982-84=100), U.S. city average, all items, not seasonally
+// adjusted — official BLS values (bls.gov/cpi) up to the last published month
+// (July 2026: 333.918), one more rough hand-estimated anchor for "today" to
+// match the same "rough anchor + log-interpolation" approach as AAPL/SP500/
+// GOLD above (Фаза 30 quick win: reuses interpPrice(), no new math). Update
+// the last point by hand every few months, same as the other three tables.
+const CPI = [
+  ['2013-01',230.280],['2015-01',233.707],['2017-01',242.839],['2019-01',251.712],['2020-01',257.971],
+  ['2020-12',260.474],['2021-11',277.948],['2022-12',296.797],['2023-12',306.746],['2024-12',315.605],
+  ['2025-06',322.561],['2026-08',334.9]
 ];
 function monthToTs(m){ const [y,mo]=m.split('-').map(Number); return y*12+mo; }
 function interpPrice(points, dateStr){
@@ -2912,6 +2946,23 @@ document.querySelectorAll('.period-btn').forEach(btn=>{
     calcBtn.click();
   });
 });
+// ---- "Skip the coffee" DCA preset (Фаза 30 quick win) ----
+// Deliberately doesn't add any new calculation logic: switches to DCA mode
+// via the existing mode-btn click handler, prefills the monthly amount, then
+// reuses the existing "5Y" quick-period button — which already sets the
+// start date AND triggers a real calcBtn click — so the whole preset runs
+// through the exact same tested code path as a manual click, just chained.
+const coffeePresetBtn = document.getElementById('coffeePresetBtn');
+if(coffeePresetBtn){
+  coffeePresetBtn.addEventListener('click', ()=>{
+    const dcaModeBtn = modeToggle.querySelector('.mode-btn[data-mode="dca"]');
+    if(dcaModeBtn && !dcaModeBtn.classList.contains('active')) dcaModeBtn.click();
+    amountInputEl.value = '150';
+    const fiveYearBtn = document.querySelector('.period-btn[data-period="60"]');
+    if(fiveYearBtn) fiveYearBtn.click();
+    if(typeof gtag === 'function'){ gtag('event', 'coffee_preset_click', {}); }
+  });
+}
 // ---- Regret tiers — turns the bare multiplier into a shareable status ----
 function getTier(mult){
   if(mult < 0.3)  return { label: 'TOTAL REKT', emoji: '💀' };
@@ -3132,8 +3183,11 @@ async function runLumpSumCalculation(coin, opts){
   const goldBuy = interpPrice(GOLD, dateStr);
   const goldNow = interpPrice(GOLD, '2026-08');
   const goldResult = baseValue * (goldNow/goldBuy);
+  const cpiBuy = interpPrice(CPI, dateStr);
+  const cpiNow = interpPrice(CPI, '2026-08');
+  const inflResult = baseValue * (cpiNow/cpiBuy);
   document.getElementById('rCompare').textContent =
-    `For comparison: the same amount would be worth ${fmtBig(spResult)} in the S&P 500, ${fmtBig(aaplResult)} in Apple (AAPL) stock, or ${fmtBig(goldResult)} in gold, today.`;
+    `For comparison: the same amount would be worth ${fmtBig(spResult)} in the S&P 500, ${fmtBig(aaplResult)} in Apple (AAPL) stock, or ${fmtBig(goldResult)} in gold, today — or just ${fmtBig(inflResult)} if it had only kept pace with inflation.`;
   // "sold" mode asks for a few more points than the chart strictly needs, so
   // the peak-detection below (computeSoldPeakFromCurve) isn't just picking
   // between 10 widely-spaced months — same single request, just denser.
@@ -3320,8 +3374,11 @@ async function runDcaCalculation(coin, opts){
     const goldBuy = interpPrice(GOLD, dateStr);
     const goldNow = interpPrice(GOLD, '2026-08');
     const goldResult = totalInvested * (goldNow/goldBuy);
+    const cpiBuy = interpPrice(CPI, dateStr);
+    const cpiNow = interpPrice(CPI, '2026-08');
+    const inflResult = totalInvested * (cpiNow/cpiBuy);
     document.getElementById('rCompare').textContent =
-      `If you'd put the same total (${fmt(totalInvested)}) in as a lump sum on day one instead, you'd have ${fmtBig(lumpSumValue)} today. For comparison, that same total in the S&P 500 would be worth ${fmtBig(spResult)}, ${fmtBig(aaplResult)} in Apple (AAPL) stock, or ${fmtBig(goldResult)} in gold.`;
+      `If you'd put the same total (${fmt(totalInvested)}) in as a lump sum on day one instead, you'd have ${fmtBig(lumpSumValue)} today. For comparison, that same total in the S&P 500 would be worth ${fmtBig(spResult)}, ${fmtBig(aaplResult)} in Apple (AAPL) stock, or ${fmtBig(goldResult)} in gold — or just ${fmtBig(inflResult)} adjusted for inflation alone.`;
     // DCA спреды не совпадают по смыслу с "кривой одной покупки" — прячем график
     // и таблицу по годам, а не показываем вводящую в заблуждение картинку.
     // "Sold too early" тоже относится только к режиму sold — прячем и её.
@@ -4536,6 +4593,34 @@ portfolioCalcBtn.addEventListener('click', async ()=>{
     portfolioResult.innerHTML = `Couldn't get price data for one of the selected coins — try a different combination.`;
   }
   portfolioCalcBtn.disabled = false;
+});
+// ---- Portfolio-split presets (Фаза 30 quick win) ----
+// Same idea as the coffee preset above: no new calculation logic, just
+// pre-selects the legs in the already-existing picker and clicks the
+// already-existing "Calculate the split" button. Capped at 4 legs because
+// the manual picker itself caps at 4 (see renderPortfolioGrid above) — kept
+// "Top-4 majors" rather than "Top-10" for this reason, rather than quietly
+// raising that existing API-call cap.
+function applyPortfolioPreset(symbols){
+  if(!lastResult) return; // nothing to split yet — need a calculation first
+  if(portfolioPicker.style.display === 'none'){
+    portfolioToggle.click(); // opens the picker + calls renderPortfolioGrid()
+  } else {
+    renderPortfolioGrid(); // already open — reset selection before applying preset
+  }
+  symbols.forEach(sym=>{
+    const btn = Array.from(portfolioCoinGrid.children).find(b=>b.textContent.trim() === sym);
+    if(btn) btn.click();
+  });
+  if(portfolioSelection.size >= 2) portfolioCalcBtn.click();
+}
+document.getElementById('presetBtcEth').addEventListener('click', ()=>{
+  applyPortfolioPreset(['BTC','ETH']);
+  if(typeof gtag === 'function'){ gtag('event', 'portfolio_preset_click', { preset: 'btc_eth' }); }
+});
+document.getElementById('presetTop4').addEventListener('click', ()=>{
+  applyPortfolioPreset(['BTC','ETH','SOL','XRP']);
+  if(typeof gtag === 'function'){ gtag('event', 'portfolio_preset_click', { preset: 'top4' }); }
 });
 // трекинг клика по инвест-CTA — не мешает переходу по ссылке (открывается в новой
 // вкладке), просто параллельно шлёт событие в GA, если аналитика подключена и не
