@@ -121,9 +121,27 @@ async function sendChannelPost(token, chatId, text, buttonUrl, buttonLabel) {
   return JSON.parse(body);
 }
 
-exports.handler = async () => {
+exports.handler = async (event) => {
   const token = process.env.TELEGRAM_BOT_TOKEN;
   const CHANNEL_ID = process.env.TELEGRAM_CHANNEL_ID || '@CryptoFumble';
+
+  // ВРЕМЕННАЯ ДИАГНОСТИКА: ?debug=1 в URL показывает, что именно функция
+  // видит в переменных окружения, не отправляя ничего в Telegram.
+  // Удалить этот блок после того, как автопостинг заработает.
+  if (event && event.queryStringParameters && event.queryStringParameters.debug) {
+    return {
+      statusCode: 200,
+      body: JSON.stringify({
+        hasToken: !!token,
+        tokenLength: token ? token.length : 0,
+        tokenPreview: token ? `${token.slice(0, 6)}...${token.slice(-4)}` : null,
+        channelIdRaw: CHANNEL_ID,
+        channelIdLength: CHANNEL_ID.length,
+        channelIdCharCodes: [...CHANNEL_ID].map(c => c.charCodeAt(0)),
+        usingDefault: !process.env.TELEGRAM_CHANNEL_ID,
+      }),
+    };
+  }
 
   if (!token) {
     console.error('telegram-channel-post: missing TELEGRAM_BOT_TOKEN');
