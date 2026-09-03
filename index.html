@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+"<!DOCTYPE html>
 <html lang="en">
 <head>
 <!-- Google tag (gtag.js) -->
@@ -797,7 +797,7 @@
   .r-source.demo{color:#A87A2A; opacity:0.8;}
   /* --- RECEIPT REVEAL --- */
   #receipt-holder{
-    display:none;
+    display:block;
     margin-top:24px;
   }
   .receipt{
@@ -1423,8 +1423,8 @@
     <button type="button" class="pizza-toggle" id="pizzaToggle" aria-expanded="false"><span class="chev">▼</span><span class="toggle-label">Read</span></button>
     <div class="pizza-fact-body" id="pizzaFactBody">
       <div class="pizza-fact-text">On May 22, 2010, a guy named Laszlo paid 10,000 BTC for two pizzas — about $41 at the time. Nobody thought twice about it.</div>
-      <button type="button" class="pizza-fact-cta" id="pizzaFactBtn">What would that be worth today? →</button>
-      <div class="pizza-fact-reveal" id="pizzaFactReveal" style="display:none;"></div>
+      <button type="button" class="pizza-fact-cta" id="pizzaFactBtn" style="display:none;">What would that be worth today? →</button>
+      <div class="pizza-fact-reveal" id="pizzaFactReveal">Those 10,000 BTC would be worth <b>$789,660,000</b> today. Hope the pizza was worth it. 🍕</div>
     </div>
   </div>
   <div class="panel">
@@ -1475,39 +1475,39 @@
   <div id="receipt-holder">
     <div class="receipt">
       <div class="r-title" id="rTitle">— receipt of regret —</div>
-      <div class="r-sub" id="rSub"></div>
-      <div class="r-source" id="rSource"></div>
+      <div class="r-sub" id="rSub"><img src="https://cdn.jsdelivr.net/gh/spothq/cryptocurrency-icons@master/128/color/btc.png" alt="" class="r-sub-icon">Bitcoin · bought 2020-03</div>
+      <div class="r-source live" id="rSource">● live data from coingecko</div>
       <div class="dashed"></div>
-      <div class="r-line"><span id="rInvestedLabel">Invested</span><span id="rInvested"></span></div>
-      <div class="r-line"><span id="rBuyPriceLabel">Price at purchase</span><span id="rBuyPrice"></span></div>
-      <div class="r-line"><span id="rCoinsQtyLabel">Coins bought</span><span id="rCoinsQty"></span></div>
-      <div class="r-line"><span>Price now</span><span id="rNowPrice"></span></div>
+      <div class="r-line"><span id="rInvestedLabel">Invested</span><span id="rInvested">$1,000</span></div>
+      <div class="r-line"><span id="rBuyPriceLabel">Price at purchase</span><span id="rBuyPrice">$5,900</span></div>
+      <div class="r-line"><span id="rCoinsQtyLabel">Coins bought</span><span id="rCoinsQty">0.169492 BTC</span></div>
+      <div class="r-line"><span>Price now</span><span id="rNowPrice">$78,869</span></div>
       <div class="dashed"></div>
       <div class="r-big">
         <div class="label">Would be worth now</div>
-        <div class="num" id="rResult">$0</div>
+        <div class="num pos" id="rResult">$2,210</div>
         <div class="r-local-currency" id="rLocalCurrency" style="display:none;"></div>
       </div>
-      <div class="r-tier" id="rTier"></div>
-      <div class="r-mult-wrap"><span class="r-mult" id="rMult">x1.0</span></div>
-      <div class="r-chart-wrap" id="rChartWrap">
+      <div class="r-tier" id="rTier">🏆 LEGENDARY TIMING</div>
+      <div class="r-mult-wrap"><span class="r-mult pos" id="rMult">x13.4</span></div>
+      <div class="r-chart-wrap" id="rChartWrap" style="display:none;">
         <svg id="rChartSvg" viewBox="0 0 280 70" preserveAspectRatio="none"></svg>
         <div class="r-chart-caption" id="rChartCaption"></div>
       </div>
       <div class="r-year-table" id="rYearTable" style="display:none;"></div>
-      <div class="r-compare" id="rCompare"></div>
+      <div class="r-compare" id="rCompare">For comparison: the same amount would be worth $2,063 in the S&amp;P 500, $3,609 in Apple (AAPL) stock, or $2,166 in gold, today.</div>
       <div class="r-sold-peak" id="rSoldPeak"></div>
       <div class="r-disclaimer">Just for fun — not investment advice.</div>
       <div class="r-footer">RECEIPT OF REGRET · TIMESTAMP <span id="rStamp"></span></div>
     </div>
     <a href="https://www.bybit.com/invite?ref=PK8RA3&medium=referral&utm_campaign=evergreen&share_to=post"
        target="_blank" rel="noopener noreferrer sponsored"
-       class="cta-invest" id="ctaInvest" style="display:none;">
-      <span id="ctaInvestText">Start on an exchange →</span>
+       class="cta-invest" id="ctaInvest" data-outcome="win" data-coin="BTC" data-mult="13.4">
+      <span id="ctaInvestText">Want to try it yourself? Start on an exchange →</span>
     </a>
-    <div class="invest-note" id="investNote" style="display:none;">Affiliate link — we may earn a small commission, at no extra cost to you.</div>
+    <div class="invest-note" id="investNote">Affiliate link — we may earn a small commission, at no extra cost to you.</div>
     <button type="button" class="share-cta donate-nudge" id="donateNudgeTop" style="background:transparent; border:1px dashed var(--panel-border); color:var(--gold-soft); box-shadow:none; font-size:12.5px;">☕ Enjoyed this? Support the project →</button>
-    <button class="share-cta" id="addToPfBtn" style="display:none;">➕ Add to portfolio</button>
+    <button class="share-cta" id="addToPfBtn">➕ Add to portfolio</button>
     <button class="share-cta" id="shareBtn">📸 Generate share card</button>
     <button class="share-cta" id="shareXBtn">𝕏 Share on X</button>
     <div id="shareXThanks" style="display:none; font-size:11.5px; color:var(--muted); text-align:center; margin-top:-4px;"></div>
@@ -1529,7 +1529,7 @@
       <div id="premiumStatus" style="font-size:11.5px; color:var(--muted); margin-top:8px;"></div>
       <button type="button" class="share-cta donate-nudge" id="donateNudgeCert" style="background:transparent; border:1px dashed var(--panel-border); color:var(--gold-soft); box-shadow:none; font-size:12.5px; margin-top:10px;">☕ Enjoyed this? Support the project →</button>
     </div>
-    <div class="compare-block" id="compareBlock" style="display:none;">
+    <div class="compare-block" id="compareBlock">
       <button type="button" class="compare-toggle" id="compareToggle">⚖️ Compare with another coin</button>
       <div class="compare-picker" id="comparePicker" style="display:none;">
         <div class="compare-picker-label">Same amount, same date — but in:</div>
@@ -1537,7 +1537,7 @@
       </div>
       <div class="compare-result" id="compareResult" style="display:none;"></div>
     </div>
-    <div class="compare-block" id="portfolioBlock" style="display:none;">
+    <div class="compare-block" id="portfolioBlock">
       <button type="button" class="compare-toggle" id="portfolioToggle">🧺 Split it across a few coins</button>
       <div class="compare-picker" id="portfolioPicker" style="display:none;">
         <div class="compare-picker-label">Pick 2–4 coins to split the same amount across:</div>
@@ -5150,3 +5150,4 @@ async function pfRender(){
 </script>
 </body>
 </html>
+"
