@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+"<!DOCTYPE html>
 <html lang="ru">
 <head>
 <!-- Google tag (gtag.js) -->
@@ -794,7 +794,7 @@
   .r-source.demo{color:#A87A2A; opacity:0.8;}
   /* --- RECEIPT REVEAL --- */
   #receipt-holder{
-    display:none;
+    display:block;
     margin-top:24px;
   }
   .receipt{
@@ -1418,8 +1418,8 @@
     <button type="button" class="pizza-toggle" id="pizzaToggle" aria-expanded="false"><span class="chev">▼</span><span class="toggle-label">Читать</span></button>
     <div class="pizza-fact-body" id="pizzaFactBody">
       <div class="pizza-fact-text">22 мая 2010 года программист по имени Ласло заплатил 10 000 BTC за две пиццы — тогда это было около $41. Никто не придал этому значения.</div>
-      <button type="button" class="pizza-fact-cta" id="pizzaFactBtn">Сколько бы это стоило сейчас? →</button>
-      <div class="pizza-fact-reveal" id="pizzaFactReveal" style="display:none;"></div>
+      <button type="button" class="pizza-fact-cta" id="pizzaFactBtn" style="display:none;">Сколько бы это стоило сейчас? →</button>
+      <div class="pizza-fact-reveal" id="pizzaFactReveal">Эти 10 000 BTC сегодня стоили бы <b>$789,840,000</b>. Надеюсь, пицца была вкусной. 🍕</div>
     </div>
   </div>
   <div class="panel">
@@ -1470,39 +1470,39 @@
   <div id="receipt-holder">
     <div class="receipt">
       <div class="r-title" id="rTitle">— чек упущенной прибыли —</div>
-      <div class="r-sub" id="rSub"></div>
-      <div class="r-source" id="rSource"></div>
+      <div class="r-sub" id="rSub"><img src="https://cdn.jsdelivr.net/gh/spothq/cryptocurrency-icons@master/128/color/btc.png" alt="" class="r-sub-icon">Bitcoin · куплено в 2020-03</div>
+      <div class="r-source live" id="rSource">● live-данные coingecko</div>
       <div class="dashed"></div>
-      <div class="r-line"><span id="rInvestedLabel">Вложено</span><span id="rInvested"></span></div>
-      <div class="r-line"><span id="rBuyPriceLabel">Цена на момент покупки</span><span id="rBuyPrice"></span></div>
-      <div class="r-line"><span id="rCoinsQtyLabel">Куплено монет</span><span id="rCoinsQty"></span></div>
-      <div class="r-line"><span>Цена сейчас</span><span id="rNowPrice"></span></div>
+      <div class="r-line"><span id="rInvestedLabel">Вложено</span><span id="rInvested">$1,000</span></div>
+      <div class="r-line"><span id="rBuyPriceLabel">Цена на момент покупки</span><span id="rBuyPrice">$5,900</span></div>
+      <div class="r-line"><span id="rCoinsQtyLabel">Куплено монет</span><span id="rCoinsQty">0.169492 BTC</span></div>
+      <div class="r-line"><span>Цена сейчас</span><span id="rNowPrice">$78,966</span></div>
       <div class="dashed"></div>
       <div class="r-big">
         <div class="label">Стоило бы сейчас</div>
-        <div class="num" id="rResult">$0</div>
+        <div class="num pos" id="rResult">$2,217</div>
         <div class="r-local-currency" id="rLocalCurrency" style="display:none;"></div>
       </div>
-      <div class="r-tier" id="rTier"></div>
-      <div class="r-mult-wrap"><span class="r-mult" id="rMult">x1.0</span></div>
-      <div class="r-chart-wrap" id="rChartWrap">
+      <div class="r-tier" id="rTier">🏆 ЛЕГЕНДАРНЫЙ ТАЙМИНГ</div>
+      <div class="r-mult-wrap"><span class="r-mult pos" id="rMult">x13.4</span></div>
+      <div class="r-chart-wrap" id="rChartWrap" style="display:none;">
         <svg id="rChartSvg" viewBox="0 0 280 70" preserveAspectRatio="none"></svg>
         <div class="r-chart-caption" id="rChartCaption"></div>
       </div>
       <div class="r-year-table" id="rYearTable" style="display:none;"></div>
-      <div class="r-compare" id="rCompare"></div>
+      <div class="r-compare" id="rCompare">Для сравнения: та же сумма сейчас стоила бы $2,063 в S&amp;P 500, $3,609 в акциях Apple (AAPL), или $2,166 в золоте.</div>
       <div class="r-sold-peak" id="rSoldPeak"></div>
       <div class="r-disclaimer">Просто для развлечения — не инвестиционный совет.</div>
       <div class="r-footer">ЧЕК УПУЩЕННОЙ ПРИБЫЛИ · ВРЕМЯ <span id="rStamp"></span></div>
     </div>
     <a href="https://www.bybit.com/invite?ref=PK8RA3&medium=referral&utm_campaign=evergreen&share_to=post"
        target="_blank" rel="noopener noreferrer sponsored"
-       class="cta-invest" id="ctaInvest" style="display:none;">
-      <span id="ctaInvestText">Начать на бирже →</span>
+       class="cta-invest" id="ctaInvest" data-outcome="win" data-coin="BTC" data-mult="13.4">
+      <span id="ctaInvestText">Хочешь попробовать сам? Начни на бирже →</span>
     </a>
-    <div class="invest-note" id="investNote" style="display:none;">Партнёрская ссылка — можем получить небольшую комиссию, без доплаты с твоей стороны.</div>
+    <div class="invest-note" id="investNote">Партнёрская ссылка — можем получить небольшую комиссию, без доплаты с твоей стороны.</div>
     <button type="button" class="share-cta donate-nudge" id="donateNudgeTop" style="background:transparent; border:1px dashed var(--panel-border); color:var(--gold-soft); box-shadow:none; font-size:12.5px;">☕ Понравилось? Поддержи проект →</button>
-    <button class="share-cta" id="addToPfBtn" style="display:none;">➕ Добавить в портфель</button>
+    <button class="share-cta" id="addToPfBtn">➕ Добавить в портфель</button>
     <button class="share-cta" id="shareBtn">📸 Сгенерировать карточку для шеринга</button>
     <button class="share-cta" id="shareTgBtn">✈️ Поделиться в Telegram</button>
     <div id="shareTgThanks" style="display:none; font-size:11.5px; color:var(--muted); text-align:center; margin-top:-4px;"></div>
@@ -1524,7 +1524,7 @@
       <div id="premiumStatus" style="font-size:11.5px; color:var(--muted); margin-top:8px;"></div>
       <button type="button" class="share-cta donate-nudge" id="donateNudgeCert" style="background:transparent; border:1px dashed var(--panel-border); color:var(--gold-soft); box-shadow:none; font-size:12.5px; margin-top:10px;">☕ Понравилось? Поддержи проект →</button>
     </div>
-    <div class="compare-block" id="compareBlock" style="display:none;">
+    <div class="compare-block" id="compareBlock">
       <button type="button" class="compare-toggle" id="compareToggle">⚖️ Сравнить с другой монетой</button>
       <div class="compare-picker" id="comparePicker" style="display:none;">
         <div class="compare-picker-label">Та же сумма, та же дата — но в:</div>
@@ -1532,7 +1532,7 @@
       </div>
       <div class="compare-result" id="compareResult" style="display:none;"></div>
     </div>
-    <div class="compare-block" id="portfolioBlock" style="display:none;">
+    <div class="compare-block" id="portfolioBlock">
       <button type="button" class="compare-toggle" id="portfolioToggle">🧺 Разбить на несколько монет</button>
       <div class="compare-picker" id="portfolioPicker" style="display:none;">
         <div class="compare-picker-label">Выбери 2–4 монеты, чтобы разбить ту же сумму между ними:</div>
@@ -5133,3 +5133,4 @@ async function pfRender(){
 </script>
 </body>
 </html>
+"
