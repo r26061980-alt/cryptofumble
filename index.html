@@ -335,6 +335,41 @@
     padding:0;
   }
   .daily-regret-cta:hover{text-decoration:underline;}
+  /* ═══ Collapsible extra context under the daily story (03.09.2026) — shown
+     collapsed by default (just the result line), with a toggle to reveal a
+     bit more background on that specific scenario, instead of dumping all
+     the text on the page at once. ═══ */
+  .daily-regret-more{
+    display:none;
+    font-size:13.5px;
+    line-height:1.6;
+    color:var(--muted);
+    margin:2px 0 12px;
+    padding-top:10px;
+    border-top:1px dashed rgba(240,185,11,0.22);
+  }
+  .daily-regret-more.open{display:block;}
+  .daily-regret-toggle{
+    background:none;
+    border:none;
+    color:var(--muted);
+    font-family:var(--sans);
+    font-weight:600;
+    font-size:12px;
+    cursor:pointer;
+    padding:0;
+    margin-bottom:10px;
+    display:inline-flex;
+    align-items:center;
+    gap:5px;
+  }
+  .daily-regret-toggle:hover{color:var(--gold);}
+  .daily-regret-toggle .chev{
+    display:inline-block;
+    font-size:10px;
+    transition:transform .2s var(--ease);
+  }
+  .daily-regret-toggle.open .chev{transform:rotate(180deg);}
   /* ═══ Bitcoin pizza easter egg (31.08.2026) — same visual language as
      .daily-regret, kept as its own class since it's always-on (no live-feed
      dependency to wait on) rather than toggled by loadDailyRegret(). ═══ */
@@ -686,8 +721,8 @@
   }
   .mode-btn{
     flex:1;
-    background:transparent;
-    border:none;
+    background:rgba(255,255,255,0.045);
+    border:1px solid var(--panel-border-soft);
     color:var(--muted);
     font-family:var(--sans);
     font-weight:700;
@@ -695,12 +730,13 @@
     padding:11px;
     border-radius:10px;
     cursor:pointer;
-    transition:background .2s var(--ease), color .2s var(--ease);
+    transition:background .2s var(--ease), color .2s var(--ease), border-color .2s var(--ease);
   }
-  .mode-btn:hover{color:var(--text);}
+  .mode-btn:hover{color:var(--text); border-color:var(--panel-border);}
   .mode-btn.active{
     background:rgba(240,185,11,0.13);
     color:var(--gold);
+    border-color:rgba(240,185,11,0.35);
     box-shadow:0 1px 0 rgba(255,255,255,0.05) inset;
   }
   .cta{
@@ -1028,14 +1064,15 @@
     border-radius:var(--r-md); padding:4px;
   }
   .page-tab{
-    flex:1; background:transparent; border:none; color:var(--muted);
+    flex:1; background:rgba(255,255,255,0.045); border:1px solid var(--panel-border-soft); color:var(--muted);
     font-family:var(--sans); font-weight:700; font-size:13px;
     padding:11px; border-radius:10px; cursor:pointer;
-    transition:background .2s var(--ease), color .2s var(--ease);
+    transition:background .2s var(--ease), color .2s var(--ease), border-color .2s var(--ease);
   }
-  .page-tab:hover{color:var(--text);}
+  .page-tab:hover{color:var(--text); border-color:var(--panel-border);}
   .page-tab.active{
     background:rgba(240,185,11,0.13); color:var(--gold);
+    border-color:rgba(240,185,11,0.35);
     box-shadow:0 1px 0 rgba(255,255,255,0.05) inset;
   }
   /* ═══ My Portfolio tab ═══ */
@@ -1343,8 +1380,10 @@
   </div>
   <div class="regret-counter" id="regretCounter" style="display:none;"></div>
   <div class="daily-regret" id="dailyRegret" style="display:none;">
-    <div class="daily-regret-label">📅 TODAY'S REGRET</div>
+    <div class="daily-regret-label" id="dailyRegretLabel">📅 TODAY'S REGRET</div>
     <div class="daily-regret-text" id="dailyRegretText">Loading…</div>
+    <button type="button" class="daily-regret-toggle" id="dailyRegretToggle" style="display:none;"><span class="chev">▼</span><span class="toggle-label">More context</span></button>
+    <div class="daily-regret-more" id="dailyRegretMore"></div>
     <button type="button" class="daily-regret-cta" id="dailyRegretCta">Try it yourself →</button>
   </div>
   <div class="pizza-fact" id="pizzaFact">
@@ -2421,18 +2460,21 @@ updateSelectedUI();
 // ---- Daily Regret — same scenario for everyone on a given calendar day ----
 // Picked from real historical crashes/peaks (not fully random dates) so the
 // result is always dramatic enough to be worth sharing, never a boring x1.05.
+// Mix of both regret (bought at a peak) and vindication (bought at a bottom)
+// scenarios across several coins — the daily box isn't only about losses,
+// see loadDailyRegret() below for the win/loss label switch.
 const DAILY_SCENARIOS = [
-  { symbol:'BTC',  date:'2020-03' }, // covid crash low
-  { symbol:'BTC',  date:'2021-11' }, // all-time high
-  { symbol:'BTC',  date:'2022-12' }, // FTX collapse bottom
-  { symbol:'ETH',  date:'2021-11' }, // all-time high
-  { symbol:'ETH',  date:'2022-06' }, // bear market bottom
-  { symbol:'DOGE', date:'2021-05' }, // meme mania peak
-  { symbol:'DOGE', date:'2020-01' }, // right before the pump
-  { symbol:'SOL',  date:'2022-12' }, // FTX-linked crash bottom
-  { symbol:'ADA',  date:'2021-09' }, // cycle peak
-  { symbol:'XRP',  date:'2017-12' }, // 2017 mania peak
-  { symbol:'BNB',  date:'2021-05' }, // cycle peak
+  { symbol:'BTC',  date:'2020-03', blurb:"The March 2020 “Black Thursday” crash, right as the pandemic hit — one of the sharpest single-day drops in Bitcoin's history, and one of the best entry points of the whole cycle." }, // covid crash low — WIN
+  { symbol:'BTC',  date:'2021-11', blurb:'The cycle’s all-time high, back when the climb felt like it would never stop. Buyers at this exact peak then watched a year-long slide.' }, // all-time high — LOSS
+  { symbol:'BTC',  date:'2022-12', blurb:'Market bottom right after the FTX exchange collapse — peak fear, when hardly anyone believed crypto would recover at all.' }, // FTX collapse bottom — WIN
+  { symbol:'ETH',  date:'2021-11', blurb:'The same 2021 cycle top as Bitcoin above — Ethereum hit its own all-time high here and spent the following year grinding back down.' }, // all-time high — LOSS
+  { symbol:'ETH',  date:'2022-06', blurb:'The bottom of the brutal 2022 bear market, right after the Terra/Luna and Celsius collapses — one of the darkest points in Ethereum’s history, and one of the best for buying.' }, // bear market bottom — WIN
+  { symbol:'DOGE', date:'2021-05', blurb:'Peak meme mania for Dogecoin, fueled by Elon Musk tweets and a Saturday Night Live appearance — the price crashed hard not long after.' }, // meme mania peak — LOSS
+  { symbol:'DOGE', date:'2020-01', blurb:'A quiet January in 2020, a year and a half before Dogecoin became crypto’s biggest meme phenomenon.' }, // right before the pump — WIN
+  { symbol:'SOL',  date:'2022-12', blurb:'Solana was closely tied to the FTX ecosystem — it crashed harder than almost any other major coin after the collapse, but that turned out to be the bottom.' }, // FTX-linked crash bottom — WIN
+  { symbol:'ADA',  date:'2021-09', blurb:'Cardano’s 2021 cycle peak — the coin never made it back to this all-time high afterward.' }, // cycle peak — LOSS
+  { symbol:'XRP',  date:'2017-12', blurb:'The peak of the frenzied late-2017 rally, right before years of legal battle between XRP and the U.S. SEC.' }, // 2017 mania peak — LOSS
+  { symbol:'BNB',  date:'2021-05', blurb:'BNB’s 2021 cycle peak, riding the same broad meme and altcoin frenzy as everything else that spring.' }, // cycle peak — LOSS
 ];
 async function loadDailyRegret(){
   const dayOfYear = Math.floor((Date.now() - new Date(new Date().getFullYear(),0,0)) / 86400000);
@@ -2447,10 +2489,24 @@ async function loadDailyRegret(){
     const result = coins * nowPrice;
     const mult = result / amount;
     const tier = getTier(mult);
+    const isGood = mult >= 1;
     const [y, m] = scenario.date.split('-');
     const monthLabel = MONTH_NAMES[parseInt(m,10)-1];
+    document.getElementById('dailyRegretLabel').textContent = isGood ? "🚀 TODAY'S WIN" : "📅 TODAY'S REGRET";
     document.getElementById('dailyRegretText').innerHTML =
       `If you'd bought $1,000 of <b>${coin.name}</b> in ${monthLabel} ${y}, you'd have <b>${fmtBig(result)}</b> today. ${tier.emoji} ${tier.label}`;
+    const moreEl = document.getElementById('dailyRegretMore');
+    const toggleEl = document.getElementById('dailyRegretToggle');
+    moreEl.classList.remove('open');
+    toggleEl.classList.remove('open');
+    toggleEl.querySelector('.toggle-label').textContent = 'More context';
+    if(scenario.blurb){
+      moreEl.textContent = scenario.blurb;
+      toggleEl.style.display = 'inline-flex';
+    }else{
+      moreEl.textContent = '';
+      toggleEl.style.display = 'none';
+    }
     document.getElementById('dailyRegret').style.display = 'block';
     document.getElementById('dailyRegretCta').addEventListener('click', ()=>{
       currentCoin = coin;
@@ -2468,6 +2524,12 @@ async function loadDailyRegret(){
   }
 }
 loadDailyRegret();
+document.getElementById('dailyRegretToggle').addEventListener('click', function(){
+  const moreEl = document.getElementById('dailyRegretMore');
+  const isOpen = moreEl.classList.toggle('open');
+  this.classList.toggle('open', isOpen);
+  this.querySelector('.toggle-label').textContent = isOpen ? 'Show less' : 'More context';
+});
 // ---- Bitcoin pizza easter egg ----
 // Deliberately NOT routed through the normal calculator (coin/date/amount ->
 // getPrices) — the picker's earliest supported year is 2013 (PICKER_MIN_YEAR),
