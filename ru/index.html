@@ -3100,7 +3100,8 @@ calcBtn.addEventListener('click', async ()=>{
   }
 });
 // ---- "Я купил" / "Я продал слишком рано" — разовая покупка ----
-async function runLumpSumCalculation(coin){
+async function runLumpSumCalculation(coin, opts){
+  const silent = opts && opts.silent;
   const amountInputVal = parseFloat(document.getElementById('amount').value) || 0;
   const dateStr = currentDateStr;
   calcBtn.innerHTML = '<span class="spin"></span>Считаем по рынку…';
@@ -3108,7 +3109,7 @@ async function runLumpSumCalculation(coin){
   if(priceData.error){
     calcBtn.disabled = false;
     calcBtn.textContent = calcBtnLabelForMode();
-    alert(`Не смогли получить цены для ${coin.symbol} — API недоступен, а демо-данных для этой монеты нет. Попробуй BTC/ETH/SOL/DOGE/ADA/XRP/BNB, или повтори попытку.`);
+    if(!silent) alert(`Не смогли получить цены для ${coin.symbol} — API недоступен, а демо-данных для этой монеты нет. Попробуй BTC/ETH/SOL/DOGE/ADA/XRP/BNB, или повтори попытку.`);
     return;
   }
   const { buyPrice, nowPrice, source } = priceData;
@@ -3234,9 +3235,16 @@ async function runLumpSumCalculation(coin){
   addToPfBtn.style.display = currentMode === 'sold' ? 'none' : 'block';
   addToPfBtn.disabled = false;
   addToPfBtn.textContent = '➕ Добавить в портфель';
-  saveLastCalc();
-  precacheShareCard(); // рисуем PNG-карточку в фоне заранее, чтобы она была готова к моменту клика на "Share"
-  precacheShareId(); // заодно запрашиваем короткую ссылку в фоне, по той же логике
+  // silent (автозаполнение первого экрана) не считает это "личным" расчётом —
+  // иначе сценарий дня навсегда застрял бы для этого посетителя как
+  // "последний расчёт", и он не увидел бы завтрашний новый сценарий.
+  // Короткую ссылку (сетевой запрос, создаёт запись на сервере) тоже не
+  // готовим заранее просто на каждый визит — только когда расчёт настоящий.
+  if(!silent){
+    saveLastCalc();
+    precacheShareId(); // заодно запрашиваем короткую ссылку в фоне, по той же логике
+  }
+  precacheShareCard(); // рисуем PNG-карточку в фоне заранее, чтобы она была готова к моменту клика на "Share" (чисто локально, без сети — можно всегда)
   // "сравнить с другой монетой" имеет смысл только для обычной разовой покупки —
   // сбрасываем на каждом новом расчёте, показываем переключатель только в режиме "купил"
   document.getElementById('comparePicker').style.display = 'none';
@@ -3249,19 +3257,24 @@ async function runLumpSumCalculation(coin){
   document.getElementById('portfolioCalcBtn').style.display = 'none';
   document.getElementById('portfolioBlock').style.display = currentMode === 'bought' ? 'block' : 'none';
   // делимся анонимной записью в живой ленте — не блокируем интерфейс,
-  // если это не сработает (ошибка сети / лента не настроена), тихо игнорируем
-  fetch('/.netlify/functions/feed', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      coin: coin.symbol,
-      mode: currentMode,
-      mult,
-      tierEmoji: tier.emoji,
-      tierLabel: tier.label,
-      resultFmt: fmtBig(result),
-    }),
-  }).catch(()=>{});
+  // если это не сработает (ошибка сети / лента не настроена), тихо игнорируем.
+  // silent (см. автозаполнение первого экрана в конце файла) специально
+  // пропускает это — иначе каждый визит на сайт создавал бы в ленте запись,
+  // хотя пользователь ничего сам не считал.
+  if(!silent){
+    fetch('/.netlify/functions/feed', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        coin: coin.symbol,
+        mode: currentMode,
+        mult,
+        tierEmoji: tier.emoji,
+        tierLabel: tier.label,
+        resultFmt: fmtBig(result),
+      }),
+    }).catch(()=>{});
+  }
   calcBtn.disabled = false;
   calcBtn.textContent = calcBtnLabelForMode();
 }
@@ -3273,7 +3286,8 @@ async function runLumpSumCalculation(coin){
 // точка "представляет" равную часть реальных месяцев между ними — честное
 // приближение, в духе того, как весь калькулятор уже относится к себе как
 // к иллюстрации, а не точному расчёту.
-async function runDcaCalculation(coin){
+async function runDcaCalculation(coin, opts){
+  const silent = opts && opts.silent;
   const monthlyAmount = parseFloat(document.getElementById('amount').value) || 0;
   const dateStr = currentDateStr;
   calcBtn.innerHTML = '<span class="spin"></span>Считаем историю цен по месяцам…';
@@ -3385,9 +3399,11 @@ async function runDcaCalculation(coin){
     document.getElementById('premiumDownloads').style.display = 'none';
     document.getElementById('premiumStatus').textContent = '';
     document.getElementById('shareTgThanks').style.display = 'none';
-    saveLastCalc();
-    precacheShareCard(); // рисуем PNG-карточку в фоне заранее, чтобы она была готова к моменту клика на "Share"
-    precacheShareId(); // заодно запрашиваем короткую ссылку в фоне, по той же логике
+    if(!silent){
+      saveLastCalc();
+      precacheShareId(); // заодно запрашиваем короткую ссылку в фоне, по той же логике
+    }
+    precacheShareCard(); // рисуем PNG-карточку в фоне заранее, чтобы она была готова к моменту клика на "Share" (чисто локально, без сети — можно всегда)
     // сравнение с другой монетой применимо только к разовой покупке, не к DCA
     document.getElementById('comparePicker').style.display = 'none';
     document.getElementById('compareResult').style.display = 'none';
@@ -3398,20 +3414,22 @@ async function runDcaCalculation(coin){
     document.getElementById('portfolioResult').innerHTML = '';
     document.getElementById('portfolioCalcBtn').style.display = 'none';
     document.getElementById('portfolioBlock').style.display = 'none';
-    fetch('/.netlify/functions/feed', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        coin: coin.symbol,
-        mode: currentMode,
-        mult,
-        tierEmoji: tier.emoji,
-        tierLabel: tier.label,
-        resultFmt: fmtBig(result),
-      }),
-    }).catch(()=>{});
+    if(!silent){
+      fetch('/.netlify/functions/feed', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          coin: coin.symbol,
+          mode: currentMode,
+          mult,
+          tierEmoji: tier.emoji,
+          tierLabel: tier.label,
+          resultFmt: fmtBig(result),
+        }),
+      }).catch(()=>{});
+    }
   }catch(err){
-    alert(`Не смогли получить историю цен по месяцам для ${coin.symbol} — попробуй ещё раз через минуту или выбери другую монету.`);
+    if(!silent) alert(`Не смогли получить историю цен по месяцам для ${coin.symbol} — попробуй ещё раз через минуту или выбери другую монету.`);
   }finally{
     calcBtn.disabled = false;
     calcBtn.textContent = calcBtnLabelForMode();
@@ -5072,6 +5090,46 @@ async function pfRender(){
     });
   });
 }
+</script>
+<script>
+// ---- Первый экран сразу с готовым чеком, а не с пустой формой ----
+// Если у посетителя есть диплинк (?coin=&date=, Фаза 2) или сохранённый
+// личный расчёт (cf_last_calc) — просто досчитываем и показываем ИХ,
+// ничего не подменяя. Если ни того, ни другого нет (обычный первый визит) —
+// подставляем сценарий дня (тот же DAILY_SCENARIOS, что и в баннере
+// "Удача/Регрет дня" выше и в ежедневном Telegram-автопостинге), чтобы
+// человек сразу увидел готовый пример, а не нули.
+// silent:true у runLumpSumCalculation/runDcaCalculation отключает отправку
+// анонимной записи в живую ленту и алерт об ошибке — иначе каждый обычный
+// визит на сайт создавал бы в ленте фейковую запись, будто кто-то сам
+// что-то посчитал.
+(async function prefillReceiptOnLoad(){
+  try{
+    const params = new URLSearchParams(location.search);
+    const hasDeepLink = !!params.get('coin');
+    const hasSavedCalc = !!readLastCalc();
+    if(!hasDeepLink && !hasSavedCalc){
+      const dayOfYear = Math.floor((Date.now() - new Date(new Date().getFullYear(),0,0)) / 86400000);
+      const scenario = DAILY_SCENARIOS[dayOfYear % DAILY_SCENARIOS.length];
+      currentCoin = { symbol: scenario.symbol, name: DATA[scenario.symbol].name, geckoId: GECKO_ID[scenario.symbol] };
+      const [y, m] = scenario.date.split('-');
+      pickedYear = parseInt(y, 10);
+      pickedMonth = parseInt(m, 10);
+      currentDateStr = scenario.date;
+      dateTrigger.textContent = `${MONTH_NAMES[parseInt(m, 10) - 1]} ${y}`;
+      document.getElementById('amount').value = 1000;
+      updateSelectedUI();
+    }
+    if(currentMode === 'dca'){
+      await runDcaCalculation(currentCoin, { silent: true });
+    } else {
+      await runLumpSumCalculation(currentCoin, { silent: true });
+    }
+  }catch(err){
+    // первый экран — приятный бонус, но не критичный; если что-то пошло не
+    // так, просто остаётся обычная пустая форма, как было раньше
+  }
+})();
 </script>
 </body>
 </html>
