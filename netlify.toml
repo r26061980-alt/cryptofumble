@@ -12,6 +12,12 @@
 [functions."telegram-digest"]
   schedule = "0 9 * * 1"
 
+# Ежедневный автопостинг в канал @CryptoFumble (см.
+# netlify/functions/telegram-channel-post.js) — каждый день, 7:00 UTC
+# (10:00 по Москве, без перевода времени). Расписание у Netlify — всегда в UTC.
+[functions."telegram-channel-post"]
+  schedule = "0 7 * * *"
+
 # Красивые пути: фронт зовёт /api/price и /api/search,
 # Netlify тихо проксирует на реальные функции.
 [[redirects]]
