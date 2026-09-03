@@ -1591,6 +1591,7 @@
       <a href="/dogecoin-2020/" style="padding:8px 14px;background:var(--panel);border:1px solid var(--panel-border);border-radius:999px;text-decoration:none;font-size:12px;font-family:var(--mono);color:var(--gold-soft);">Dogecoin in 2020</a>
       <a href="/xrp-2018/" style="padding:8px 14px;background:var(--panel);border:1px solid var(--panel-border);border-radius:999px;text-decoration:none;font-size:12px;font-family:var(--mono);color:var(--gold-soft);">XRP in 2018</a>
       <a href="/cardano-2021/" style="padding:8px 14px;background:var(--panel);border:1px solid var(--panel-border);border-radius:999px;text-decoration:none;font-size:12px;font-family:var(--mono);color:var(--gold-soft);">Cardano in 2021</a>
+      <a href="/hyperliquid-2024/" style="padding:8px 14px;background:var(--panel);border:1px solid var(--panel-border);border-radius:999px;text-decoration:none;font-size:12px;font-family:var(--mono);color:var(--gold-soft);">Hyperliquid in 2024</a>
     </div>
   </div>
   <div id="donateWidgetSection" style="max-width:360px;margin:32px auto 0;padding-top:24px;border-top:1px solid var(--panel-border-soft);text-align:center;border-radius:12px;transition:box-shadow 0.4s ease;">
@@ -1694,6 +1695,16 @@ const DATA = {
     ['2023-01',245],['2023-06',240],['2023-12',310],
     ['2024-01',310],['2024-03',410],['2024-06',580],['2024-12',700],
     ['2025-06',780],['2026-01',850],['2026-08',920]
+  ]},
+  // HYPE only has ~22 months of history (token launched via a "genesis event"
+  // airdrop on Nov 29 2024), so this table is denser per-month than the older
+  // coins above — anchors sourced from CoinGecko (same provider the live
+  // calculator already uses): the $3.81 launch-day figure is CoinGecko's own
+  // recorded all-time-low, and $86-87 is its all-time high, hit Aug 27 2026.
+  HYPE: { name:'Hyperliquid', points:[
+    ['2024-11',3.81],['2024-12',23.92],
+    ['2025-03',12.99],['2025-06',39.38],['2025-09',45.24],['2025-12',25.47],
+    ['2026-04',48],['2026-08',83]
   ]}
 };
 // Rough Apple (AAPL) split-adjusted price anchors — same "boring alternative"
@@ -2092,7 +2103,7 @@ document.getElementById('dateDone').addEventListener('click', ()=>{
 // CoinGecko coin ids for live lookups
 const GECKO_ID = {
   BTC:'bitcoin', ETH:'ethereum', SOL:'solana', DOGE:'dogecoin',
-  ADA:'cardano', XRP:'ripple', BNB:'binancecoin'
+  ADA:'cardano', XRP:'ripple', BNB:'binancecoin', HYPE:'hyperliquid'
 };
 // ---- Ротация партнёрских ссылок между биржами ----
 // Каждый показ CTA выбирает следующую биржу по кругу, чтобы трафик более-менее
@@ -3291,6 +3302,14 @@ async function precacheShareCard(){
 // the old long-query-string share link if this hasn't resolved yet or the
 // request fails — see buildShareUrl().
 let cachedShareId = null;
+// Bumped at the start of every precacheShareId() call, and checked again once
+// its network request resolves — guards against a fast recalculation racing
+// ahead of a slower earlier one. Without this, doing two calculations back to
+// back (e.g. trying a couple of coins before picking one to share) could let
+// the FIRST call's response land after the SECOND's and silently overwrite
+// cachedShareId with the older result's id — so "Share on X" would post the
+// current result's text but a completely different, stale result's picture.
+let shareIdRequestSeq = 0;
 async function createShortLink(payload){
   try{
     const res = await fetch('/.netlify/functions/shorten', {
@@ -3304,10 +3323,14 @@ async function createShortLink(payload){
   }catch(e){ return null; }
 }
 async function precacheShareId(){
+  const requestSeq = ++shareIdRequestSeq;
   cachedShareId = null;
   const obj = shareParamsObject();
   if(!obj) return;
-  cachedShareId = await createShortLink(obj);
+  const id = await createShortLink(obj);
+  if(requestSeq === shareIdRequestSeq){
+    cachedShareId = id;
+  }
 }
 function showShareToast(msg){
   let toast = document.getElementById('shareToast');
