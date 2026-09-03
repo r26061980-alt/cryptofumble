@@ -1194,6 +1194,32 @@
     font-family:var(--mono); font-size:10.5px; color:var(--muted);
     margin-top:6px; line-height:1.5;
   }
+  .dhc-intro{text-align:center; padding:10px 4px;}
+  .dhc-intro p{color:var(--muted); line-height:1.6; margin-bottom:14px; font-size:13.5px;}
+  .dhc-streak{font-family:var(--mono); font-size:12.5px; color:var(--gold-soft); margin-bottom:14px;}
+  .dhc-round{text-align:center; padding:16px 6px;}
+  .dhc-round-label{font-family:var(--mono); font-size:11px; letter-spacing:0.08em; text-transform:uppercase; color:var(--muted); margin-bottom:14px;}
+  .dhc-pct{font-family:var(--mono); font-weight:700; font-size:42px; line-height:1;}
+  .dhc-pct.pos{color:var(--green);}
+  .dhc-pct.neg{color:var(--red);}
+  .dhc-pct-sub{font-size:12px; color:var(--muted); margin-top:6px; margin-bottom:22px;}
+  .dhc-question{font-weight:700; margin-bottom:16px; font-family:var(--sans);}
+  .dhc-choice-row{display:flex; gap:12px;}
+  .dhc-choice-btn{
+    flex:1; padding:16px 10px; border-radius:var(--r-md); font-family:var(--sans);
+    font-weight:700; font-size:15px; cursor:pointer; transition:transform .15s var(--ease), background .15s var(--ease);
+    border:1px solid var(--panel-border); background:var(--field-bg); color:var(--text);
+  }
+  .dhc-choice-btn:hover{transform:translateY(-2px);}
+  .dhc-choice-btn.hold{border-color:var(--gold); color:var(--gold);}
+  .dhc-progress{margin-top:22px; font-size:19px; letter-spacing:5px; color:var(--muted);}
+  .dhc-results{text-align:center; padding:10px 4px;}
+  .dhc-score{font-family:var(--mono); font-weight:800; font-size:38px; color:var(--gold);}
+  .dhc-grid{font-size:26px; letter-spacing:8px; margin:10px 0 16px;}
+  .dhc-reveal{background:var(--field-bg); border:1px solid var(--panel-border); border-radius:var(--r-md); padding:16px; margin-bottom:16px; text-align:left; font-size:13.5px; line-height:1.6;}
+  .dhc-reveal b{color:var(--gold);}
+  .dhc-blurb{color:var(--muted); font-size:12.5px; margin-top:6px;}
+  .dhc-next{font-size:11.5px; color:var(--muted); margin-top:10px;}
   .pf-share-btn{margin-bottom:20px;}
   .pf-coin-card{
     background:var(--panel); border:1px solid var(--panel-border);
@@ -1415,6 +1441,7 @@
     <div class="page-tabs" id="pageTabs" style="margin-bottom:0; flex:1;">
       <button type="button" class="page-tab active" data-view="calc">🧮 Калькулятор</button>
       <button type="button" class="page-tab" data-view="portfolio">📓 Мой портфель</button>
+      <button type="button" class="page-tab" data-view="challenge">💎 Алмазные руки</button>
     </div>
     <a href="/" class="page-tabs" style="margin-bottom:0; flex:0 0 auto; text-decoration:none;" title="English version" aria-label="Switch to English">
       <span class="page-tab" style="white-space:nowrap;">🇬🇧 EN</span>
@@ -1660,6 +1687,11 @@
       <canvas id="pfShareCanvas" width="640" height="860" style="display:none;"></canvas>
       <img id="pfShareCardImg" style="width:100%; border-radius:14px; box-shadow:0 12px 40px rgba(0,0,0,0.5);">
       <a id="pfShareDownload" class="share-cta" style="display:block; text-decoration:none; margin-top:10px; box-sizing:border-box;" download="cryptofumble-portfolio.png">⬇️ Скачать PNG</a>
+    </div>
+  </div>
+  <div id="challengeView" style="display:none;">
+    <div class="panel">
+      <div id="dhcContent"></div>
     </div>
   </div>
   <div class="faq">
@@ -4764,7 +4796,9 @@ document.getElementById('pageTabs').addEventListener('click', (e)=>{
   const view = btn.getAttribute('data-view');
   document.getElementById('calcView').style.display = view === 'calc' ? '' : 'none';
   document.getElementById('portfolioView').style.display = view === 'portfolio' ? '' : 'none';
+  document.getElementById('challengeView').style.display = view === 'challenge' ? '' : 'none';
   if(view === 'portfolio') pfRender();
+  if(view === 'challenge') dhcRender();
 });
 
 const PF_KEY = 'cf_portfolio_v1';
@@ -4781,6 +4815,184 @@ let pfSelectedCoin = { symbol:'BTC', name:'Bitcoin', geckoId:'bitcoin' };
 // заново, так что на карточке всегда то же самое, что и на экране. Сбрасывается
 // в null всякий раз, когда цифры могли устареть (см. pfRender).
 let pfLastSummary = null;
+
+// ---- Ежедневный вызов «Алмазные руки» — как в Wordle, одна попытка в день ----
+// Переиспользует уже определённый сценарий дня (тот же DAILY_SCENARIOS[день
+// года % длина], что и в блоке «Удача/Регрет дня» на главной и в автопостах
+// Telegram-канала), чтобы весь сайт в этот день говорил про один и тот же
+// сценарий. Промежуток от даты покупки до сегодня делится на 5 раундов — в
+// каждом игрок угадывает «держать» или «продать», не зная, что случится
+// дальше. Обе крайние точки (цена покупки, живая цена сегодня) берутся той же
+// функцией getPrices(), что и везде на сайте (живые данные + фоллбэк на
+// таблицу опорных точек); 4 точки между ними берутся из уже существующей
+// таблицы DATA[монета].points через interpPrice — новых запросов к сети не
+// нужно, а огромные многолетние движения, под которые выбраны эти сценарии,
+// не рискуют поменять направление из-за огрубления таблицы. Стрик и отметка
+// «уже играл сегодня» — только в localStorage, как и «Мой портфель».
+const DHC_KEY = 'cf_diamond_v1';
+function dhcLoad(){
+  try{ return Object.assign({streak:0, bestStreak:0, lastPlayedDate:null, lastResults:null, lastScore:0, lastScenario:null}, JSON.parse(localStorage.getItem(DHC_KEY))); }
+  catch(e){ return {streak:0, bestStreak:0, lastPlayedDate:null, lastResults:null, lastScore:0, lastScenario:null}; }
+}
+function dhcSave(state){ try{ localStorage.setItem(DHC_KEY, JSON.stringify(state)); }catch(e){} }
+function dhcLocalDateKey(d){
+  d = d || new Date();
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+function dhcMonthTsToStr(ts){
+  const y = Math.floor((ts-1)/12);
+  const mo = ts - y*12;
+  return `${y}-${String(mo).padStart(2,'0')}`;
+}
+let dhcState = dhcLoad();
+let dhcGame = null;
+
+function dhcRender(){
+  const container = document.getElementById('dhcContent');
+  const today = dhcLocalDateKey();
+  if(dhcState.lastPlayedDate === today && dhcState.lastResults){
+    container.innerHTML = dhcResultsHtml();
+    dhcWireResultButtons();
+    return;
+  }
+  const streakLine = dhcState.streak > 0
+    ? `<p class="dhc-streak">🔥 Серия дней подряд: ${dhcState.streak} — не прерывай</p>`
+    : '';
+  container.innerHTML = `
+    <div class="dhc-intro">
+      ${streakLine}
+      <p>Пять реальных моментов из истории крипты. В каждый из них ты ещё не знал, что будет дальше — держать или продать? Одна попытка в день, как в Wordle.</p>
+      <button type="button" class="share-cta" id="dhcStartBtn">💎 Начать сегодняшний вызов</button>
+    </div>`;
+  document.getElementById('dhcStartBtn').addEventListener('click', dhcStartGame);
+}
+
+async function dhcStartGame(){
+  const container = document.getElementById('dhcContent');
+  container.innerHTML = '<div class="pf-empty"><span class="spin"></span> Загружаем сегодняшнюю историю…</div>';
+  const dayOfYear = Math.floor((Date.now() - new Date(new Date().getFullYear(),0,0)) / 86400000);
+  const scenario = DAILY_SCENARIOS[dayOfYear % DAILY_SCENARIOS.length];
+  const coin = { symbol: scenario.symbol, name: DATA[scenario.symbol].name, geckoId: GECKO_ID[scenario.symbol] };
+  let buyPrice, nowPrice;
+  try{
+    const priceData = await getPrices(coin, scenario.date);
+    if(priceData.error) throw new Error('no price data');
+    buyPrice = priceData.buyPrice;
+    nowPrice = priceData.nowPrice;
+  }catch(e){
+    container.innerHTML = '<div class="pf-empty">Не получилось загрузить сегодняшний вызов — попробуй чуть позже.</div>';
+    return;
+  }
+  const t0 = monthToTs(scenario.date);
+  const now = new Date();
+  const t5 = monthToTs(`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`);
+  const points = DATA[coin.symbol].points;
+  const waypointPrices = [buyPrice];
+  for(let i=1;i<=4;i++){
+    const t = Math.round(t0 + (t5-t0)*(i/5));
+    waypointPrices.push(interpPrice(points, dhcMonthTsToStr(t)));
+  }
+  waypointPrices.push(nowPrice);
+  dhcGame = { scenario, coin, waypointPrices, round: 0, answers: [], amount: 1000 };
+  dhcRenderRound();
+  if(typeof gtag === 'function') gtag('event', 'diamond_challenge_start', { coin: coin.symbol });
+}
+
+function dhcRenderRound(){
+  const container = document.getElementById('dhcContent');
+  const g = dhcGame;
+  const i = g.round;
+  const priceNow = g.waypointPrices[i];
+  const priceBuy = g.waypointPrices[0];
+  const pct = (priceNow/priceBuy - 1) * 100;
+  const sign = pct >= 0 ? '+' : '';
+  const dots = [];
+  for(let d=0; d<5; d++){
+    if(d < g.answers.length) dots.push(g.answers[d].correct ? '💎' : '📉');
+    else if(d === i) dots.push('❔');
+    else dots.push('·');
+  }
+  container.innerHTML = `
+    <div class="dhc-round">
+      <div class="dhc-round-label">Момент ${i+1} из 5</div>
+      <div class="dhc-pct ${pct>=0?'pos':'neg'}">${sign}${pct.toFixed(0)}%</div>
+      <div class="dhc-pct-sub">с момента покупки</div>
+      <p class="dhc-question">Держать или продать прямо сейчас?</p>
+      <div class="dhc-choice-row">
+        <button type="button" class="dhc-choice-btn hold" id="dhcHoldBtn">💎 Держать</button>
+        <button type="button" class="dhc-choice-btn" id="dhcSellBtn">📉 Продать</button>
+      </div>
+      <div class="dhc-progress">${dots.join(' ')}</div>
+    </div>`;
+  document.getElementById('dhcHoldBtn').addEventListener('click', ()=>dhcAnswer('hold'));
+  document.getElementById('dhcSellBtn').addEventListener('click', ()=>dhcAnswer('sell'));
+}
+
+function dhcAnswer(choice){
+  const g = dhcGame;
+  const i = g.round;
+  const rose = g.waypointPrices[i+1] > g.waypointPrices[i];
+  const correct = (choice === 'hold' && rose) || (choice === 'sell' && !rose);
+  g.answers.push({ choice, correct });
+  g.round++;
+  if(g.round < 5) dhcRenderRound();
+  else dhcFinishGame();
+}
+
+function dhcFinishGame(){
+  const g = dhcGame;
+  const score = g.answers.filter(a=>a.correct).length;
+  const finalResult = (g.amount / g.waypointPrices[0]) * g.waypointPrices[g.waypointPrices.length-1];
+  const mult = finalResult / g.amount;
+  const today = dhcLocalDateKey();
+  const yesterday = dhcLocalDateKey(new Date(Date.now() - 86400000));
+  dhcState.streak = (dhcState.lastPlayedDate === yesterday) ? (dhcState.streak||0) + 1 : 1;
+  dhcState.bestStreak = Math.max(dhcState.bestStreak||0, dhcState.streak);
+  dhcState.lastPlayedDate = today;
+  dhcState.lastResults = g.answers.map(a=>a.correct);
+  dhcState.lastScore = score;
+  dhcState.lastScenario = { symbol: g.scenario.symbol, date: g.scenario.date, blurb: g.scenario.blurb, amount: g.amount, finalResult, mult };
+  dhcSave(dhcState);
+  if(typeof gtag === 'function') gtag('event', 'diamond_challenge_complete', { score, streak: dhcState.streak });
+  const container = document.getElementById('dhcContent');
+  container.innerHTML = dhcResultsHtml();
+  dhcWireResultButtons();
+}
+
+function dhcResultsHtml(){
+  const s = dhcState;
+  const sc = s.lastScenario;
+  const [y, m] = sc.date.split('-');
+  const monthLabel = MONTH_NAMES[parseInt(m,10)-1];
+  const grid = s.lastResults.map(c=>c?'💎':'📉').join(' ');
+  const isGood = sc.mult >= 1;
+  return `
+    <div class="dhc-results">
+      <div class="dhc-score">${s.lastScore} / 5</div>
+      <div class="dhc-grid">${grid}</div>
+      <p class="dhc-streak">🔥 Серия: ${s.streak} дн.${s.bestStreak > s.streak ? ` (рекорд: ${s.bestStreak})` : ''}</p>
+      <div class="dhc-reveal">
+        <p>Сегодняшний реальный сценарий: <b>${sc.symbol}</b>, ${monthLabel} ${y}.</p>
+        ${sc.blurb ? `<p class="dhc-blurb">${sc.blurb}</p>` : ''}
+        <p style="margin-top:8px;">$${sc.amount}, вложенные тогда, сегодня стоили бы <b>${fmtBig(sc.finalResult)}</b> (x${sc.mult.toFixed(1)}) — ${isGood ? 'держать до конца было правильным решением.' : 'даже додержав до сегодня, эта история так и не отыгралась полностью.'}</p>
+      </div>
+      <button type="button" class="share-cta" id="dhcShareBtn">✈️ Поделиться результатом</button>
+      <p class="dhc-next">Заходи завтра — будет новый вызов.</p>
+    </div>`;
+}
+
+function dhcWireResultButtons(){
+  const btn = document.getElementById('dhcShareBtn');
+  if(!btn) return;
+  btn.addEventListener('click', ()=>{
+    const s = dhcState;
+    const grid = s.lastResults.map(c=>c?'💎':'📉').join('');
+    const text = `💎 Алмазные руки — ${s.lastScore}/5${s.streak>1?` · 🔥 серия ${s.streak} дн.`:''}\n${grid}\n\nСмог бы ты угадать?`;
+    const intentUrl = `https://t.me/share/url?url=${encodeURIComponent('https://cryptofumble.com/ru/')}&text=${encodeURIComponent(text)}`;
+    window.open(intentUrl, '_blank', 'noopener,noreferrer');
+    if(typeof gtag === 'function') gtag('event', 'diamond_challenge_share_click', { score: s.lastScore });
+  });
+}
 
 // Подсказка «а ещё можно вести настоящий портфель» под шапкой — есть смысл
 // показывать только тому, кто портфель ещё не нашёл: прячется сразу, если
