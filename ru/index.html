@@ -1564,6 +1564,15 @@
       </div>
       <div class="compare-result" id="portfolioResult" style="display:none;"></div>
     </div>
+    <div class="compare-block" id="millionaireBlock">
+      <button type="button" class="compare-toggle" id="millionaireToggle">🎯 Что нужно было вложить, чтобы стать миллионером?</button>
+      <div class="compare-picker" id="millionairePicker" style="display:none;">
+        <div class="compare-picker-label">Целевая сумма:</div>
+        <input type="number" id="millionaireTarget" value="1000000" min="1" style="width:100%; box-sizing:border-box; padding:10px 12px; border-radius:9px; border:1px solid var(--panel-border); background:var(--field-bg); color:var(--text); font-family:var(--mono); font-size:14px;">
+        <button type="button" class="cta portfolio-calc-btn" id="millionaireCalcBtn" style="margin-top:10px;">Посчитать →</button>
+      </div>
+      <div class="compare-result" id="millionaireResult" style="display:none;"></div>
+    </div>
   </div>
   <p class="disclaimer">Цены идут через собственный кэширующий прокси (Netlify function → CoinGecko), с fallback на прямой запрос и на демо-данные, если всё недоступно. Источник виден на чеке.</p>
   </div>
@@ -1883,7 +1892,7 @@ function fmtBig(n){
 // зависимость/задержку ради числа, которое и так подписано «примерно»).
 // Обновлять таблицу вручную раз в несколько месяцев, чтобы не уезжала далеко.
 const FX_RATES = {
-  RUB: 86, EUR: 0.87, GBP: 0.74, INR: 95, BRL: 5.1, TRY: 48,
+  RUB: 87, EUR: 0.87, GBP: 0.74, INR: 95, BRL: 5.1, TRY: 48,
   UAH: 45, KZT: 468, IDR: 17900, NGN: 1360, PHP: 61, VND: 26200,
   PKR: 278, ARS: 1500, MXN: 17.2, JPY: 158, CNY: 6.75, KRW: 1424,
   AUD: 1.42, CAD: 1.4, ZAR: 16.4,
@@ -3311,6 +3320,10 @@ async function runLumpSumCalculation(coin, opts){
   document.getElementById('portfolioResult').innerHTML = '';
   document.getElementById('portfolioCalcBtn').style.display = 'none';
   document.getElementById('portfolioBlock').style.display = currentMode === 'bought' ? 'block' : 'none';
+  document.getElementById('millionairePicker').style.display = 'none';
+  document.getElementById('millionaireResult').style.display = 'none';
+  document.getElementById('millionaireResult').innerHTML = '';
+  document.getElementById('millionaireBlock').style.display = currentMode === 'bought' ? 'block' : 'none';
   // делимся анонимной записью в живой ленте — не блокируем интерфейс,
   // если это не сработает (ошибка сети / лента не настроена), тихо игнорируем.
   // silent (см. автозаполнение первого экрана в конце файла) специально
@@ -3506,6 +3519,10 @@ async function runDcaCalculation(coin, opts){
     document.getElementById('portfolioResult').innerHTML = '';
     document.getElementById('portfolioCalcBtn').style.display = 'none';
     document.getElementById('portfolioBlock').style.display = 'none';
+    document.getElementById('millionairePicker').style.display = 'none';
+    document.getElementById('millionaireResult').style.display = 'none';
+    document.getElementById('millionaireResult').innerHTML = '';
+    document.getElementById('millionaireBlock').style.display = 'none';
     if(!silent){
       fetch('/.netlify/functions/feed', {
         method: 'POST',
@@ -4653,6 +4670,53 @@ document.getElementById('presetBtcEth').addEventListener('click', ()=>{
 document.getElementById('presetTop4').addEventListener('click', ()=>{
   applyPortfolioPreset(['BTC','ETH','SOL','XRP']);
   if(typeof gtag === 'function'){ gtag('event', 'portfolio_preset_click', { preset: 'top4' }); }
+});
+// ---- «Что нужно было вложить, чтобы получить $X?» — обратный калькулятор (Фаза 30/31) ----
+// Тот же паттерн, что у «Сравнить с другой монетой» / «Разбить на несколько
+// монет» выше: переиспользует монету и дату из последнего реального расчёта
+// (через lastResult), а не просит выбрать заново, и показывает свой
+// маленький ответ отдельно, не трогая основной чек. Математика — просто
+// обратный множитель (nowPrice/buyPrice): requiredInvestment = target/mult —
+// никакой новой логики получения цены, переиспользует getPrices().
+const millionaireToggle = document.getElementById('millionaireToggle');
+const millionairePicker = document.getElementById('millionairePicker');
+const millionaireTarget = document.getElementById('millionaireTarget');
+const millionaireCalcBtn = document.getElementById('millionaireCalcBtn');
+const millionaireResult = document.getElementById('millionaireResult');
+millionaireToggle.addEventListener('click', ()=>{
+  const isOpen = millionairePicker.style.display !== 'none';
+  if(isOpen){
+    millionairePicker.style.display = 'none';
+    return;
+  }
+  millionaireResult.style.display = 'none';
+  millionaireResult.innerHTML = '';
+  millionairePicker.style.display = 'block';
+  if(typeof gtag === 'function'){ gtag('event', 'millionaire_open', {}); }
+});
+millionaireCalcBtn.addEventListener('click', async ()=>{
+  if(!lastResult) return;
+  const target = parseFloat(millionaireTarget.value) || 0;
+  if(target <= 0) return;
+  millionaireCalcBtn.disabled = true;
+  millionaireResult.style.display = 'block';
+  millionaireResult.innerHTML = '<span class="spin"></span> Считаем…';
+  try{
+    const coin = { symbol: lastResult.coinSymbol, name: lastResult.coinName, geckoId: lastResult.geckoId };
+    const dateStr = lastResult.dateStr;
+    const priceData = await getPrices(coin, dateStr);
+    if(priceData.error) throw new Error('no price data for ' + coin.symbol);
+    const mult = priceData.nowPrice / priceData.buyPrice;
+    const requiredInvestment = target / mult;
+    millionaireResult.innerHTML =
+      `Чтобы сегодня иметь <b>${fmtBig(target)}</b>, нужно было вложить <b>${fmt(requiredInvestment)}</b> в <b>${coin.symbol}</b> ${dateStr} — доходность ${mult.toFixed(1)}x.`;
+    if(typeof gtag === 'function'){
+      gtag('event', 'millionaire_result', { coin: coin.symbol, mult: mult.toFixed(1), target });
+    }
+  }catch(err){
+    millionaireResult.innerHTML = `Не удалось получить данные по цене для ${lastResult.coinSymbol} — сначала пересчитай заново, потом попробуй ещё раз.`;
+  }
+  millionaireCalcBtn.disabled = false;
 });
 // трекинг клика по инвест-CTA — не мешает переходу по ссылке (открывается в новой
 // вкладке), просто параллельно шлёт событие в GA, если аналитика подключена и не
