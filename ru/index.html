@@ -3341,6 +3341,32 @@ async function runLumpSumCalculation(coin, opts){
 // точка "представляет" равную часть реальных месяцев между ними — честное
 // приближение, в духе того, как весь калькулятор уже относится к себе как
 // к иллюстрации, а не точному расчёту.
+// Фаза 30, исправление: бесплатный/демо-тариф CoinGecko отдаёт историю только
+// за последние 365 дней («Your request exceeds the allowed time range» — та
+// же самая стена, которую уже обходили для точечных запросов цены в price.js,
+// см. инфраструктурный фикс от 30.08.2026), а range.js (используется здесь
+// для помесячного усреднения DCA) тот же фикс так и не получил — поэтому
+// любая дата старта DCA старше примерно года тихо ломалась с алертом
+// «Не удалось получить историю цен по месяцам». Переиспользует собственную
+// таблицу грубых опорных точек сайта (DATA[symbol].points — ту же, на
+// которую уже переключается режим «купил» без сети) и тот же помощник
+// interpPrice() с лог-интерполяцией, что и SP500/AAPL/GOLD/CPI выше, вместо
+// того чтобы полностью проваливать расчёт.
+function buildMonthlyPointsFromAnchors(anchors, fromDateStr){
+  const [fy, fm] = fromDateStr.split('-').map(Number);
+  const fromIdx = fy*12 + (fm-1);
+  const toIdx = monthToTs('2026-08'); // тот же фиксированный якорь "сейчас", что у SP500/AAPL/GOLD/CPI
+  const totalMonths = Math.max(1, toIdx - fromIdx + 1);
+  const n = Math.min(24, totalMonths);
+  const points = [];
+  for(let i=0;i<n;i++){
+    const idx = fromIdx + Math.round(i * (totalMonths-1) / Math.max(1, n-1));
+    const y = Math.floor(idx/12), m = (idx % 12) + 1;
+    const dstr = `${y}-${String(m).padStart(2,'0')}`;
+    points.push({ date: dstr, price: interpPrice(anchors, dstr) });
+  }
+  return points;
+}
 async function runDcaCalculation(coin, opts){
   const silent = opts && opts.silent;
   const monthlyAmount = parseFloat(document.getElementById('amount').value) || 0;
@@ -3348,10 +3374,18 @@ async function runDcaCalculation(coin, opts){
   calcBtn.innerHTML = '<span class="spin"></span>Считаем историю цен по месяцам…';
   try{
     const nowPrice = await fetchCurrentPrice(coin.geckoId);
-    const res = await fetch(`/.netlify/functions/range?coin=${coin.geckoId}&from=${dateStr}&points=24`);
-    if(!res.ok) throw new Error('range proxy failed');
-    const { points } = await res.json();
-    if(!points || points.length < 1) throw new Error('not enough points');
+    let points;
+    try{
+      const res = await fetch(`/.netlify/functions/range?coin=${coin.geckoId}&from=${dateStr}&points=24`);
+      if(!res.ok) throw new Error('range proxy failed');
+      const data = await res.json();
+      if(!data.points || data.points.length < 1) throw new Error('not enough points');
+      points = data.points;
+    }catch(rangeErr){
+      const anchors = DATA[coin.symbol]?.points;
+      if(!anchors) throw rangeErr; // для этой монеты нет опорной таблицы — офлайн-расчёт невозможен
+      points = buildMonthlyPointsFromAnchors(anchors, dateStr);
+    }
     points[points.length-1] = { date: points[points.length-1].date, price: nowPrice };
     const [fy, fm] = dateStr.split('-').map(Number);
     const now = new Date();
