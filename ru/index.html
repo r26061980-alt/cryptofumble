@@ -333,6 +333,40 @@
     padding:0;
   }
   .daily-regret-cta:hover{text-decoration:underline;}
+  /* ═══ Сворачиваемые подробности под историей дня (03.09.2026) — по
+     умолчанию видна только строка результата, а не весь текст сразу; кнопка
+     разворачивает короткий исторический контекст по конкретному сценарию. ═══ */
+  .daily-regret-more{
+    display:none;
+    font-size:13.5px;
+    line-height:1.6;
+    color:var(--muted);
+    margin:2px 0 12px;
+    padding-top:10px;
+    border-top:1px dashed rgba(240,185,11,0.22);
+  }
+  .daily-regret-more.open{display:block;}
+  .daily-regret-toggle{
+    background:none;
+    border:none;
+    color:var(--muted);
+    font-family:var(--sans);
+    font-weight:600;
+    font-size:12px;
+    cursor:pointer;
+    padding:0;
+    margin-bottom:10px;
+    display:inline-flex;
+    align-items:center;
+    gap:5px;
+  }
+  .daily-regret-toggle:hover{color:var(--gold);}
+  .daily-regret-toggle .chev{
+    display:inline-block;
+    font-size:10px;
+    transition:transform .2s var(--ease);
+  }
+  .daily-regret-toggle.open .chev{transform:rotate(180deg);}
   /* ═══ Пасхалка про биткоин-пиццу (31.08.2026) — тот же визуальный язык,
      что и .daily-regret, но отдельный класс: блок всегда виден и не зависит
      от live-ленты (в отличие от loadDailyRegret()). ═══ */
@@ -684,8 +718,8 @@
   }
   .mode-btn{
     flex:1;
-    background:transparent;
-    border:none;
+    background:rgba(255,255,255,0.045);
+    border:1px solid var(--panel-border-soft);
     color:var(--muted);
     font-family:var(--sans);
     font-weight:700;
@@ -693,12 +727,13 @@
     padding:11px;
     border-radius:10px;
     cursor:pointer;
-    transition:background .2s var(--ease), color .2s var(--ease);
+    transition:background .2s var(--ease), color .2s var(--ease), border-color .2s var(--ease);
   }
-  .mode-btn:hover{color:var(--text);}
+  .mode-btn:hover{color:var(--text); border-color:var(--panel-border);}
   .mode-btn.active{
     background:rgba(240,185,11,0.13);
     color:var(--gold);
+    border-color:rgba(240,185,11,0.35);
     box-shadow:0 1px 0 rgba(255,255,255,0.05) inset;
   }
   .cta{
@@ -1026,14 +1061,15 @@
     border-radius:var(--r-md); padding:4px;
   }
   .page-tab{
-    flex:1; background:transparent; border:none; color:var(--muted);
+    flex:1; background:rgba(255,255,255,0.045); border:1px solid var(--panel-border-soft); color:var(--muted);
     font-family:var(--sans); font-weight:700; font-size:13px;
     padding:11px; border-radius:10px; cursor:pointer;
-    transition:background .2s var(--ease), color .2s var(--ease);
+    transition:background .2s var(--ease), color .2s var(--ease), border-color .2s var(--ease);
   }
-  .page-tab:hover{color:var(--text);}
+  .page-tab:hover{color:var(--text); border-color:var(--panel-border);}
   .page-tab.active{
     background:rgba(240,185,11,0.13); color:var(--gold);
+    border-color:rgba(240,185,11,0.35);
     box-shadow:0 1px 0 rgba(255,255,255,0.05) inset;
   }
   /* ═══ My Portfolio tab ═══ */
@@ -1339,8 +1375,10 @@
   </div>
   <div class="regret-counter" id="regretCounter" style="display:none;"></div>
   <div class="daily-regret" id="dailyRegret" style="display:none;">
-    <div class="daily-regret-label">📅 РЕГРЕТ ДНЯ</div>
+    <div class="daily-regret-label" id="dailyRegretLabel">📅 РЕГРЕТ ДНЯ</div>
     <div class="daily-regret-text" id="dailyRegretText">Загрузка…</div>
+    <button type="button" class="daily-regret-toggle" id="dailyRegretToggle" style="display:none;"><span class="chev">▼</span><span class="toggle-label">Подробнее</span></button>
+    <div class="daily-regret-more" id="dailyRegretMore"></div>
     <button type="button" class="daily-regret-cta" id="dailyRegretCta">Попробовать самому →</button>
   </div>
   <div class="pizza-fact" id="pizzaFact">
@@ -2437,18 +2475,21 @@ updateSelectedUI();
 // ---- Daily Regret — same scenario for everyone on a given calendar day ----
 // Picked from real historical crashes/peaks (not fully random dates) so the
 // result is always dramatic enough to be worth sharing, never a boring x1.05.
+// Смесь и регрета (купил на пике), и триумфа (купил на дне) на разных
+// монетах — блок не только про потери, см. переключение подписи по isGood
+// в loadDailyRegret() ниже.
 const DAILY_SCENARIOS = [
-  { symbol:'BTC',  date:'2020-03' }, // covid crash low
-  { symbol:'BTC',  date:'2021-11' }, // all-time high
-  { symbol:'BTC',  date:'2022-12' }, // FTX collapse bottom
-  { symbol:'ETH',  date:'2021-11' }, // all-time high
-  { symbol:'ETH',  date:'2022-06' }, // bear market bottom
-  { symbol:'DOGE', date:'2021-05' }, // meme mania peak
-  { symbol:'DOGE', date:'2020-01' }, // right before the pump
-  { symbol:'SOL',  date:'2022-12' }, // FTX-linked crash bottom
-  { symbol:'ADA',  date:'2021-09' }, // cycle peak
-  { symbol:'XRP',  date:'2017-12' }, // 2017 mania peak
-  { symbol:'BNB',  date:'2021-05' }, // cycle peak
+  { symbol:'BTC',  date:'2020-03', blurb:'Мартовский обвал 2020-го («чёрный четверг») на фоне начала пандемии — один из самых резких однодневных провалов в истории биткоина, и одна из лучших точек входа за весь цикл.' }, // covid crash low — УДАЧА
+  { symbol:'BTC',  date:'2021-11', blurb:'Исторический максимум цикла — момент, когда казалось, что рост никогда не остановится. Купившие ровно на этом пике потом почти год наблюдали затяжное падение.' }, // all-time high — РЕГРЕТ
+  { symbol:'BTC',  date:'2022-12', blurb:'Дно рынка сразу после краха биржи FTX — момент максимального страха, когда мало кто верил, что крипта вообще оправится.' }, // FTX collapse bottom — УДАЧА
+  { symbol:'ETH',  date:'2021-11', blurb:'Тот же пик цикла 2021 года, что и у биткоина выше — Ethereum тогда обновил свой исторический максимум и весь следующий год медленно откатывался вниз.' }, // all-time high — РЕГРЕТ
+  { symbol:'ETH',  date:'2022-06', blurb:'Дно затяжного медвежьего рынка 2022 года, сразу после крахов Terra/Luna и Celsius — одна из самых мрачных точек в истории Ethereum, и одна из лучших для покупки.' }, // bear market bottom — УДАЧА
+  { symbol:'DOGE', date:'2021-05', blurb:'Пик мемной мании вокруг Dogecoin в мае 2021-го, разогретой твитами Илона Маска и выступлением в Saturday Night Live — вскоре после этого цена резко обвалилась.' }, // meme mania peak — РЕГРЕТ
+  { symbol:'DOGE', date:'2020-01', blurb:'Спокойный январь 2020-го — за полтора года до того, как Dogecoin превратился в главный мем-феномен крипторынка.' }, // right before the pump — УДАЧА
+  { symbol:'SOL',  date:'2022-12', blurb:'Solana была тесно связана с экосистемой FTX — после её краха монета обвалилась сильнее почти всех остальных крупных монет, но именно это и оказалось дном.' }, // FTX-linked crash bottom — УДАЧА
+  { symbol:'ADA',  date:'2021-09', blurb:'Пик цикла 2021 года для Cardano — после этого монета так и не вернулась к своему историческому максимуму.' }, // cycle peak — РЕГРЕТ
+  { symbol:'XRP',  date:'2017-12', blurb:'Пик безумного ралли конца 2017 года — прямо перед началом многолетней судебной тяжбы XRP с американским регулятором SEC.' }, // 2017 mania peak — РЕГРЕТ
+  { symbol:'BNB',  date:'2021-05', blurb:'Пик цикла 2021 года для BNB — на волне того же общего мемного и альткоин-безумия, что и у Dogecoin в том же месяце.' }, // cycle peak — РЕГРЕТ
 ];
 async function loadDailyRegret(){
   const dayOfYear = Math.floor((Date.now() - new Date(new Date().getFullYear(),0,0)) / 86400000);
@@ -2463,11 +2504,25 @@ async function loadDailyRegret(){
     const result = coins * nowPrice;
     const mult = result / amount;
     const tier = getTier(mult);
+    const isGood = mult >= 1;
     const [y, m] = scenario.date.split('-');
     const monthLabel = MONTH_NAMES[parseInt(m,10)-1];
     const monthLabelPrep = MONTH_NAMES_PREP[parseInt(m,10)-1];
+    document.getElementById('dailyRegretLabel').textContent = isGood ? '🚀 УДАЧА ДНЯ' : '📅 РЕГРЕТ ДНЯ';
     document.getElementById('dailyRegretText').innerHTML =
       `Если бы ты купил $1,000 <b>${coin.name}</b> в ${monthLabelPrep} ${y}, сегодня у тебя было бы <b>${fmtBig(result)}</b>. ${tier.emoji} ${tier.label}`;
+    const moreEl = document.getElementById('dailyRegretMore');
+    const toggleEl = document.getElementById('dailyRegretToggle');
+    moreEl.classList.remove('open');
+    toggleEl.classList.remove('open');
+    toggleEl.querySelector('.toggle-label').textContent = 'Подробнее';
+    if(scenario.blurb){
+      moreEl.textContent = scenario.blurb;
+      toggleEl.style.display = 'inline-flex';
+    }else{
+      moreEl.textContent = '';
+      toggleEl.style.display = 'none';
+    }
     document.getElementById('dailyRegret').style.display = 'block';
     document.getElementById('dailyRegretCta').addEventListener('click', ()=>{
       currentCoin = coin;
@@ -2485,6 +2540,12 @@ async function loadDailyRegret(){
   }
 }
 loadDailyRegret();
+document.getElementById('dailyRegretToggle').addEventListener('click', function(){
+  const moreEl = document.getElementById('dailyRegretMore');
+  const isOpen = moreEl.classList.toggle('open');
+  this.classList.toggle('open', isOpen);
+  this.querySelector('.toggle-label').textContent = isOpen ? 'Свернуть' : 'Подробнее';
+});
 // ---- Пасхалка про биткоин-пиццу ----
 // Намеренно НЕ проходит через обычный расчёт (монета/дата/сумма -> getPrices) —
 // самый ранний год, который понимает пикер дат — 2013 (PICKER_MIN_YEAR), а май
