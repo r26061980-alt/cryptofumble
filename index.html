@@ -1187,6 +1187,16 @@
   .pf-totals .pf-tot-val{font-family:var(--mono); font-weight:700; font-size:19px; overflow-wrap:anywhere;}
   .pf-totals .pf-tot-val.pos{color:#16C784;}
   .pf-totals .pf-tot-val.neg{color:#EA3943;}
+  .pf-percentile{
+    background:rgba(240,185,11,0.09); border:1px solid rgba(240,185,11,0.28);
+    border-radius:var(--r-lg); padding:14px 16px; margin-bottom:20px;
+    font-size:13.5px; line-height:1.5;
+  }
+  .pf-percentile b{color:var(--gold);}
+  .pf-percentile-note{
+    font-family:var(--mono); font-size:10.5px; color:var(--muted);
+    margin-top:6px; line-height:1.5;
+  }
   .pf-share-btn{margin-bottom:20px;}
   .pf-coin-card{
     background:var(--panel); border:1px solid var(--panel-border);
@@ -5090,6 +5100,42 @@ function pfFmtQty(n){
   return parseFloat(n.toFixed(6)).toString();
 }
 
+// Rough public on-chain distribution of BTC addresses by balance, from
+// bitinfocharts.com (cross-checked against newhedge.io), snapshot 09/2026 —
+// [upper bound of bucket in BTC, cumulative % of addresses at or below it].
+// Same "rough anchor table + interpolate between points" approach already
+// used for SP500/AAPL/GOLD/CPI, just log-interpolated on the amount axis
+// instead of the date axis (bucket boundaries are powers of ten).
+const BTC_PERCENTILE_TABLE = [
+  [0.00001, 13.14],
+  [0.0001, 34.44],
+  [0.001, 58.14],
+  [0.01, 78.54],
+  [0.1, 92.47],
+  [1, 98.36],
+  [10, 99.75],
+  [100, 99.966],
+  [1000, 99.9966],
+  [10000, 99.99985],
+  [100000, 100],
+];
+function btcHolderPercentile(qty){
+  if(!(qty > 0)) return null;
+  const first = BTC_PERCENTILE_TABLE[0];
+  if(qty <= first[0]) return (qty / first[0]) * first[1];
+  const last = BTC_PERCENTILE_TABLE[BTC_PERCENTILE_TABLE.length - 1];
+  if(qty >= last[0]) return 99.9999;
+  for(let i = 0; i < BTC_PERCENTILE_TABLE.length - 1; i++){
+    const [x1, y1] = BTC_PERCENTILE_TABLE[i];
+    const [x2, y2] = BTC_PERCENTILE_TABLE[i + 1];
+    if(qty >= x1 && qty <= x2){
+      const t = (Math.log(qty) - Math.log(x1)) / (Math.log(x2) - Math.log(x1));
+      return y1 + t * (y2 - y1);
+    }
+  }
+  return null;
+}
+
 async function pfRender(){
   const container = document.getElementById('pfContent');
   // Numbers are about to change (or the portfolio just emptied out) — any
@@ -5111,6 +5157,13 @@ async function pfRender(){
   const prices = await Promise.all(geckoIds.map(id => fetchCurrentPrice(id).catch(()=>null)));
   const priceMap = {};
   geckoIds.forEach((id, i)=> priceMap[id] = prices[i]);
+
+  // Percentile line doesn't need a live price, just the BTC quantity held —
+  // computed up front so it renders even on a run where some other coin's
+  // price fetch fails and the totals strip above gets suppressed.
+  const btcQty = groups['bitcoin'] ? groups['bitcoin'].entries.reduce((s,e)=>s+e.qty, 0) : 0;
+  const btcPct = btcQty > 0 ? btcHolderPercentile(btcQty) : null;
+  const percentileHtml = btcPct !== null ? `<div class="pf-percentile">🏆 Your ${pfFmtQty(btcQty)} BTC puts you above roughly <b>${btcPct.toFixed(1)}%</b> of Bitcoin addresses by balance.<div class="pf-percentile-note">Rough estimate from public on-chain address data (bitinfocharts.com) — one "address" isn't the same as one person: exchanges hold funds for many users under a few addresses, and one person can hold several addresses.</div></div>` : '';
 
   let totalSpentAll = 0, totalValueAll = 0, anyPriceMissing = false;
   // Per-coin numbers computed below feed both the on-page cards AND the
@@ -5190,7 +5243,7 @@ async function pfRender(){
     coins: coinSummaries.slice().sort((a,b)=> b.curValue - a.curValue)
   };
 
-  container.innerHTML = (anyPriceMissing ? '' : totalsHtml) + cardsHtml;
+  container.innerHTML = (anyPriceMissing ? '' : totalsHtml) + percentileHtml + cardsHtml;
 
   container.querySelectorAll('.pf-coin-icon-slot').forEach(slot=>{
     const sym = slot.getAttribute('data-symbol');
