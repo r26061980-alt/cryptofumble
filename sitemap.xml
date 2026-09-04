@@ -287,6 +287,8 @@
     <priority>0.6</priority>
     <xhtml:link rel="alternate" hreflang="en" href="https://cryptofumble.com/xrp-2018/"/>
     <xhtml:link rel="alternate" hreflang="ru" href="https://cryptofumble.com/ru/xrp-2018/"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://cryptofumble.com/es/xrp-2018/"/>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://cryptofumble.com/pt/xrp-2018/"/>
     <xhtml:link rel="alternate" hreflang="x-default" href="https://cryptofumble.com/xrp-2018/"/>
   </url>
   <url>
@@ -295,6 +297,8 @@
     <priority>0.6</priority>
     <xhtml:link rel="alternate" hreflang="en" href="https://cryptofumble.com/xrp-2018/"/>
     <xhtml:link rel="alternate" hreflang="ru" href="https://cryptofumble.com/ru/xrp-2018/"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://cryptofumble.com/es/xrp-2018/"/>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://cryptofumble.com/pt/xrp-2018/"/>
     <xhtml:link rel="alternate" hreflang="x-default" href="https://cryptofumble.com/xrp-2018/"/>
   </url>
   <url>
@@ -303,6 +307,8 @@
     <priority>0.6</priority>
     <xhtml:link rel="alternate" hreflang="en" href="https://cryptofumble.com/cardano-2021/"/>
     <xhtml:link rel="alternate" hreflang="ru" href="https://cryptofumble.com/ru/cardano-2021/"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://cryptofumble.com/es/cardano-2021/"/>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://cryptofumble.com/pt/cardano-2021/"/>
     <xhtml:link rel="alternate" hreflang="x-default" href="https://cryptofumble.com/cardano-2021/"/>
   </url>
   <url>
@@ -311,6 +317,8 @@
     <priority>0.6</priority>
     <xhtml:link rel="alternate" hreflang="en" href="https://cryptofumble.com/cardano-2021/"/>
     <xhtml:link rel="alternate" hreflang="ru" href="https://cryptofumble.com/ru/cardano-2021/"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://cryptofumble.com/es/cardano-2021/"/>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://cryptofumble.com/pt/cardano-2021/"/>
     <xhtml:link rel="alternate" hreflang="x-default" href="https://cryptofumble.com/cardano-2021/"/>
   </url>
   <url>
@@ -319,6 +327,8 @@
     <priority>0.6</priority>
     <xhtml:link rel="alternate" hreflang="en" href="https://cryptofumble.com/hyperliquid-2024/"/>
     <xhtml:link rel="alternate" hreflang="ru" href="https://cryptofumble.com/ru/hyperliquid-2024/"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://cryptofumble.com/es/hyperliquid-2024/"/>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://cryptofumble.com/pt/hyperliquid-2024/"/>
     <xhtml:link rel="alternate" hreflang="x-default" href="https://cryptofumble.com/hyperliquid-2024/"/>
   </url>
   <url>
@@ -327,6 +337,8 @@
     <priority>0.6</priority>
     <xhtml:link rel="alternate" hreflang="en" href="https://cryptofumble.com/hyperliquid-2024/"/>
     <xhtml:link rel="alternate" hreflang="ru" href="https://cryptofumble.com/ru/hyperliquid-2024/"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://cryptofumble.com/es/hyperliquid-2024/"/>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://cryptofumble.com/pt/hyperliquid-2024/"/>
     <xhtml:link rel="alternate" hreflang="x-default" href="https://cryptofumble.com/hyperliquid-2024/"/>
   </url>
   <url>
@@ -335,6 +347,8 @@
     <priority>0.6</priority>
     <xhtml:link rel="alternate" hreflang="en" href="https://cryptofumble.com/zcash-2021/"/>
     <xhtml:link rel="alternate" hreflang="ru" href="https://cryptofumble.com/ru/zcash-2021/"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://cryptofumble.com/es/zcash-2021/"/>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://cryptofumble.com/pt/zcash-2021/"/>
     <xhtml:link rel="alternate" hreflang="x-default" href="https://cryptofumble.com/zcash-2021/"/>
   </url>
   <url>
@@ -343,6 +357,8 @@
     <priority>0.6</priority>
     <xhtml:link rel="alternate" hreflang="en" href="https://cryptofumble.com/zcash-2021/"/>
     <xhtml:link rel="alternate" hreflang="ru" href="https://cryptofumble.com/ru/zcash-2021/"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://cryptofumble.com/es/zcash-2021/"/>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://cryptofumble.com/pt/zcash-2021/"/>
     <xhtml:link rel="alternate" hreflang="x-default" href="https://cryptofumble.com/zcash-2021/"/>
   </url>
   <url>
@@ -584,5 +600,85 @@
     <xhtml:link rel="alternate" hreflang="es" href="https://cryptofumble.com/es/dogecoin-2021/"/>
     <xhtml:link rel="alternate" hreflang="pt" href="https://cryptofumble.com/pt/dogecoin-2021/"/>
     <xhtml:link rel="alternate" hreflang="x-default" href="https://cryptofumble.com/dogecoin-2021/"/>
+  </url>
+  <url>
+    <loc>https://cryptofumble.com/es/xrp-2018/</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://cryptofumble.com/xrp-2018/"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://cryptofumble.com/ru/xrp-2018/"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://cryptofumble.com/es/xrp-2018/"/>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://cryptofumble.com/pt/xrp-2018/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://cryptofumble.com/xrp-2018/"/>
+  </url>
+  <url>
+    <loc>https://cryptofumble.com/pt/xrp-2018/</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://cryptofumble.com/xrp-2018/"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://cryptofumble.com/ru/xrp-2018/"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://cryptofumble.com/es/xrp-2018/"/>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://cryptofumble.com/pt/xrp-2018/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://cryptofumble.com/xrp-2018/"/>
+  </url>
+  <url>
+    <loc>https://cryptofumble.com/es/cardano-2021/</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://cryptofumble.com/cardano-2021/"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://cryptofumble.com/ru/cardano-2021/"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://cryptofumble.com/es/cardano-2021/"/>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://cryptofumble.com/pt/cardano-2021/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://cryptofumble.com/cardano-2021/"/>
+  </url>
+  <url>
+    <loc>https://cryptofumble.com/pt/cardano-2021/</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://cryptofumble.com/cardano-2021/"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://cryptofumble.com/ru/cardano-2021/"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://cryptofumble.com/es/cardano-2021/"/>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://cryptofumble.com/pt/cardano-2021/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://cryptofumble.com/cardano-2021/"/>
+  </url>
+  <url>
+    <loc>https://cryptofumble.com/es/hyperliquid-2024/</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://cryptofumble.com/hyperliquid-2024/"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://cryptofumble.com/ru/hyperliquid-2024/"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://cryptofumble.com/es/hyperliquid-2024/"/>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://cryptofumble.com/pt/hyperliquid-2024/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://cryptofumble.com/hyperliquid-2024/"/>
+  </url>
+  <url>
+    <loc>https://cryptofumble.com/pt/hyperliquid-2024/</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://cryptofumble.com/hyperliquid-2024/"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://cryptofumble.com/ru/hyperliquid-2024/"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://cryptofumble.com/es/hyperliquid-2024/"/>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://cryptofumble.com/pt/hyperliquid-2024/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://cryptofumble.com/hyperliquid-2024/"/>
+  </url>
+  <url>
+    <loc>https://cryptofumble.com/es/zcash-2021/</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://cryptofumble.com/zcash-2021/"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://cryptofumble.com/ru/zcash-2021/"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://cryptofumble.com/es/zcash-2021/"/>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://cryptofumble.com/pt/zcash-2021/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://cryptofumble.com/zcash-2021/"/>
+  </url>
+  <url>
+    <loc>https://cryptofumble.com/pt/zcash-2021/</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://cryptofumble.com/zcash-2021/"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://cryptofumble.com/ru/zcash-2021/"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://cryptofumble.com/es/zcash-2021/"/>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://cryptofumble.com/pt/zcash-2021/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://cryptofumble.com/zcash-2021/"/>
   </url>
 </urlset>
