@@ -3,18 +3,19 @@
 // Ежедневный автопост в канал @CryptoFumble. Использует ТОЧНО ТОТ ЖЕ список
 // сценариев и ту же логику выбора "сценария дня" (день года % длина массива),
 // что и блок "РЕГРЕТ ДНЯ / УДАЧА ДНЯ" на самом сайте (см. DAILY_SCENARIOS и
-// loadDailyRegret() в ru-index_working.html) — так пост в канале за любой
+// loadDailyRegret() в ru/index.html) — так пост в канале за любой
 // день ВСЕГДА совпадает с тем, что в этот же день показывает сайт. Массив
 // продублирован здесь (а не запрашивается с сайта), потому что это обычный
 // JS-массив внутри HTML-страницы, а не отдельный API — так же, как уже
-// задублированы таблицы исторических цен (DATA) между index_final.html,
-// ru-index_working.html и generate.py. Если меняешь DAILY_SCENARIOS на
+// задублированы таблицы исторических цен (DATA) между index.html,
+// ru/index.html и generate.py. Если меняешь DAILY_SCENARIOS на
 // сайте — продублируй изменение и сюда, иначе пост в канале разъедется с
 // сайтом.
 //
-// Ссылка в посте — на глубокую ссылку ?coin=X&date=YYYY-MM (уже существующая
-// фича сайта), так что нажавший сразу попадает на предзаполненный расчёт,
-// а не на пустую форму.
+// Две кнопки под постом: (1) глубокая ссылка ?coin=X&date=YYYY-MM (Фаза 2) —
+// сразу открывает калькулятор с предзаполненным расчётом сценария дня;
+// (2) ?view=challenge (Фаза 34) — сразу открывает вкладку «Алмазные руки»,
+// где та же дневная механика уже встроена в саму игру.
 //
 // Пока тестируем — эту функцию можно вызвать вручную обычным запросом на её
 // URL; расписание (netlify.toml, "0 7 * * *" = 10:00 по Москве) добавляем
@@ -23,7 +24,7 @@
 
 const SITE_URL = process.env.URL || 'https://cryptofumble.com';
 
-// Тот же список и порядок, что и DAILY_SCENARIOS в ru-index_working.html.
+// Тот же список и порядок, что и DAILY_SCENARIOS в ru/index.html.
 const DAILY_SCENARIOS = [
   { symbol: 'BTC', date: '2020-03', blurb: 'Мартовский обвал 2020-го («чёрный четверг») на фоне начала пандемии — один из самых резких однодневных провалов в истории биткоина, и одна из лучших точек входа за весь цикл.' },
   { symbol: 'BTC', date: '2021-11', blurb: 'Исторический максимум цикла — момент, когда казалось, что рост никогда не остановится. Купившие ровно на этом пике потом почти год наблюдали затяжное падение.' },
@@ -101,7 +102,9 @@ async function fetchPrice(type, geckoId, dateStr) {
   return json.price;
 }
 
-async function sendChannelPost(token, chatId, text, buttonUrl, buttonLabel) {
+async function sendChannelPost(token, chatId, text, buttons) {
+  // buttons: [{ text, url }, ...] — each rendered as its own row so both are
+  // easy to tap on mobile Telegram (see Фаза 34 note above the button list).
   const res = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -110,7 +113,7 @@ async function sendChannelPost(token, chatId, text, buttonUrl, buttonLabel) {
       text,
       parse_mode: 'HTML',
       disable_web_page_preview: true,
-      reply_markup: { inline_keyboard: [[{ text: buttonLabel, url: buttonUrl }]] },
+      reply_markup: { inline_keyboard: buttons.map(b => [{ text: b.text, url: b.url }]) },
     }),
   });
   const body = await res.text();
@@ -166,9 +169,17 @@ exports.handler = async () => {
   const text = `${label}\n\n${mainLine}\n\n${scenario.blurb}${demoNote}`;
 
   const deepLink = `${SITE_URL}/ru/?coin=${scenario.symbol}&date=${scenario.date}`;
+  // Фаза 34: второй кнопкой — прямая ссылка на вкладку «Алмазные руки»
+  // (?view=challenge, добавлено на сайте вместе с этим постом). Тот же
+  // сценарий дня, что и в тексте поста выше, уже сидит внутри самой игры —
+  // отдельно передавать его не нужно, вкладка сама берёт DAILY_SCENARIOS.
+  const challengeLink = `${SITE_URL}/ru/?view=challenge`;
 
   try {
-    await sendChannelPost(token, CHANNEL_ID, text, deepLink, 'Проверить свою дату →');
+    await sendChannelPost(token, CHANNEL_ID, text, [
+      { text: 'Проверить свою дату →', url: deepLink },
+      { text: '💎 Сыграть в «Алмазные руки» →', url: challengeLink },
+    ]);
   } catch (err) {
     return { statusCode: 200, body: JSON.stringify({ ok: false, error: String(err && err.message || err) }) };
   }
