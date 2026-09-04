@@ -3392,7 +3392,7 @@ async function runLumpSumCalculation(coin, opts){
   document.getElementById('millionairePicker').style.display = 'none';
   document.getElementById('millionaireResult').style.display = 'none';
   document.getElementById('millionaireResult').innerHTML = '';
-  document.getElementById('millionaireBlock').style.display = currentMode === 'bought' ? 'block' : 'none';
+  document.getElementById('millionaireBlock').style.display = 'block'; // Фаза 36: always show regardless of mode, per Ruslan's request — the reverse-calc math (nowPrice/buyPrice on the saved coin+date) doesn't actually depend on bought/sold/dca
   // делимся анонимной записью в живой ленте — не блокируем интерфейс,
   // если это не сработает (ошибка сети / лента не настроена), тихо игнорируем.
   // silent (см. автозаполнение первого экрана в конце файла) специально
@@ -3591,7 +3591,7 @@ async function runDcaCalculation(coin, opts){
     document.getElementById('millionairePicker').style.display = 'none';
     document.getElementById('millionaireResult').style.display = 'none';
     document.getElementById('millionaireResult').innerHTML = '';
-    document.getElementById('millionaireBlock').style.display = 'none';
+    document.getElementById('millionaireBlock').style.display = 'block'; // Фаза 36: always show, see comment above in runLumpSumCalculation
     if(!silent){
       fetch('/.netlify/functions/feed', {
         method: 'POST',
