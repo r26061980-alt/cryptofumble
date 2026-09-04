@@ -1065,6 +1065,7 @@
       <span id="ctaInvestText">Comece em uma exchange →</span>
     </a>
     <div class="invest-note" id="investNote" style="display:none;">Link de afiliado — podemos ganhar uma pequena comissão, sem custo extra para você.</div>
+    <button type="button" class="share-cta donate-nudge" id="donateNudgeTop" style="background:transparent; border:1px dashed var(--panel-border); color:var(--gold-soft); box-shadow:none; font-size:12.5px;">☕ Gostou? Apoie o projeto →</button>
     <button class="share-cta" id="shareBtn">📸 Gerar cartão para compartilhar</button>
     <button class="share-cta" id="shareXBtn">𝕏 Compartilhar no X</button>
     <div id="shareCardWrap" style="display:none; margin-top:14px; text-align:center;">
@@ -1136,6 +1137,26 @@
       <a href="/pt/dogecoin-2020/" style="padding:8px 14px;background:var(--panel);border:1px solid var(--panel-border);border-radius:999px;text-decoration:none;font-size:12px;font-family:var(--mono);color:var(--gold-soft);">Dogecoin 2020</a>
       <a href="/pt/dogecoin-2021/" style="padding:8px 14px;background:var(--panel);border:1px solid var(--panel-border);border-radius:999px;text-decoration:none;font-size:12px;font-family:var(--mono);color:var(--gold-soft);">Dogecoin 2021</a>
     </div>
+  </div>
+  <div id="donateWidgetSection" style="max-width:360px;margin:32px auto 0;padding-top:24px;border-top:1px solid var(--panel-border-soft);text-align:center;border-radius:12px;transition:box-shadow 0.4s ease;">
+    <div style="font-family:var(--mono);font-size:10px;letter-spacing:0.1em;color:var(--muted);text-transform:uppercase;margin-bottom:8px;">☕ apoie o projeto</div>
+    <div style="font-size:12px;color:var(--muted);margin-bottom:12px;">Gostou do fumble? Uma gorjeta em cripto é sempre bem-vinda, nunca esperada:</div>
+    <div style="display:flex;gap:6px;justify-content:center;margin-bottom:10px;font-family:var(--mono);font-size:11px;">
+      <label style="display:flex;align-items:center;gap:4px;padding:6px 10px;background:var(--panel);border:1px solid var(--panel-border);border-radius:999px;color:var(--muted);cursor:pointer;">
+        <input type="radio" name="donateNetwork" value="btc" checked style="margin:0;"> BTC
+      </label>
+      <label style="display:flex;align-items:center;gap:4px;padding:6px 10px;background:var(--panel);border:1px solid var(--panel-border);border-radius:999px;color:var(--muted);cursor:pointer;">
+        <input type="radio" name="donateNetwork" value="eth" style="margin:0;"> ETH
+      </label>
+      <label style="display:flex;align-items:center;gap:4px;padding:6px 10px;background:var(--panel);border:1px solid var(--panel-border);border-radius:999px;color:var(--muted);cursor:pointer;">
+        <input type="radio" name="donateNetwork" value="usdt_trc20" style="margin:0;"> USDT (TRC20)
+      </label>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px;justify-content:center;flex-wrap:wrap;">
+      <code id="donateAddress" style="font-family:var(--mono);font-size:11px;color:var(--gold-soft);background:var(--panel);border:1px solid var(--panel-border);border-radius:8px;padding:8px 10px;word-break:break-all;max-width:230px;">bc1qqfmsf2ksh9zjaj4zejrler9cxtu6lwryptq83l</code>
+      <button type="button" id="donateCopyBtn" style="padding:8px 12px;background:var(--panel);border:1px solid var(--panel-border);border-radius:8px;font-size:12px;font-family:var(--mono);color:var(--gold-soft);cursor:pointer;">📋 Copiar</button>
+    </div>
+    <div id="donateStatus" style="font-size:11px;color:var(--muted);margin-top:10px;min-height:14px;"></div>
   </div>
 <script>
 // ---- Approximate historical price anchors (log-interpolated between points) ----
@@ -3027,6 +3048,48 @@ if('serviceWorker' in navigator){
     resizeTimer = setTimeout(positionScenarioLinks, 150);
   });
 })();
+// ---- Donate (direct wallet addresses, no middleman) — ported from EN/RU (Фаза 39) ----
+// A plain address-and-copy-button widget in the footer — no invoice API,
+// no fees taken by a payment processor, no server call at all. Whatever
+// arrives goes straight to the owner's own wallet. Two networks so people
+// can pick whichever they already hold: BTC, or USDT on TRON (TRC20, the
+// cheapest network for USDT transfers).
+const DONATE_ADDRESSES = {
+  btc: 'bc1qqfmsf2ksh9zjaj4zejrler9cxtu6lwryptq83l',
+  usdt_trc20: 'TLNypsqguvAmmwXNv8NYz7EtcYrA8c2Ho8',
+  eth: '0xEbC98c142f2450E704f5fF72Bca4E1a8ca1D14D3',
+};
+function updateDonateAddress(){
+  const network = document.querySelector('input[name="donateNetwork"]:checked').value;
+  document.getElementById('donateAddress').textContent = DONATE_ADDRESSES[network];
+  document.getElementById('donateStatus').textContent = '';
+}
+document.querySelectorAll('input[name="donateNetwork"]').forEach((el) => {
+  el.addEventListener('change', updateDonateAddress);
+});
+document.getElementById('donateCopyBtn').addEventListener('click', async () => {
+  const addr = document.getElementById('donateAddress').textContent.trim();
+  const statusEl = document.getElementById('donateStatus');
+  const network = document.querySelector('input[name="donateNetwork"]:checked').value;
+  try{
+    await navigator.clipboard.writeText(addr);
+    statusEl.textContent = '✅ Endereço copiado — obrigado! 🙏';
+    if(typeof gtag === 'function') gtag('event', 'donate_address_copied', { network });
+  }catch(err){
+    statusEl.textContent = "Não foi possível copiar automaticamente — selecione e copie o endereço acima.";
+  }
+});
+// The footer donate widget is the one canonical copy — this "nudge" button
+// (right under the result) just scrolls to it and pulses the border
+// briefly, instead of duplicating the address/network picker.
+function scrollToDonateWidget(source){
+  const section = document.getElementById('donateWidgetSection');
+  section.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  section.style.boxShadow = '0 0 0 2px var(--gold-soft)';
+  setTimeout(()=>{ section.style.boxShadow = 'none'; }, 1600);
+  if(typeof gtag === 'function') gtag('event', 'donate_nudge_click', { source });
+}
+document.getElementById('donateNudgeTop').addEventListener('click', ()=> scrollToDonateWidget('top'));
 </script>
 </body>
 </html>
