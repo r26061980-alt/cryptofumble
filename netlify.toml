@@ -335,3 +335,269 @@
   from = "/pt/"
   to = "/pt-index.html"
   status = 200
+
+
+# Фаза 37 — SEO-страницы coin+year для ES/PT (те же 12 сценариев, что уже
+# были у EN/RU) плюс встраиваемые виджеты для ES/PT. Те же плоские файлы в
+# корне (es-bitcoin-2013.html и т.д.), без папок — по той же причине, что и
+# у остальных языковых файлов на этом сайте.
+
+[[redirects]]
+  from = "/es/bitcoin-2013"
+  to = "/es-bitcoin-2013.html"
+  status = 200
+
+[[redirects]]
+  from = "/es/bitcoin-2013/"
+  to = "/es-bitcoin-2013.html"
+  status = 200
+
+[[redirects]]
+  from = "/pt/bitcoin-2013"
+  to = "/pt-bitcoin-2013.html"
+  status = 200
+
+[[redirects]]
+  from = "/pt/bitcoin-2013/"
+  to = "/pt-bitcoin-2013.html"
+  status = 200
+
+[[redirects]]
+  from = "/es/bitcoin-2017"
+  to = "/es-bitcoin-2017.html"
+  status = 200
+
+[[redirects]]
+  from = "/es/bitcoin-2017/"
+  to = "/es-bitcoin-2017.html"
+  status = 200
+
+[[redirects]]
+  from = "/pt/bitcoin-2017"
+  to = "/pt-bitcoin-2017.html"
+  status = 200
+
+[[redirects]]
+  from = "/pt/bitcoin-2017/"
+  to = "/pt-bitcoin-2017.html"
+  status = 200
+
+[[redirects]]
+  from = "/es/bitcoin-2020"
+  to = "/es-bitcoin-2020.html"
+  status = 200
+
+[[redirects]]
+  from = "/es/bitcoin-2020/"
+  to = "/es-bitcoin-2020.html"
+  status = 200
+
+[[redirects]]
+  from = "/pt/bitcoin-2020"
+  to = "/pt-bitcoin-2020.html"
+  status = 200
+
+[[redirects]]
+  from = "/pt/bitcoin-2020/"
+  to = "/pt-bitcoin-2020.html"
+  status = 200
+
+[[redirects]]
+  from = "/es/ethereum-2016"
+  to = "/es-ethereum-2016.html"
+  status = 200
+
+[[redirects]]
+  from = "/es/ethereum-2016/"
+  to = "/es-ethereum-2016.html"
+  status = 200
+
+[[redirects]]
+  from = "/pt/ethereum-2016"
+  to = "/pt-ethereum-2016.html"
+  status = 200
+
+[[redirects]]
+  from = "/pt/ethereum-2016/"
+  to = "/pt-ethereum-2016.html"
+  status = 200
+
+[[redirects]]
+  from = "/es/ethereum-2017"
+  to = "/es-ethereum-2017.html"
+  status = 200
+
+[[redirects]]
+  from = "/es/ethereum-2017/"
+  to = "/es-ethereum-2017.html"
+  status = 200
+
+[[redirects]]
+  from = "/pt/ethereum-2017"
+  to = "/pt-ethereum-2017.html"
+  status = 200
+
+[[redirects]]
+  from = "/pt/ethereum-2017/"
+  to = "/pt-ethereum-2017.html"
+  status = 200
+
+[[redirects]]
+  from = "/es/ethereum-2020"
+  to = "/es-ethereum-2020.html"
+  status = 200
+
+[[redirects]]
+  from = "/es/ethereum-2020/"
+  to = "/es-ethereum-2020.html"
+  status = 200
+
+[[redirects]]
+  from = "/pt/ethereum-2020"
+  to = "/pt-ethereum-2020.html"
+  status = 200
+
+[[redirects]]
+  from = "/pt/ethereum-2020/"
+  to = "/pt-ethereum-2020.html"
+  status = 200
+
+[[redirects]]
+  from = "/es/solana-2020"
+  to = "/es-solana-2020.html"
+  status = 200
+
+[[redirects]]
+  from = "/es/solana-2020/"
+  to = "/es-solana-2020.html"
+  status = 200
+
+[[redirects]]
+  from = "/pt/solana-2020"
+  to = "/pt-solana-2020.html"
+  status = 200
+
+[[redirects]]
+  from = "/pt/solana-2020/"
+  to = "/pt-solana-2020.html"
+  status = 200
+
+[[redirects]]
+  from = "/es/solana-2021"
+  to = "/es-solana-2021.html"
+  status = 200
+
+[[redirects]]
+  from = "/es/solana-2021/"
+  to = "/es-solana-2021.html"
+  status = 200
+
+[[redirects]]
+  from = "/pt/solana-2021"
+  to = "/pt-solana-2021.html"
+  status = 200
+
+[[redirects]]
+  from = "/pt/solana-2021/"
+  to = "/pt-solana-2021.html"
+  status = 200
+
+[[redirects]]
+  from = "/es/solana-2022"
+  to = "/es-solana-2022.html"
+  status = 200
+
+[[redirects]]
+  from = "/es/solana-2022/"
+  to = "/es-solana-2022.html"
+  status = 200
+
+[[redirects]]
+  from = "/pt/solana-2022"
+  to = "/pt-solana-2022.html"
+  status = 200
+
+[[redirects]]
+  from = "/pt/solana-2022/"
+  to = "/pt-solana-2022.html"
+  status = 200
+
+[[redirects]]
+  from = "/es/dogecoin-2018"
+  to = "/es-dogecoin-2018.html"
+  status = 200
+
+[[redirects]]
+  from = "/es/dogecoin-2018/"
+  to = "/es-dogecoin-2018.html"
+  status = 200
+
+[[redirects]]
+  from = "/pt/dogecoin-2018"
+  to = "/pt-dogecoin-2018.html"
+  status = 200
+
+[[redirects]]
+  from = "/pt/dogecoin-2018/"
+  to = "/pt-dogecoin-2018.html"
+  status = 200
+
+[[redirects]]
+  from = "/es/dogecoin-2020"
+  to = "/es-dogecoin-2020.html"
+  status = 200
+
+[[redirects]]
+  from = "/es/dogecoin-2020/"
+  to = "/es-dogecoin-2020.html"
+  status = 200
+
+[[redirects]]
+  from = "/pt/dogecoin-2020"
+  to = "/pt-dogecoin-2020.html"
+  status = 200
+
+[[redirects]]
+  from = "/pt/dogecoin-2020/"
+  to = "/pt-dogecoin-2020.html"
+  status = 200
+
+[[redirects]]
+  from = "/es/dogecoin-2021"
+  to = "/es-dogecoin-2021.html"
+  status = 200
+
+[[redirects]]
+  from = "/es/dogecoin-2021/"
+  to = "/es-dogecoin-2021.html"
+  status = 200
+
+[[redirects]]
+  from = "/pt/dogecoin-2021"
+  to = "/pt-dogecoin-2021.html"
+  status = 200
+
+[[redirects]]
+  from = "/pt/dogecoin-2021/"
+  to = "/pt-dogecoin-2021.html"
+  status = 200
+
+[[redirects]]
+  from = "/es/widget"
+  to = "/widget-es.html"
+  status = 200
+
+[[redirects]]
+  from = "/es/widget/"
+  to = "/widget-es.html"
+  status = 200
+
+[[redirects]]
+  from = "/pt/widget"
+  to = "/widget-pt.html"
+  status = 200
+
+[[redirects]]
+  from = "/pt/widget/"
+  to = "/widget-pt.html"
+  status = 200
