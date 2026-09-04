@@ -734,7 +734,7 @@
   .r-mult.pos{background:rgba(15,122,80,0.12); color:#0F7A50;}
   .r-mult.neg{background:rgba(168,42,48,0.12); color:#A82A30;}
   .r-chart-wrap{margin:14px 0 4px; display:none;}
-  .r-chart-wrap svg{width:100%; height:64px; display:block;}
+  .r-chart-wrap svg{width:100%; height:84px; display:block;}
   .r-chart-caption{
     font-size:10px; letter-spacing:0.06em; text-transform:uppercase;
     color:rgba(42,36,24,0.45); text-align:center; margin-top:4px;
@@ -893,19 +893,6 @@
   }
   .period-btn:hover{border-color:var(--gold); color:var(--text);}
   .period-btn.active{background:rgba(240,185,11,0.13); border-color:var(--gold); color:var(--gold);}
-  /* ═══ New: value-by-year breakdown table on the receipt ═══ */
-  .r-year-table{margin:16px 0 4px;}
-  .r-year-table-title{
-    font-size:10px; letter-spacing:0.08em; text-transform:uppercase;
-    text-align:center; opacity:0.5; margin-bottom:8px;
-  }
-  .r-year-row{
-    display:flex; justify-content:space-between; font-size:12px;
-    padding:5px 0; border-bottom:1px dashed rgba(42,36,24,0.2);
-  }
-  .r-year-row:last-child{border-bottom:none;}
-  .r-year-row .ry-year{font-weight:700;}
-  .r-year-row .ry-val{font-weight:600;}
 </style>
 <!-- FAQPage structured data — mirrors the FAQ accordion below word-for-word,
      so Google can show these as an expandable rich snippet under the search
@@ -1065,10 +1052,9 @@
       <div class="r-tier" id="rTier"></div>
       <div class="r-mult-wrap"><span class="r-mult" id="rMult">x1.0</span></div>
       <div class="r-chart-wrap" id="rChartWrap">
-        <svg id="rChartSvg" viewBox="0 0 280 70" preserveAspectRatio="none"></svg>
+        <svg id="rChartSvg" viewBox="0 0 280 92" preserveAspectRatio="none"></svg>
         <div class="r-chart-caption" id="rChartCaption"></div>
       </div>
-      <div class="r-year-table" id="rYearTable" style="display:none;"></div>
       <div class="r-compare" id="rCompare"></div>
       <div class="r-disclaimer">Solo por diversión — no es un consejo de inversión.</div>
       <div class="r-footer">RECIBO DEL ARREPENTIMIENTO · HORA <span id="rStamp"></span></div>
@@ -2052,47 +2038,70 @@ async function fetchValueCurve(coin, dateStr, buyPrice, nowPrice, baseValue){
   }
 }
 
-// ---- Value-by-year breakdown table (uses the same range.js proxy, annual mode) ----
-async function fetchYearlyBreakdown(coin, dateStr, buyPrice, nowPrice, baseValue){
-  const startYear = parseInt(dateStr.split('-')[0], 10);
-  const nowYear = new Date().getFullYear();
-  if(nowYear - startYear < 2) return null; // слишком короткий период — таблица не нужна
-  try{
-    const res = await fetch(`/.netlify/functions/range?coin=${coin.geckoId}&from=${dateStr}&granularity=annual`);
-    if(!res.ok) throw new Error('range proxy failed');
-    const { points } = await res.json();
-    if(!points || points.length < 2) throw new Error('not enough points');
-    return points.map((p,i)=>{
-      let price = p.price;
-      if(i===0) price = buyPrice;
-      if(i===points.length-1) price = nowPrice;
-      return { year: p.date.split('-')[0], value: baseValue * (price/buyPrice) };
-    });
-  }catch(err){
-    return null; // таблица опциональна — тихо скрываем при любой ошибке, как и график
-  }
-}
-function renderYearTable(rows){
-  const el = document.getElementById('rYearTable');
-  el.innerHTML = '<div class="r-year-table-title">Valor por año</div>' +
-    rows.map(r => `<div class="r-year-row"><span class="ry-year">${r.year}</span><span class="ry-val">${fmt(r.value)}</span></div>`).join('');
-  el.style.display = 'block';
-}
-function renderValueCurveSvg(values){
+// ---- Receipt chart: sparkline + merged year-tick axis (Фаза 38) ----
+function renderValueCurveSvg(values, dateStr){
   const svg = document.getElementById('rChartSvg');
-  const W=280, H=70, PAD=4;
+  const W=280, PAD=6, PLOT_TOP=6, PLOT_BOTTOM=58;
   const min=Math.min(...values), max=Math.max(...values);
   const range=(max-min)||1;
   const stepX=(W-PAD*2)/(values.length-1);
-  const pts=values.map((v,i)=>[PAD+i*stepX, H-PAD-((v-min)/range)*(H-PAD*2)]);
+  const pts=values.map((v,i)=>[PAD+i*stepX, PLOT_BOTTOM-((v-min)/range)*(PLOT_BOTTOM-PLOT_TOP)]);
   const path=pts.map((p,i)=>(i===0?'M':'L')+p[0].toFixed(1)+','+p[1].toFixed(1)).join(' ');
-  const last=pts[pts.length-1];
+  const first=pts[0], last=pts[pts.length-1];
   const rising=values[values.length-1]>=values[0];
   const color=rising?'#0F7A50':'#A82A30';
-  const areaPath=path+` L${last[0].toFixed(1)},${H-PAD} L${pts[0][0].toFixed(1)},${H-PAD} Z`;
-  svg.innerHTML=`<path d="${areaPath}" fill="${color}" opacity="0.08"></path>
+  const areaPath=path+` L${last[0].toFixed(1)},${PLOT_BOTTOM} L${first[0].toFixed(1)},${PLOT_BOTTOM} Z`;
+  // ---- Year-tick x-axis (Фаза 38): folds the old separate "value by year"
+  // list into the chart itself — uses only the buy/sold date and today's
+  // real date, no extra data fetch beyond what the curve already needed.
+  let ticksSvg = '';
+  const dm = /^(\d{4})-(\d{2})/.exec(dateStr);
+  if(dm){
+    const startY=parseInt(dm[1],10), startM=parseInt(dm[2],10);
+    const now=new Date();
+    const nowY=now.getFullYear(), nowM=now.getMonth()+1;
+    const totalMonths=(nowY-startY)*12+(nowM-startM);
+    if(totalMonths>=11){
+      const yearCount=nowY-startY+1;
+      const step=yearCount<=9?1:(yearCount<=18?2:3);
+      const years=[];
+      for(let y=startY;y<=nowY;y+=step) years.push(y);
+      if(years[years.length-1]!==nowY) years.push(nowY);
+      // Guard against crowded labels when the start month falls late in the
+      // year (e.g. November) — the first two calendar-year ticks can land
+      // just months apart. Enforce a minimum pixel gap, always keeping the
+      // final "today" tick (swapping out its too-close predecessor instead
+      // of dropping it) since that's the one anchoring the "→ today" story.
+      const MIN_GAP = 26;
+      const candidates = years.map(y=>{
+        const monthsFromStart=(y-startY)*12+(1-startM);
+        const frac=Math.max(0,Math.min(1,monthsFromStart/totalMonths));
+        return { y, x: PAD+frac*(W-PAD*2) };
+      });
+      const kept=[];
+      candidates.forEach((c,i)=>{
+        const isLast = i===candidates.length-1;
+        if(kept.length===0 || c.x-kept[kept.length-1].x>=MIN_GAP){
+          kept.push(c);
+        } else if(isLast){
+          kept[kept.length-1]=c;
+        }
+      });
+      ticksSvg=kept.map(c=>{
+        return `<line x1="${c.x.toFixed(1)}" y1="${PLOT_BOTTOM+3}" x2="${c.x.toFixed(1)}" y2="${PLOT_BOTTOM+7}" stroke="rgba(42,36,24,0.4)" stroke-width="1"></line>`+
+          `<text x="${c.x.toFixed(1)}" y="${PLOT_BOTTOM+18}" text-anchor="middle" font-size="9" font-family="var(--mono)" fill="rgba(42,36,24,0.45)">'${String(c.y).slice(-2)}</text>`;
+      }).join('');
+    }
+  }
+  svg.innerHTML=`<defs><linearGradient id="rChartGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="${color}" stop-opacity="0.22"></stop>
+      <stop offset="100%" stop-color="${color}" stop-opacity="0"></stop>
+    </linearGradient></defs>
+    <path d="${areaPath}" fill="url(#rChartGrad)"></path>
     <path d="${path}" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
-    <circle cx="${last[0].toFixed(1)}" cy="${last[1].toFixed(1)}" r="3" fill="${color}"></circle>`;
+    <circle cx="${first[0].toFixed(1)}" cy="${first[1].toFixed(1)}" r="3" fill="${color}"></circle>
+    <circle cx="${last[0].toFixed(1)}" cy="${last[1].toFixed(1)}" r="3.5" fill="${color}"></circle>
+    ${ticksSvg}`;
 }
 function drawShareChart(ctx, values, centerX, topY, width, height){
   const left=centerX-width/2;
@@ -2197,17 +2206,11 @@ async function runLumpSumCalculation(coin){
     `Para comparar: hoy esa misma cantidad valdría ${fmtBig(spResult)} en el S&P 500, ${fmtBig(aaplResult)} en acciones de Apple (AAPL), o ${fmtBig(goldResult)} en oro.`;
   let chartValues = await fetchValueCurve(coin, dateStr, buyPrice, nowPrice, baseValue);
   if(chartValues){
-    renderValueCurveSvg(chartValues);
-    document.getElementById('rChartCaption').textContent = `Valor de la posición · ${dateStr} → hoy`;
+    renderValueCurveSvg(chartValues, dateStr);
+    document.getElementById('rChartCaption').textContent = `${humanDate(dateStr)} · ${fmt(baseValue)} → hoy · ${fmtBig(result)}`;
     document.getElementById('rChartWrap').style.display = 'block';
   } else {
     document.getElementById('rChartWrap').style.display = 'none';
-  }
-  const yearRows = await fetchYearlyBreakdown(coin, dateStr, buyPrice, nowPrice, baseValue);
-  if(yearRows){
-    renderYearTable(yearRows);
-  } else {
-    document.getElementById('rYearTable').style.display = 'none';
   }
   document.getElementById('rStamp').textContent = new Date().toISOString().slice(0,19).replace('T',' ');
   // показываем инвест-CTA только после первого расчёта, текст зависит от исхода —
@@ -2348,7 +2351,6 @@ async function runDcaCalculation(coin){
     // DCA спреды не совпадают по смыслу с "кривой одной покупки" — прячем график
     // и таблицу по годам, а не показываем вводящую в заблуждение картинку
     document.getElementById('rChartWrap').style.display = 'none';
-    document.getElementById('rYearTable').style.display = 'none';
     document.getElementById('rStamp').textContent = new Date().toISOString().slice(0,19).replace('T',' ');
     const ctaInvest = document.getElementById('ctaInvest');
     const exchange = nextExchange();
