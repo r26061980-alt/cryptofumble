@@ -5551,6 +5551,24 @@ async function pfRender(){
 // анонимной записи в живую ленту и алерт об ошибке — иначе каждый обычный
 // визит на сайт создавал бы в ленте фейковую запись, будто кто-то сам
 // что-то посчитал.
+// ---- Диплинк сразу на вкладку (Фаза 34) ----
+// ?view=challenge позволяет кнопке «Играть в Алмазные руки» из поста в
+// Telegram-канале сразу открывать вкладку вызова, а не калькулятор — по
+// тому же принципу, что и ?coin=&date= (Фаза 2) для самого калькулятора.
+// Вынесено сюда (а не сразу после обработчика клика по вкладкам выше),
+// потому что клик по вкладке вызывает dhcRender(), которому — как и
+// остальной настройке страницы — нужно, чтобы всё выше уже отработало;
+// вызов слишком рано молча не переключал вкладку.
+(function applyViewDeepLink(){
+  try{
+    const params = new URLSearchParams(location.search);
+    const view = params.get('view');
+    if(view === 'challenge'){
+      document.querySelector('#pageTabs .page-tab[data-view="challenge"]')?.click();
+    }
+  }catch(err){ /* нет/некорректный параметр — обычный калькулятор */ }
+})();
+
 (async function prefillReceiptOnLoad(){
   try{
     const params = new URLSearchParams(location.search);
