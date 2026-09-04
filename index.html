@@ -3465,7 +3465,20 @@ async function runDcaCalculation(coin, opts){
   const dateStr = currentDateStr;
   calcBtn.innerHTML = '<span class="spin"></span>Crunching months of price history…';
   try{
-    const nowPrice = await fetchCurrentPrice(coin.geckoId);
+    // Фаза 41: fetchCurrentPrice() has its own two tiers (site proxy, then
+    // CoinGecko directly) but no offline fallback of its own — unlike
+    // getPrices() (used by bought/sold mode), which falls back to the same
+    // local anchor table below when both live tiers fail. Without this, a
+    // single-purchase calc for a preset coin degrades gracefully to demo
+    // data, but DCA mode for that same coin hit a raw alert() instead.
+    let nowPrice;
+    try{
+      nowPrice = await fetchCurrentPrice(coin.geckoId);
+    }catch(priceErr){
+      const anchors = DATA[coin.symbol]?.points;
+      if(!anchors) throw priceErr; // no offline table either — genuinely can't compute
+      nowPrice = interpPrice(anchors, '2026-08');
+    }
     let points;
     try{
       const res = await fetch(`/.netlify/functions/range?coin=${coin.geckoId}&from=${dateStr}&points=24`);
