@@ -1106,7 +1106,7 @@
   </div>
   <p class="disclaimer">Os preços passam pelo nosso próprio proxy com cache (função Netlify → CoinGecko), com um respaldo para uma chamada direta e depois para dados de demonstração se tudo mais falhar. A fonte é sempre exibida no recibo.</p>
   </div>
-  <div class="side-col">
+  <div class="side-col" id="sideCol">
   <div class="live-feed" id="liveFeed" style="display:none;">
     <div class="live-feed-title">🌍 ARREPENDIMENTOS RECENTES DE TODO O MUNDO</div>
     <div class="live-feed-list" id="liveFeedList"></div>
@@ -1129,6 +1129,28 @@
     </details>
   </div>
 </div>
+  <!-- Anchor marking where scenario-links lives in the normal (mobile) document
+       flow — repositionScenarioLinks() below moves the block itself into the
+       desktop sidebar at ≥980px, and moves it back here below that width, so
+       there's exactly one copy of this block in the DOM either way (Фаза 37). -->
+  <div id="scenarioLinksAnchor"></div>
+  <div class="scenario-links" id="scenarioLinksBlock" style="max-width:480px;margin:40px auto 0;padding-top:28px;border-top:1px solid var(--panel-border-soft);">
+    <div style="font-family:var(--mono);font-size:10px;letter-spacing:0.1em;color:var(--muted);text-align:center;margin-bottom:16px;text-transform:uppercase;">📈 cenários populares</div>
+    <div style="display:flex;flex-wrap:wrap;gap:8px;justify-content:center;">
+      <a href="/pt/bitcoin-2013/" style="padding:8px 14px;background:var(--panel);border:1px solid var(--panel-border);border-radius:999px;text-decoration:none;font-size:12px;font-family:var(--mono);color:var(--gold-soft);">Bitcoin 2013</a>
+      <a href="/pt/bitcoin-2017/" style="padding:8px 14px;background:var(--panel);border:1px solid var(--panel-border);border-radius:999px;text-decoration:none;font-size:12px;font-family:var(--mono);color:var(--gold-soft);">Bitcoin 2017</a>
+      <a href="/pt/bitcoin-2020/" style="padding:8px 14px;background:var(--panel);border:1px solid var(--panel-border);border-radius:999px;text-decoration:none;font-size:12px;font-family:var(--mono);color:var(--gold-soft);">Bitcoin 2020</a>
+      <a href="/pt/ethereum-2016/" style="padding:8px 14px;background:var(--panel);border:1px solid var(--panel-border);border-radius:999px;text-decoration:none;font-size:12px;font-family:var(--mono);color:var(--gold-soft);">Ethereum 2016</a>
+      <a href="/pt/ethereum-2017/" style="padding:8px 14px;background:var(--panel);border:1px solid var(--panel-border);border-radius:999px;text-decoration:none;font-size:12px;font-family:var(--mono);color:var(--gold-soft);">Ethereum 2017</a>
+      <a href="/pt/ethereum-2020/" style="padding:8px 14px;background:var(--panel);border:1px solid var(--panel-border);border-radius:999px;text-decoration:none;font-size:12px;font-family:var(--mono);color:var(--gold-soft);">Ethereum 2020</a>
+      <a href="/pt/solana-2020/" style="padding:8px 14px;background:var(--panel);border:1px solid var(--panel-border);border-radius:999px;text-decoration:none;font-size:12px;font-family:var(--mono);color:var(--gold-soft);">Solana 2020</a>
+      <a href="/pt/solana-2021/" style="padding:8px 14px;background:var(--panel);border:1px solid var(--panel-border);border-radius:999px;text-decoration:none;font-size:12px;font-family:var(--mono);color:var(--gold-soft);">Solana 2021</a>
+      <a href="/pt/solana-2022/" style="padding:8px 14px;background:var(--panel);border:1px solid var(--panel-border);border-radius:999px;text-decoration:none;font-size:12px;font-family:var(--mono);color:var(--gold-soft);">Solana 2022</a>
+      <a href="/pt/dogecoin-2018/" style="padding:8px 14px;background:var(--panel);border:1px solid var(--panel-border);border-radius:999px;text-decoration:none;font-size:12px;font-family:var(--mono);color:var(--gold-soft);">Dogecoin 2018</a>
+      <a href="/pt/dogecoin-2020/" style="padding:8px 14px;background:var(--panel);border:1px solid var(--panel-border);border-radius:999px;text-decoration:none;font-size:12px;font-family:var(--mono);color:var(--gold-soft);">Dogecoin 2020</a>
+      <a href="/pt/dogecoin-2021/" style="padding:8px 14px;background:var(--panel);border:1px solid var(--panel-border);border-radius:999px;text-decoration:none;font-size:12px;font-family:var(--mono);color:var(--gold-soft);">Dogecoin 2021</a>
+    </div>
+  </div>
 <script>
 // ---- Approximate historical price anchors (log-interpolated between points) ----
 // Format: [YYYY-MM, price]. Illustrative demo data, not exact market data.
@@ -2947,6 +2969,31 @@ if('serviceWorker' in navigator){
       wireUp();
     }
   }catch(e){}
+})();
+
+// ---- Reposition "popular scenarios" links: into the sidebar on desktop,
+// back in their normal spot (after the FAQ) on mobile (Фаза 37 — same
+// mechanism already used on the EN/RU main pages). ----
+(function(){
+  const DESKTOP_QUERY = '(min-width: 980px)';
+  const block = document.getElementById('scenarioLinksBlock');
+  const anchor = document.getElementById('scenarioLinksAnchor');
+  const sideCol = document.getElementById('sideCol');
+  if(!block || !anchor || !sideCol) return;
+  function positionScenarioLinks(){
+    const isDesktop = window.matchMedia(DESKTOP_QUERY).matches;
+    if(isDesktop && block.parentElement !== sideCol){
+      sideCol.appendChild(block);
+    }else if(!isDesktop && block.parentElement !== anchor.parentElement){
+      anchor.parentElement.insertBefore(block, anchor.nextSibling);
+    }
+  }
+  positionScenarioLinks();
+  let resizeTimer;
+  window.addEventListener('resize', ()=>{
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(positionScenarioLinks, 150);
+  });
 })();
 </script>
 </body>
