@@ -2019,6 +2019,34 @@ function getTier(mult){
   return { label: 'MÃOS DE DIAMANTE CONFIRMADAS', emoji: '💎' };
 }
 // ---- Кривая стоимости позиции для графика на чеке ----
+// Фаза 38b: если запрос за реальной историей (range.js) не прошёл —
+// CoinGecko rate-limit, временная недоступность и т.п. — строим
+// приблизительную кривую по уже существующей в коде таблице опорных точек
+// (та же таблица, что даёт офлайн-оценку в getPrices/DCA), а не просто
+// прячем график. Первая и последняя точка всё равно жёстко фиксируются
+// на уже посчитанных buyPrice/nowPrice, чтобы цифры не расходились с чеком.
+function buildCurveFromAnchors(coin, dateStr, buyPrice, nowPrice, baseValue, n){
+  const anchors = DATA[coin.symbol]?.points;
+  if(!anchors) return null;
+  const fromIdx = monthToTs(dateStr);
+  const now = new Date();
+  const toIdx = now.getFullYear()*12 + (now.getMonth()+1);
+  const totalMonths = Math.max(1, toIdx - fromIdx);
+  const count = Math.max(2, Math.min(n || 10, totalMonths+1));
+  const values = [], dates = [];
+  for(let i=0;i<count;i++){
+    const idx = fromIdx + Math.round(i * totalMonths / (count-1));
+    const y = Math.floor((idx-1)/12), m = ((idx-1)%12)+1;
+    const dstr = `${y}-${String(m).padStart(2,'0')}`;
+    let price;
+    if(i===0) price = buyPrice;
+    else if(i===count-1) price = nowPrice;
+    else price = interpPrice(anchors, dstr);
+    values.push(baseValue * (price/buyPrice));
+    dates.push(dstr);
+  }
+  return { values, dates };
+}
 async function fetchValueCurve(coin, dateStr, buyPrice, nowPrice, baseValue){
   try{
     const res = await fetch(`/.netlify/functions/range?coin=${coin.geckoId}&from=${dateStr}`);
@@ -2034,7 +2062,9 @@ async function fetchValueCurve(coin, dateStr, buyPrice, nowPrice, baseValue){
       return baseValue * (price/buyPrice);
     });
   }catch(err){
-    return null; // график опциональный — тихо скрываем при любой ошибке
+    const fallback = buildCurveFromAnchors(coin, dateStr, buyPrice, nowPrice, baseValue, 10);
+    if(fallback) return fallback.values;
+    return null; // ни живых данных, ни опорных точек для этой монеты — тихо скрываем график
   }
 }
 
