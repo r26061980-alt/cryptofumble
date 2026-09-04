@@ -5570,6 +5570,24 @@ async function pfRender(){
 // silent:true on runLumpSumCalculation/runDcaCalculation skips the anonymous
 // live-feed entry and the error alert — otherwise every ordinary page visit
 // would create a fake feed entry as if someone had actually run a calc.
+// ---- Deep link straight to a tab (Phase 34) ----
+// ?view=challenge lets the Telegram channel post's "Play Diamond Hands"
+// button land directly on the challenge tab instead of the calculator, the
+// same way ?coin=&date= (Phase 2) already deep-links into the calculator.
+// Placed down here (not right after the tab click-listener above) because
+// clicking the tab calls dhcRender(), which — like the rest of the page's
+// setup — needs to run only once everything above it has finished defining
+// itself; triggering it too early silently failed to switch tabs.
+(function applyViewDeepLink(){
+  try{
+    const params = new URLSearchParams(location.search);
+    const view = params.get('view');
+    if(view === 'challenge'){
+      document.querySelector('#pageTabs .page-tab[data-view="challenge"]')?.click();
+    }
+  }catch(err){ /* no/invalid param — normal calculator view */ }
+})();
+
 (async function prefillReceiptOnLoad(){
   try{
     const params = new URLSearchParams(location.search);
