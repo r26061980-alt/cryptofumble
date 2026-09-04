@@ -1,4 +1,4 @@
-"<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
 <!-- Google tag (gtag.js) -->
@@ -1441,6 +1441,33 @@
   } catch(e) {}
 </script>
 
+<!-- ═══ Install-app prompt — Phase 35. See the comment above the matching
+     script block near the service-worker registration for why this exists. ═══ -->
+<div id="installBanner" style="
+  display:none; align-items:center; justify-content:center; gap:12px;
+  flex-wrap:wrap; text-align:center;
+  background:#14141A; border-bottom:1px solid #2A2A33;
+  color:#F5F5F7; font-family:'Manrope', sans-serif; font-weight:700;
+  font-size:14px; padding:12px 44px 12px 16px; position:relative;
+">
+  <span>📲 Install CryptoFumble as an app</span>
+  <button id="installBannerMain" style="
+    background:#F0B90B; color:#0D1117; padding:7px 16px; border-radius:8px;
+    border:none; font-weight:800; white-space:nowrap; cursor:pointer; font-size:14px;
+    font-family:'Manrope', sans-serif;
+  ">Install</button>
+  <button id="installBannerClose" aria-label="Close" style="
+    position:absolute; right:12px; top:12px; background:none; border:none;
+    font-size:18px; font-weight:700; color:#8B8B96; cursor:pointer; line-height:1;
+  ">×</button>
+</div>
+<div id="installIosHint" style="
+  display:none; background:#0D1117; border-bottom:1px solid #2A2A33;
+  color:#C7C7D1; font-family:'Manrope', sans-serif; font-size:13px; line-height:1.5;
+  padding:12px 16px; text-align:center;
+">
+  Tap <b>Share</b> ⬆️ in Safari&#39;s toolbar, then choose <b>&quot;Add to Home Screen&quot;</b>.
+</div>
 <div class="wrap">
   <div style="display:flex; align-items:center; gap:8px; margin-bottom:22px;">
     <div class="page-tabs" id="pageTabs" style="margin-bottom:0; flex:1;">
@@ -4787,6 +4814,83 @@ if('serviceWorker' in navigator){
   });
 }
 
+// PWA: "Install app" prompt (Phase 35). A small dismissible bar, in normal
+// page flow (never fixed/floating, so it can't ever cover a button further
+// down the page), that lets people add CryptoFumble to their home screen as
+// a real app icon instead of relying on the browser's own inconsistent
+// default install banner. That default banner is what was confusing people:
+// a browser tab and an installed copy keep separate localStorage, so a
+// banner dismissed in one doesn't stay dismissed in the other, and the
+// installed copy renders without browser chrome, which reads as "the site
+// looks different". On Android/Chrome this bar's button triggers the
+// browser's real install dialog; iOS Safari has no such API, so it reveals
+// quick manual instructions instead. Hidden automatically once the site is
+// already running as an installed app, and stays hidden after being
+// dismissed once (separate flag from the Product Hunt banner's own).
+(function(){
+  try{
+    var isStandalone = (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) || window.navigator.standalone === true;
+    if(isStandalone) return;
+    if(localStorage.getItem('cf_install_dismissed') === '1') return;
+
+    var isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+    var deferredPrompt = null;
+    var pendingShow = false;
+    var banner = null, iosHint = null;
+
+    function showBanner(){ if(banner) banner.style.display = 'flex'; else pendingShow = true; }
+    function hideAll(){ if(banner) banner.style.display = 'none'; if(iosHint) iosHint.style.display = 'none'; }
+    function dismiss(){ hideAll(); try{ localStorage.setItem('cf_install_dismissed','1'); }catch(e){} }
+
+    // Registered immediately (not waiting for DOMContentLoaded below) so a
+    // real beforeinstallprompt firing early is never missed — showBanner()
+    // just flips pendingShow if the markup isn't wired up yet.
+    window.addEventListener('beforeinstallprompt', function(e){
+      e.preventDefault();
+      deferredPrompt = e;
+      showBanner();
+    });
+    window.addEventListener('appinstalled', dismiss);
+
+    // The banner markup lives further down the page than this script tag —
+    // querying for it here (before the parser has reached it) would find
+    // nothing, so the actual wiring waits for DOMContentLoaded.
+    function wireUp(){
+      banner = document.getElementById('installBanner');
+      iosHint = document.getElementById('installIosHint');
+      if(!banner) return;
+      if(pendingShow) showBanner();
+
+      if(isIOS){
+        // iOS Safari never fires beforeinstallprompt — there's no API for
+        // it. Show the bar after a short delay so it doesn't fight the
+        // page's own load animations.
+        setTimeout(showBanner, 2500);
+      }
+
+      var mainBtn = document.getElementById('installBannerMain');
+      var closeBtn = document.getElementById('installBannerClose');
+      if(closeBtn) closeBtn.addEventListener('click', function(e){ e.stopPropagation(); dismiss(); });
+      if(mainBtn) mainBtn.addEventListener('click', async function(){
+        if(deferredPrompt){
+          hideAll();
+          try{ deferredPrompt.prompt(); await deferredPrompt.userChoice; }catch(e){}
+          deferredPrompt = null;
+          try{ localStorage.setItem('cf_install_dismissed','1'); }catch(e){}
+        } else if(isIOS && iosHint){
+          iosHint.style.display = (iosHint.style.display === 'none' || !iosHint.style.display) ? 'block' : 'none';
+        }
+      });
+    }
+
+    if(document.readyState === 'loading'){
+      document.addEventListener('DOMContentLoaded', wireUp);
+    } else {
+      wireUp();
+    }
+  }catch(e){}
+})();
+
 // ---- "My Portfolio" tab — manual purchase log, localStorage only (no accounts yet) ----
 // MVP version of a feature requested directly by the site owner: track real
 // purchases (coin, date, quantity, USDT spent), auto-compute the average price
@@ -5618,4 +5722,3 @@ async function pfRender(){
 </script>
 </body>
 </html>
-"
