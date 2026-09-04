@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-83PMW2GVF7"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-83PMW2GVF7');
+</script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CryptoFumble Widget — Quanto Você Poderia Ter Ganhado?</title>
+<meta name="description" content="Widget incorporável de calculadora de arrependimento cripto — grátis para adicionar a qualquer site, com atribuição ao CryptoFumble.">
+<meta name="robots" content="noindex, follow">
+<link rel="icon" href="/favicon-32.png" type="image/png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0A0B10; --panel:#12161D; --panel-border:rgba(255,255,255,0.08);
+    --field-bg:#0B0E13; --green:#16C784; --red:#EA3943; --gold:#F0B90B; --gold-soft:#FFD65C;
+    --text:#F3F2EE; --muted:#98A0AC; --mono:'IBM Plex Mono',monospace; --sans:'Manrope',sans-serif;
+    --r-md:12px; --r-lg:18px; --r-xl:20px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  html,body{background:var(--bg);}
+  body{
+    color:var(--text); font-family:var(--sans); padding:14px;
+    -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale;
+  }
+  .wrap{max-width:380px; margin:0 auto;}
+  .head{display:flex; align-items:center; gap:8px; margin-bottom:14px;}
+  .head .logo{font-size:20px;}
+  .head h1{font-size:15px; font-weight:800; line-height:1.2;}
+  .head .sub{font-size:11px; color:var(--muted); margin-top:2px;}
+  .panel{
+    background:linear-gradient(180deg, rgba(255,255,255,0.035), rgba(255,255,255,0) 42%), var(--panel);
+    border:1px solid var(--panel-border); border-radius:var(--r-xl); padding:16px;
+  }
+  .field{margin-bottom:12px;}
+  .field label{display:block; font-family:var(--mono); font-size:10.5px; letter-spacing:0.06em;
+    text-transform:uppercase; color:var(--muted); margin-bottom:6px;}
+  .coin-pills{display:flex; flex-wrap:wrap; gap:6px;}
+  .coin-pill{
+    padding:7px 12px; background:var(--field-bg); border:1px solid var(--panel-border);
+    border-radius:999px; font-family:var(--mono); font-size:12px; font-weight:600;
+    color:var(--muted); cursor:pointer; transition:all .15s ease;
+  }
+  .coin-pill:hover{border-color:var(--gold);}
+  .coin-pill.active{background:rgba(240,185,11,0.12); border-color:var(--gold); color:var(--gold-soft);}
+  .row2{display:flex; gap:10px;}
+  .row2 .field{flex:1;}
+  input[type="number"], input[type="month"]{
+    width:100%; background:var(--field-bg); border:1px solid var(--panel-border); color:var(--text);
+    font-family:var(--mono); font-size:14px; padding:10px 12px; border-radius:var(--r-md);
+  }
+  input[type="number"]:focus, input[type="month"]:focus{outline:none; border-color:var(--gold);}
+  .calc-btn{
+    width:100%; background:linear-gradient(180deg,var(--gold-soft),var(--gold)); color:#191300;
+    font-weight:800; font-size:14px; padding:13px; border:none; border-radius:var(--r-md);
+    cursor:pointer; margin-top:2px;
+  }
+  .calc-btn:disabled{opacity:0.6; cursor:default;}
+  .result{display:none; margin-top:14px; padding-top:14px; border-top:1px solid var(--panel-border-soft, rgba(255,255,255,0.06));}
+  .result.show{display:block;}
+  .result-row{display:flex; justify-content:space-between; font-family:var(--mono); font-size:12px;
+    color:var(--muted); padding:4px 0;}
+  .result-row b{color:var(--text); font-weight:600;}
+  .big{text-align:center; padding:10px 0 4px;}
+  .big .label{font-family:var(--mono); font-size:10.5px; letter-spacing:0.08em; text-transform:uppercase;
+    color:var(--muted); margin-bottom:6px;}
+  .big .num{font-family:var(--mono); font-weight:700; font-size:clamp(26px,7vw,34px); line-height:1;}
+  .big .num.pos{color:var(--green);}
+  .big .num.neg{color:var(--red);}
+  .tier{display:inline-flex; align-items:center; gap:6px; margin-top:10px; padding:6px 12px;
+    border-radius:999px; background:rgba(240,185,11,0.1); border:1px solid rgba(240,185,11,0.25);
+    font-family:var(--mono); font-size:11.5px; font-weight:600; color:var(--gold-soft);}
+  .demo-note{font-size:10.5px; color:var(--muted); text-align:center; margin-top:10px; line-height:1.5;}
+  .error{color:var(--red); font-size:12px; text-align:center; margin-top:10px; display:none;}
+  .error.show{display:block;}
+  .badge{display:flex; align-items:center; justify-content:center; gap:6px; margin-top:14px;
+    font-family:var(--mono); font-size:11px; color:var(--muted); text-decoration:none;}
+  .badge:hover{color:var(--gold-soft);}
+  .badge b{color:var(--text);}
+  .spin{display:inline-block; width:12px; height:12px; border:2px solid rgba(25,19,0,0.3);
+    border-top-color:#191300; border-radius:50%; animation:spin .6s linear infinite; margin-right:6px; vertical-align:-2px;}
+  @keyframes spin{to{transform:rotate(360deg);}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="head">
+    <div class="logo">💸</div>
+    <div>
+      <h1>E se você tivesse comprado cripto?</h1>
+      <div class="sub">Calculadora gratuita do CryptoFumble</div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="field">
+      <label>Moeda</label>
+      <div class="coin-pills" id="coinPills"></div>
+    </div>
+    <div class="row2">
+      <div class="field">
+        <label>Valor ($)</label>
+        <input type="number" id="amountInput" value="1000" min="1" step="1">
+      </div>
+      <div class="field">
+        <label>Data</label>
+        <input type="month" id="dateInput" min="2013-01" value="2021-01">
+      </div>
+    </div>
+    <button class="calc-btn" id="calcBtn">Calcular</button>
+    <div class="error" id="errorMsg">Escolha uma moeda, valor e data.</div>
+
+    <div class="result" id="resultBlock">
+      <div class="result-row"><span>Preço na compra</span><b id="rBuy">—</b></div>
+      <div class="result-row"><span>Preço agora</span><b id="rNow">—</b></div>
+      <div class="big">
+        <div class="label">Você teria hoje</div>
+        <div class="num" id="rValue">$0</div>
+        <div class="tier" id="rTier"></div>
+      </div>
+      <div class="demo-note" id="rDemoNote" style="display:none;">Para datas com mais de ~1 ano é usada uma estimativa de preço offline (interpolação logarítmica), igual à calculadora principal — não é uma cotação de mercado ao vivo.</div>
+    </div>
+  </div>
+
+  <a class="badge" id="badgeLink" href="https://cryptofumble.com/pt/" target="_blank" rel="noopener">
+    <span>⚡</span> Funciona com <b>CryptoFumble</b> →
+  </a>
+</div>
+
+<script>
+const GECKO_ID = { BTC:'bitcoin', ETH:'ethereum', SOL:'solana', DOGE:'dogecoin', ADA:'cardano', XRP:'ripple', BNB:'binancecoin' };
+const DATA = {
+  BTC: { name:'Bitcoin', points:[
+    ['2013-01',13],['2013-04',100],['2013-11',350],['2013-12',750],
+    ['2014-01',800],['2014-06',600],['2014-12',320],
+    ['2015-06',230],['2015-12',430],
+    ['2016-06',670],['2016-12',960],
+    ['2017-06',2500],['2017-09',4000],['2017-12',13800],
+    ['2018-01',10000],['2018-06',6300],['2018-12',3800],
+    ['2019-06',10800],['2019-12',7200],
+    ['2020-01',9350],['2020-03',5900],['2020-06',9100],['2020-12',29000],
+    ['2021-01',33000],['2021-04',57800],['2021-07',33000],['2021-11',64000],['2021-12',46000],
+    ['2022-01',38000],['2022-06',20000],['2022-11',16500],['2022-12',16500],
+    ['2023-01',23000],['2023-06',30500],['2023-10',34000],['2023-12',42000],
+    ['2024-01',43000],['2024-03',70000],['2024-06',64000],['2024-12',95000],
+    ['2025-03',100000],['2025-06',105000],['2025-12',112000],
+    ['2026-01',118000],['2026-04',122000],['2026-08',128000]
+  ]},
+  ETH: { name:'Ethereum', points:[
+    ['2016-01',1],['2017-06',200],['2017-12',750],
+    ['2018-01',1200],['2018-06',460],['2018-12',130],
+    ['2019-06',280],['2019-12',130],
+    ['2020-01',130],['2020-03',110],['2020-06',225],['2020-12',730],
+    ['2021-01',1000],['2021-05',2700],['2021-07',1900],['2021-11',4800],['2021-12',3700],
+    ['2022-01',3300],['2022-06',1100],['2022-11',1200],['2022-12',1200],
+    ['2023-01',1550],['2023-06',1900],['2023-12',2300],
+    ['2024-01',2300],['2024-03',3900],['2024-06',3400],['2024-12',3400],
+    ['2025-06',3600],['2026-01',3900],['2026-08',4200]
+  ]},
+  SOL: { name:'Solana', points:[
+    ['2020-05',0.5],['2020-12',1.5],
+    ['2021-01',1.8],['2021-05',35],['2021-09',140],['2021-11',260],['2021-12',170],
+    ['2022-01',150],['2022-06',38],['2022-11',13],['2022-12',10],
+    ['2023-01',11],['2023-06',18],['2023-12',100],
+    ['2024-01',100],['2024-03',200],['2024-06',150],['2024-12',190],
+    ['2025-06',210],['2026-01',235],['2026-08',255]
+  ]},
+  DOGE:{ name:'Dogecoin', points:[
+    ['2017-12',0.0095],
+    ['2020-01',0.0023],['2020-12',0.0047],
+    ['2021-01',0.0086],['2021-04',0.34],['2021-05',0.65],['2021-07',0.21],['2021-11',0.23],['2021-12',0.17],
+    ['2022-01',0.14],['2022-06',0.06],['2022-11',0.09],['2022-12',0.07],
+    ['2023-01',0.075],['2023-06',0.065],['2023-12',0.09],
+    ['2024-01',0.085],['2024-03',0.16],['2024-06',0.13],['2024-12',0.32],
+    ['2025-06',0.28],['2026-01',0.26],['2026-08',0.24]
+  ]},
+  ADA: { name:'Cardano', points:[
+    ['2017-12',0.7],
+    ['2020-01',0.033],['2020-12',0.18],
+    ['2021-01',0.17],['2021-05',1.9],['2021-09',2.9],['2021-11',1.8],['2021-12',1.3],
+    ['2022-01',1.2],['2022-06',0.43],['2022-11',0.3],['2022-12',0.25],
+    ['2023-01',0.32],['2023-06',0.28],['2023-12',0.5],
+    ['2024-01',0.55],['2024-03',0.65],['2024-06',0.45],['2024-12',0.9],
+    ['2025-06',0.75],['2026-01',0.7],['2026-08',0.68]
+  ]},
+  XRP: { name:'XRP', points:[
+    ['2017-12',2.8],
+    ['2020-01',0.19],['2020-12',0.22],
+    ['2021-01',0.23],['2021-04',1.8],['2021-07',0.6],['2021-11',1.1],['2021-12',0.83],
+    ['2022-01',0.6],['2022-06',0.34],['2022-11',0.4],['2022-12',0.34],
+    ['2023-01',0.34],['2023-06',0.47],['2023-12',0.6],
+    ['2024-01',0.6],['2024-03',0.63],['2024-06',0.47],['2024-12',2.2],
+    ['2025-06',2.6],['2026-01',2.9],['2026-08',3.1]
+  ]},
+  BNB: { name:'BNB', points:[
+    ['2019-01',6],
+    ['2020-01',14],['2020-12',37],
+    ['2021-01',38],['2021-05',600],['2021-07',290],['2021-11',580],['2021-12',520],
+    ['2022-01',400],['2022-06',220],['2022-11',280],['2022-12',250],
+    ['2023-01',245],['2023-06',240],['2023-12',310],
+    ['2024-01',310],['2024-03',410],['2024-06',580],['2024-12',700],
+    ['2025-06',780],['2026-01',850],['2026-08',920]
+  ]}
+};
+
+function monthToTs(m){ const [y,mo]=m.split('-').map(Number); return y*12+mo; }
+function interpPrice(points, dateStr){
+  const t = monthToTs(dateStr);
+  const pts = points.map(p=>[monthToTs(p[0]), p[1]]);
+  if(t<=pts[0][0]) return pts[0][1];
+  if(t>=pts[pts.length-1][0]) return pts[pts.length-1][1];
+  for(let i=0;i<pts.length-1;i++){
+    const [t0,p0]=pts[i], [t1,p1]=pts[i+1];
+    if(t>=t0 && t<=t1){
+      const frac = (t-t0)/(t1-t0);
+      return Math.exp(Math.log(p0) + frac*(Math.log(p1)-Math.log(p0)));
+    }
+  }
+  return pts[pts.length-1][1];
+}
+function fmt(n){
+  if(n>=1000) return '$'+Math.round(n).toLocaleString('en-US');
+  if(n>=1) return '$'+n.toFixed(2);
+  return '$'+n.toFixed(6).replace(/0+$/,'').replace(/\.$/,'');
+}
+function getTier(mult){
+  if(mult < 0.3)  return { label: 'REKT TOTAL', emoji: '💀' };
+  if(mult < 0.7)  return { label: 'BAGHOLDER CERTIFICADO', emoji: '🧻' };
+  if(mult < 1)    return { label: 'TROPEÇO LEVE', emoji: '😬' };
+  if(mult < 3)    return { label: 'BOA JOGADA', emoji: '👍' };
+  if(mult < 10)   return { label: 'BOA PEGADA', emoji: '🎣' };
+  if(mult < 50)   return { label: 'TIMING LENDÁRIO', emoji: '🏆' };
+  return { label: 'MÃOS DE DIAMANTE CONFIRMADAS', emoji: '💎' };
+}
+
+async function fetchHistoricalPrice(geckoId, dateStr){
+  const res = await fetch(`/.netlify/functions/price?type=history&coin=${geckoId}&date=${dateStr}`);
+  if(!res.ok) throw new Error('proxy history failed');
+  const json = await res.json();
+  if(!json.price) throw new Error('no price from proxy');
+  return json.price;
+}
+async function fetchCurrentPrice(geckoId){
+  const res = await fetch(`/.netlify/functions/price?type=current&coin=${geckoId}`);
+  if(!res.ok) throw new Error('proxy current failed');
+  const json = await res.json();
+  if(!json.price) throw new Error('no price from proxy');
+  return json.price;
+}
+
+let selectedCoin = 'BTC';
+const pillsEl = document.getElementById('coinPills');
+Object.keys(DATA).forEach(sym => {
+  const pill = document.createElement('div');
+  pill.className = 'coin-pill' + (sym === selectedCoin ? ' active' : '');
+  pill.textContent = sym;
+  pill.dataset.sym = sym;
+  pill.addEventListener('click', () => {
+    selectedCoin = sym;
+    document.querySelectorAll('.coin-pill').forEach(p => p.classList.toggle('active', p.dataset.sym === sym));
+  });
+  pillsEl.appendChild(pill);
+});
+
+const dateInput = document.getElementById('dateInput');
+(function setMaxMonth(){
+  const now = new Date();
+  const max = now.getFullYear() + '-' + String(now.getMonth()+1).padStart(2,'0');
+  dateInput.max = max;
+})();
+
+const calcBtn = document.getElementById('calcBtn');
+const errorMsg = document.getElementById('errorMsg');
+const resultBlock = document.getElementById('resultBlock');
+const badgeLink = document.getElementById('badgeLink');
+
+calcBtn.addEventListener('click', async () => {
+  errorMsg.classList.remove('show');
+  const amount = parseFloat(document.getElementById('amountInput').value) || 0;
+  const dateStr = dateInput.value;
+  if(!dateStr || amount <= 0){
+    errorMsg.classList.add('show');
+    return;
+  }
+  calcBtn.disabled = true;
+  calcBtn.innerHTML = '<span class="spin"></span>Calculando…';
+  const demoPoints = DATA[selectedCoin].points;
+  let buyPrice, nowPrice, source;
+  try{
+    [buyPrice, nowPrice] = await Promise.all([
+      fetchHistoricalPrice(GECKO_ID[selectedCoin], dateStr),
+      fetchCurrentPrice(GECKO_ID[selectedCoin])
+    ]);
+    source = 'live';
+  }catch(err){
+    buyPrice = interpPrice(demoPoints, dateStr);
+    nowPrice = interpPrice(demoPoints, '2026-08');
+    source = 'demo';
+  }
+  const qty = amount / buyPrice;
+  const valueNow = qty * nowPrice;
+  const mult = valueNow / amount;
+  const tier = getTier(mult);
+
+  document.getElementById('rBuy').textContent = fmt(buyPrice);
+  document.getElementById('rNow').textContent = fmt(nowPrice);
+  const numEl = document.getElementById('rValue');
+  numEl.textContent = fmt(valueNow);
+  numEl.className = 'num ' + (mult >= 1 ? 'pos' : 'neg');
+  document.getElementById('rTier').textContent = `${tier.emoji} ${tier.label} · ${mult < 1000 ? mult.toFixed(1) : Math.round(mult).toLocaleString('en-US')}×`;
+  document.getElementById('rDemoNote').style.display = source === 'demo' ? 'block' : 'none';
+  resultBlock.classList.add('show');
+
+  badgeLink.href = `https://cryptofumble.com/pt/?coin=${selectedCoin}&date=${dateStr}`;
+
+  calcBtn.disabled = false;
+  calcBtn.textContent = 'Calcular';
+
+  try{ gtag('event', 'widget_calculate', { coin: selectedCoin, source: source }); }catch(e){}
+});
+</script>
+</body>
+</html>
