@@ -3490,7 +3490,20 @@ async function runDcaCalculation(coin, opts){
   const dateStr = currentDateStr;
   calcBtn.innerHTML = '<span class="spin"></span>Считаем историю цен по месяцам…';
   try{
-    const nowPrice = await fetchCurrentPrice(coin.geckoId);
+    // Фаза 41: у fetchCurrentPrice() свои два уровня (прокси сайта, потом
+    // напрямую CoinGecko), но без офлайн-подстраховки — в отличие от
+    // getPrices() (режимы «купил»/«продал»), которая при провале обоих
+    // уровней падает на ту же локальную таблицу опорных точек ниже. Без
+    // этого разовая покупка по опорной монете честно уходит в демо-данные,
+    // а DCA по той же монете просто показывало голый alert().
+    let nowPrice;
+    try{
+      nowPrice = await fetchCurrentPrice(coin.geckoId);
+    }catch(priceErr){
+      const anchors = DATA[coin.symbol]?.points;
+      if(!anchors) throw priceErr; // ни живой цены, ни офлайн-таблицы — считать нечем
+      nowPrice = interpPrice(anchors, '2026-08');
+    }
     let points;
     try{
       const res = await fetch(`/.netlify/functions/range?coin=${coin.geckoId}&from=${dateStr}&points=24`);
