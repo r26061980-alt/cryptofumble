@@ -1946,12 +1946,23 @@ function fmtBig(n){
 // ~август 2026 — сознательно НЕ живой запрос к FX API (не добавляем новую
 // зависимость/задержку ради числа, которое и так подписано «примерно»).
 // Обновлять таблицу вручную раз в несколько месяцев, чтобы не уезжала далеко.
+// Фаза 40: на русской версии чек теперь показывает ГЛАВНОЙ цифрой рубли
+// (по этому же курсу RUB), а точную сумму в долларах — маленькой строкой
+// под ней (см. fmtRub и переработанную renderLocalCurrency ниже).
 const FX_RATES = {
   RUB: 87, EUR: 0.87, GBP: 0.74, INR: 95, BRL: 5.1, TRY: 48,
   UAH: 45, KZT: 468, IDR: 17900, NGN: 1360, PHP: 61, VND: 26200,
   PKR: 278, ARS: 1500, MXN: 17.2, JPY: 158, CNY: 6.75, KRW: 1424,
   AUD: 1.42, CAD: 1.4, ZAR: 16.4,
 };
+const RUB_FORMATTER = new Intl.NumberFormat('ru-RU', { style: 'currency', currency: 'RUB', maximumFractionDigits: 0 });
+function fmtRub(usd){
+  try{
+    return RUB_FORMATTER.format(usd * FX_RATES.RUB);
+  }catch(err){
+    return '₽' + Math.round(usd * FX_RATES.RUB).toLocaleString('en-US');
+  }
+}
 // Сопоставляет язык браузера с валютой. Сначала проверяет регион (ru-KZ ->
 // KZT приоритетнее общего ru -> RUB), потом базовый язык. Возвращает null
 // для локалей, близких к доллару по умолчанию (en-US и т.п.) — незачем
@@ -1977,17 +1988,8 @@ function guessCurrency(lang){
 function renderLocalCurrency(resultRaw){
   const el = document.getElementById('rLocalCurrency');
   if(!el) return;
-  const code = guessCurrency(navigator.language);
-  const rate = code && FX_RATES[code];
-  if(!rate){ el.style.display = 'none'; return; }
-  try{
-    const converted = resultRaw * rate;
-    const formatted = new Intl.NumberFormat(navigator.language, {
-      style: 'currency', currency: code, maximumFractionDigits: 0,
-    }).format(converted);
-    el.textContent = '≈ ' + formatted + ' (примерно)';
-    el.style.display = 'block';
-  }catch(err){ el.style.display = 'none'; }
+  el.textContent = '≈ ' + fmtBig(resultRaw);
+  el.style.display = 'block';
 }
 function fmtCoinsQty(qty, symbol){
   // for cheap/mid-price coins, a quantity of 100+ reads better as a whole
@@ -2942,15 +2944,15 @@ async function runCoinSearch(q){
     dropdown.appendChild(opt);
   });
 }
-function animateCount(el, target, prefix, duration=900){
+function animateCount(el, target, formatFn, duration=900){
   const start=performance.now();
   function step(now){
     const p=Math.min(1,(now-start)/duration);
     const eased=1-Math.pow(1-p,3);
     const val=target*eased;
-    el.textContent = prefix + fmtBig(val).replace('$','');
+    el.textContent = formatFn(val);
     if(p<1) requestAnimationFrame(step);
-    else el.textContent = prefix + fmtBig(target).replace('$','');
+    else el.textContent = formatFn(target);
   }
   requestAnimationFrame(step);
 }
@@ -3365,7 +3367,7 @@ async function runLumpSumCalculation(coin, opts){
   ctaInvest.dataset.mult = mult.toFixed(1);
   ctaInvest.dataset.exchange = exchange.name.toLowerCase();
   document.getElementById('receipt-holder').style.display='block';
-  animateCount(document.getElementById('rResult'), result, '$');
+  animateCount(document.getElementById('rResult'), result, fmtRub);
   renderLocalCurrency(result);
   document.getElementById('receipt-holder').scrollIntoView({behavior:'smooth', block:'nearest'});
   lastResult = {
@@ -3570,7 +3572,8 @@ async function runDcaCalculation(coin, opts){
     ctaInvest.dataset.mult = mult.toFixed(1);
     ctaInvest.dataset.exchange = exchange.name.toLowerCase();
     document.getElementById('receipt-holder').style.display = 'block';
-    animateCount(document.getElementById('rResult'), result, '$');
+    animateCount(document.getElementById('rResult'), result, fmtRub);
+    renderLocalCurrency(result);
     document.getElementById('receipt-holder').scrollIntoView({behavior:'smooth', block:'nearest'});
     // текст/карточка для шеринга берутся из lastResult — у DCA нет единой "кривой
     // стоимости позиции", как у разовой покупки, поэтому chartValues остаётся null,
