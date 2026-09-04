@@ -3041,6 +3041,34 @@ function getTier(mult){
 // pointsCount — опциональный оверрайд числа точек (см. range.js: points=<N>).
 // Возвращает { values, dates } — dates нужны только "sold too early → ATH"
 // (см. computeSoldPeak), сам график по-прежнему использует только values.
+// Фаза 38b: если запрос за реальной историей (range.js) не прошёл —
+// CoinGecko rate-limit, временная недоступность и т.п. — строим
+// приблизительную кривую по уже существующей в коде таблице опорных точек
+// (та же таблица, что даёт офлайн-оценку в getPrices/DCA), а не просто
+// прячем график. Первая и последняя точка всё равно жёстко фиксируются
+// на уже посчитанных buyPrice/nowPrice, чтобы цифры не расходились с чеком.
+function buildCurveFromAnchors(coin, dateStr, buyPrice, nowPrice, baseValue, n){
+  const anchors = DATA[coin.symbol]?.points;
+  if(!anchors) return null;
+  const fromIdx = monthToTs(dateStr);
+  const now = new Date();
+  const toIdx = now.getFullYear()*12 + (now.getMonth()+1);
+  const totalMonths = Math.max(1, toIdx - fromIdx);
+  const count = Math.max(2, Math.min(n || 10, totalMonths+1));
+  const values = [], dates = [];
+  for(let i=0;i<count;i++){
+    const idx = fromIdx + Math.round(i * totalMonths / (count-1));
+    const y = Math.floor((idx-1)/12), m = ((idx-1)%12)+1;
+    const dstr = `${y}-${String(m).padStart(2,'0')}`;
+    let price;
+    if(i===0) price = buyPrice;
+    else if(i===count-1) price = nowPrice;
+    else price = interpPrice(anchors, dstr);
+    values.push(baseValue * (price/buyPrice));
+    dates.push(dstr);
+  }
+  return { values, dates };
+}
 async function fetchValueCurve(coin, dateStr, buyPrice, nowPrice, baseValue, pointsCount){
   try{
     const pointsParam = pointsCount ? `&points=${pointsCount}` : '';
@@ -3058,7 +3086,9 @@ async function fetchValueCurve(coin, dateStr, buyPrice, nowPrice, baseValue, poi
     });
     return { values, dates: points.map(p=>p.date) };
   }catch(err){
-    return null; // график опциональный — тихо скрываем при любой ошибке
+    const fallback = buildCurveFromAnchors(coin, dateStr, buyPrice, nowPrice, baseValue, pointsCount || 10);
+    if(fallback) return fallback; // { values, dates } — dates needed by the "sold too early" peak logic
+    return null; // ни живых данных, ни опорных точек для этой монеты — тихо скрываем график
   }
 }
 // ---- "Sold too early?" — approximate all-time-high value since the sale ----
