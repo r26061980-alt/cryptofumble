@@ -18,6 +18,13 @@
 [functions."telegram-channel-post"]
   schedule = "0 7 * * *"
 
+# Проверка новых исторических максимумов (ATH) по всем 9 монетам — см.
+# netlify/functions/check-ath.js. Раз в 15 минут, UTC (расписание у Netlify
+# всегда в UTC). Если у монеты новый ATH — уведомление уходит всем, кто
+# включил пуш-уведомления (netlify/functions/push-subscribe.js).
+[functions."check-ath"]
+  schedule = "*/15 * * * *"
+
 # Красивые пути: фронт зовёт /api/price и /api/search,
 # Netlify тихо проксирует на реальные функции.
 [[redirects]]
@@ -28,6 +35,11 @@
 [[redirects]]
   from = "/api/search"
   to = "/.netlify/functions/search"
+  status = 200
+
+[[redirects]]
+  from = "/api/push-subscribe"
+  to = "/.netlify/functions/push-subscribe"
   status = 200
 
 # Короткая ссылка для шеринга результата: /r/AbC123 -> функция share.js
