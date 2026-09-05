@@ -155,6 +155,43 @@
     max-width:50ch;
     animation:fadeUp .5s var(--ease) .1s both;
   }
+  /* ---- hero visual: a static example "regret receipt" next to the intro text ---- */
+  .hero-flex{ display:grid; grid-template-columns:1fr; gap:18px; }
+  .hero-visual{ order:-1; position:relative; display:flex; justify-content:center; align-items:center; padding-top:22px; }
+  .hero-receipt-wrap{ width:170px; transform:rotate(-4deg); filter:drop-shadow(0 20px 40px rgba(0,0,0,.5)); animation:fadeUp .5s var(--ease) both; }
+  .hero-receipt-wrap .receipt{ padding:16px 13px 12px; }
+  .hero-receipt-wrap .r-title{ font-size:9px; margin-bottom:3px; }
+  .hero-receipt-wrap .r-sub{ font-size:9px; margin-bottom:11px; }
+  .hero-receipt-wrap .dashed{ margin:9px 0; }
+  .hero-receipt-wrap .r-line{ font-size:10.5px; margin-bottom:4px; }
+  .hero-receipt-wrap .r-big{ margin:11px 0 7px; }
+  .hero-receipt-wrap .r-big .label{ font-size:8.5px; margin-bottom:3px; }
+  .hero-receipt-wrap .r-big .num{ font-size:24px; }
+  .hero-receipt-wrap .r-tier{ font-size:9px; margin-bottom:5px; }
+  .hero-receipt-wrap .r-mult{ font-size:9.5px; padding:3px 9px; }
+  .hero-badge{
+    position:absolute; top:-14px; right:-6px; z-index:2; background:var(--panel); border:1px solid var(--panel-border);
+    border-radius:11px; padding:6px 10px; font-family:var(--sans); font-size:9.5px; color:var(--text);
+    box-shadow:0 14px 30px -12px rgba(0,0,0,.6); transform:rotate(4deg); line-height:1.4; white-space:nowrap;
+  }
+  .hero-badge b{ color:var(--gold); font-family:var(--mono); }
+  .hero-caption{ text-align:center; font-size:11px; color:var(--muted); margin-top:8px; }
+  @media (min-width:700px){
+    .hero-flex{ grid-template-columns:1fr 200px; gap:28px; align-items:center; }
+    .hero-visual{ order:0; padding-top:0; }
+    .hero-receipt-wrap{ width:200px; }
+    .hero-receipt-wrap .receipt{ padding:22px 18px 16px; }
+    .hero-receipt-wrap .r-title{ font-size:10px; margin-bottom:4px; }
+    .hero-receipt-wrap .r-sub{ font-size:10px; margin-bottom:14px; }
+    .hero-receipt-wrap .dashed{ margin:11px 0; }
+    .hero-receipt-wrap .r-line{ font-size:11.5px; margin-bottom:6px; }
+    .hero-receipt-wrap .r-big{ margin:13px 0 8px; }
+    .hero-receipt-wrap .r-big .label{ font-size:9.5px; }
+    .hero-receipt-wrap .r-big .num{ font-size:30px; }
+    .hero-receipt-wrap .r-tier{ font-size:10.5px; }
+    .hero-receipt-wrap .r-mult{ font-size:10.5px; padding:4px 11px; }
+    .hero-badge{ font-size:11.5px; padding:8px 13px; top:-16px; right:-10px; }
+  }
   .live-feed{
     max-width:480px;
     margin:44px auto 0;
@@ -1469,9 +1506,34 @@
   <div id="calcView">
   <div class="layout-grid">
   <div class="main-col">
-  <div class="eyebrow">live prices · coingecko</div>
-  <h1>How much would you have <span>made</span> if you'd bought back then?</h1>
-  <p class="sub">Pick a coin, an amount, and a date — find out what your money would be worth today. Painful, but useful.</p>
+  <div class="hero-flex">
+    <div>
+      <div class="eyebrow">live prices · coingecko</div>
+      <h1>How much would you have <span>made</span> if you'd bought back then?</h1>
+      <p class="sub">Pick a coin, an amount, and a date — find out what your money would be worth today. Painful, but useful.</p>
+    </div>
+    <div class="hero-visual" aria-hidden="true">
+      <div class="hero-receipt-wrap">
+        <div class="receipt">
+          <div class="r-title">— receipt of regret —</div>
+          <div class="r-sub">₿ Bitcoin · bought 2016-01</div>
+          <div class="dashed"></div>
+          <div class="r-line"><span>Invested</span><span>$1,000</span></div>
+          <div class="r-line"><span>Price at purchase</span><span>$430</span></div>
+          <div class="r-line"><span>Price now</span><span>$128,000</span></div>
+          <div class="dashed"></div>
+          <div class="r-big">
+            <div class="label">Would be worth now</div>
+            <div class="num pos">$297,674</div>
+          </div>
+          <div class="r-tier">💎 DIAMOND HANDS VINDICATED</div>
+          <div class="r-mult-wrap"><span class="r-mult pos">x297.7</span></div>
+        </div>
+      </div>
+      <div class="hero-badge">💎 <b>+29,667%</b></div>
+    </div>
+  </div>
+  <div class="hero-caption">↑ example — try your own coin below</div>
   <div class="pf-promo" id="pfPromo" style="display:none;">
     <span>📊 Also track your <b>real</b> portfolio — plus a weekly check-in on Telegram.</span>
     <button type="button" id="pfPromoBtn">Add my first buy →</button>
