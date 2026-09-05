@@ -1402,6 +1402,17 @@
     .pizza-toggle{ display:inline-flex; }
     .pizza-fact-body{ display:none; }
     .pizza-fact-body.open{ display:block; }
+    /* Вкладка "Алмазные руки" на узких телефонах (Фаза 50) — при исходных
+       13px даже одно слово "Алмазные" не помещалось на своей трети строки,
+       и overflow-wrap:anywhere из Фазы 36 иногда переносило его посередине
+       слова ("Алма-/зные" вместо чистого переноса по пробелу перед "руки").
+       Уменьшаем шрифт и паддинги у вкладок только на этой ширине — этого
+       достаточно, чтобы "Алмазные" целиком помещалось на одной строке, и
+       перенос (если вообще нужен) происходил по пробелу, а не посреди слова.
+       overflow-wrap:anywhere в .page-tab выше остаётся как подстраховка на
+       случай ещё более узких экранов — просто больше не должен включаться
+       на типичных телефонах. */
+    .page-tab{ font-size:9.5px; padding:7px 2px; letter-spacing:-0.01em; }
   }
 </style>
 <!-- FAQPage structured data — дословно повторяет FAQ-аккордеон ниже, чтобы
@@ -1630,7 +1641,7 @@
       <button type="button" class="preset-btn" id="coffeePresetBtn">☕ Или посмотри, сколько бы стоил отказ от ежедневного кофе за 5 лет →</button>
     </div>
     <div class="field" style="margin-top:4px;">
-      <button class="cta" id="calcBtn">Покажи ущерб →</button>
+      <button class="cta" id="calcBtn">Покажи мой крипто-момент →</button>
     </div>
   </div>
   <div id="receipt-holder">
@@ -3072,7 +3083,7 @@ const calcBtn = document.getElementById('calcBtn');
 function calcBtnLabelForMode(){
   if(currentMode === 'sold') return 'Покажи, сколько я потерял →';
   if(currentMode === 'dca') return 'Покажи, что получилось бы →';
-  return 'Покажи ущерб →';
+  return 'Покажи мой крипто-момент →';
 }
 // ---- Bought vs "Sold too early" mode ----
 // In "bought" mode, `amount` typed by the user is a DOLLAR amount invested
@@ -3108,7 +3119,7 @@ modeToggle.addEventListener('click', (e)=>{
   } else {
     amountLabel.textContent = 'Сумма';
     dateLabel.textContent = 'Дата покупки';
-    calcBtn.textContent = 'Покажи ущерб →';
+    calcBtn.textContent = 'Покажи мой крипто-момент →';
     amountWrap.classList.remove('no-prefix');
   }
 });
@@ -4520,7 +4531,7 @@ document.getElementById('addToPfBtn').addEventListener('click', ()=>{
 });
 document.getElementById('certBtn').addEventListener('click', async ()=>{
   if(!lastResult){
-    alert('Сначала нажми «Покажи ущерб», чтобы посчитать результат.');
+    alert('Сначала нажми «Покажи мой крипто-момент», чтобы посчитать результат.');
     return;
   }
   const certBtn = document.getElementById('certBtn');
@@ -4757,7 +4768,7 @@ if(myRefCode){
 
 document.getElementById('shareBtn').addEventListener('click', async ()=>{
   if(!lastResult){
-    alert('Сначала нажми «Покажи ущерб», чтобы посчитать результат.');
+    alert('Сначала нажми «Покажи мой крипто-момент», чтобы посчитать результат.');
     return;
   }
   const shareBtn = document.getElementById('shareBtn');
@@ -4791,7 +4802,7 @@ document.getElementById('shareBtn').addEventListener('click', async ()=>{
 // PNG-карточки, текст сообщения собирается прямо из lastResult
 document.getElementById('shareTgBtn').addEventListener('click', ()=>{
   if(!lastResult){
-    alert('Сначала нажми «Покажи ущерб», чтобы посчитать результат.');
+    alert('Сначала нажми «Покажи мой крипто-момент», чтобы посчитать результат.');
     return;
   }
   // "с" (DCA) требует родительного падежа, "в" (купил/продал) — предложного —
