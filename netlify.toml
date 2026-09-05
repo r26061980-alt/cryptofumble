@@ -42,6 +42,11 @@
   to = "/.netlify/functions/push-subscribe"
   status = 200
 
+[[redirects]]
+  from = "/api/referral"
+  to = "/.netlify/functions/referral"
+  status = 200
+
 # Короткая ссылка для шеринга результата: /r/AbC123 -> функция share.js
 #
 # ВАЖНО: Netlify официально НЕ подставляет плейсхолдер из "from" (ни :splat,
