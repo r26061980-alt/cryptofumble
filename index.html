@@ -1635,7 +1635,7 @@
       <button type="button" class="preset-btn" id="coffeePresetBtn">☕ Or see what skipping your daily coffee for 5 years would be worth →</button>
     </div>
     <div class="field" style="margin-top:4px;">
-      <button class="cta" id="calcBtn">Show me the damage →</button>
+      <button class="cta" id="calcBtn">Show me my crypto moment →</button>
     </div>
   </div>
   <div id="receipt-holder">
@@ -3051,7 +3051,7 @@ const calcBtn = document.getElementById('calcBtn');
 function calcBtnLabelForMode(){
   if(currentMode === 'sold') return 'Show me what I lost →';
   if(currentMode === 'dca') return 'Show me my DCA result →';
-  return 'Show me the damage →';
+  return 'Show me my crypto moment →';
 }
 // ---- Bought vs "Sold too early" mode ----
 // In "bought" mode, `amount` typed by the user is a DOLLAR amount invested
@@ -3087,7 +3087,7 @@ modeToggle.addEventListener('click', (e)=>{
   } else {
     amountLabel.textContent = 'Amount';
     dateLabel.textContent = 'Purchase date';
-    calcBtn.textContent = 'Show me the damage →';
+    calcBtn.textContent = 'Show me my crypto moment →';
     amountWrap.classList.remove('no-prefix');
   }
 });
@@ -4522,7 +4522,7 @@ document.getElementById('addToPfBtn').addEventListener('click', ()=>{
 });
 document.getElementById('certBtn').addEventListener('click', async ()=>{
   if(!lastResult){
-    alert('First hit "Show me the damage" to calculate a result.');
+    alert('First hit "Show me my crypto moment" to calculate a result.');
     return;
   }
   const certBtn = document.getElementById('certBtn');
@@ -4761,7 +4761,7 @@ if(myRefCode){
 
 document.getElementById('shareBtn').addEventListener('click', async ()=>{
   if(!lastResult){
-    alert('First hit "Show me the damage" to calculate a result.');
+    alert('First hit "Show me my crypto moment" to calculate a result.');
     return;
   }
   const shareBtn = document.getElementById('shareBtn');
@@ -4795,7 +4795,7 @@ document.getElementById('shareBtn').addEventListener('click', async ()=>{
 // текст твита собирается прямо из lastResult
 document.getElementById('shareXBtn').addEventListener('click', ()=>{
   if(!lastResult){
-    alert('First hit "Show me the damage" to calculate a result.');
+    alert('First hit "Show me my crypto moment" to calculate a result.');
     return;
   }
   const dateHuman = humanDate(lastResult.dateStr);
