@@ -1873,6 +1873,19 @@
     </div>
     <div id="donateStatus" style="font-size:11px;color:var(--muted);margin-top:10px;min-height:14px;"></div>
   </div>
+  <!-- ═══ Referral link with attribution — Фаза 49. No accounts: a stable
+       per-browser code (localStorage) plus a server-side visit counter.
+       See the matching script block near the donate-widget script. ═══ -->
+  <div id="referralSection" style="max-width:360px;margin:32px auto 0;padding-top:24px;border-top:1px solid var(--panel-border-soft);text-align:center;border-radius:12px;">
+    <div style="font-family:var(--mono);font-size:10px;letter-spacing:0.1em;color:var(--muted);text-transform:uppercase;margin-bottom:8px;">🔗 invite a friend</div>
+    <div style="font-size:12px;color:var(--muted);margin-bottom:12px;">Share your link and see how many people used it:</div>
+    <div style="display:flex;align-items:center;gap:8px;justify-content:center;flex-wrap:wrap;">
+      <code id="referralLink" style="font-family:var(--mono);font-size:11px;color:var(--gold-soft);background:var(--panel);border:1px solid var(--panel-border);border-radius:8px;padding:8px 10px;word-break:break-all;max-width:230px;">cryptofumble.com</code>
+      <button type="button" id="referralCopyBtn" style="padding:8px 12px;background:var(--panel);border:1px solid var(--panel-border);border-radius:8px;font-size:12px;font-family:var(--mono);color:var(--gold-soft);cursor:pointer;">📋 Copy</button>
+    </div>
+    <div id="referralStatus" style="font-size:11px;color:var(--muted);margin-top:10px;min-height:14px;"></div>
+    <div id="referralCounter" style="font-size:12px;color:var(--muted);margin-top:2px;display:none;"></div>
+  </div>
   <div style="max-width:480px;margin:24px auto 0;padding-top:20px;text-align:center;font-family:var(--mono);font-size:11.5px;color:var(--muted);">
     <a href="/about.html" style="color:var(--muted);text-decoration:underline;text-underline-offset:2px;">About</a>
     &nbsp;·&nbsp;
@@ -4668,6 +4681,84 @@ function scrollToDonateWidget(source){
 }
 document.getElementById('donateNudgeTop').addEventListener('click', ()=> scrollToDonateWidget('top'));
 document.getElementById('donateNudgeCert').addEventListener('click', ()=> scrollToDonateWidget('certificate'));
+
+// ---- Referral link with attribution (Фаза 49) ----
+// No accounts: each browser gets a short random code, stored once in
+// localStorage (shared across the EN/RU pages — same origin, so a visitor
+// who already has a code on one language keeps it on the other). Sharing
+// /?ref=<code> and someone else opening it counts one visit toward that
+// code server-side (netlify/functions/referral.js). Deliberately simple —
+// same trust level as the live feed/all-time counter (a vanity number, not
+// a verified/rewarded referral program): a code can technically be inflated
+// by calling the API directly, which is an acceptable tradeoff for "no
+// accounts" rather than something worth adding auth for right now.
+const REF_CODE_KEY = 'cf_ref_code';
+function getOrCreateRefCode(){
+  try{
+    let code = localStorage.getItem(REF_CODE_KEY);
+    if(code) return code;
+    const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
+    const bytes = new Uint8Array(6);
+    (window.crypto || window.msCrypto).getRandomValues(bytes);
+    code = Array.from(bytes, b => chars[b % chars.length]).join('');
+    localStorage.setItem(REF_CODE_KEY, code);
+    return code;
+  }catch(e){
+    return null; // localStorage unavailable (private mode, etc.) — widget just won't show a link
+  }
+}
+const myRefCode = getOrCreateRefCode();
+if(myRefCode){
+  const referralLinkEl = document.getElementById('referralLink');
+  if(referralLinkEl) referralLinkEl.textContent = `cryptofumble.com/?ref=${myRefCode}`;
+
+  document.getElementById('referralCopyBtn')?.addEventListener('click', async () => {
+    const statusEl = document.getElementById('referralStatus');
+    try{
+      await navigator.clipboard.writeText(`https://cryptofumble.com/?ref=${myRefCode}`);
+      if(statusEl) statusEl.textContent = '✅ Copied!';
+      if(typeof gtag === 'function') gtag('event', 'referral_link_copied');
+    }catch(err){
+      if(statusEl) statusEl.textContent = "Couldn't copy automatically — just select and copy the link above.";
+    }
+  });
+
+  // Show how many people have come through this browser's own link so far.
+  (async function loadReferralCount(){
+    try{
+      const res = await fetch(`/api/referral?code=${encodeURIComponent(myRefCode)}`);
+      if(!res.ok) return;
+      const { count } = await res.json();
+      const el = document.getElementById('referralCounter');
+      if(el && typeof count === 'number' && count > 0){
+        el.textContent = `👀 ${count} ${count === 1 ? 'person has' : 'people have'} come via your link`;
+        el.style.display = 'block';
+      }
+    }catch(e){
+      // optional widget — never breaks the page if this fails
+    }
+  })();
+}
+
+// Attribute an incoming visit to whoever's ?ref= link brought this visitor
+// here — first-touch only (a reload or repeat visit on the same browser
+// won't double-count), and never counts someone opening their own link.
+(function(){
+  try{
+    const params = new URLSearchParams(location.search);
+    const incoming = params.get('ref');
+    if(!incoming) return;
+    if(incoming === myRefCode) return;
+    if(localStorage.getItem('cf_referred_by')) return;
+    localStorage.setItem('cf_referred_by', incoming);
+    fetch('/api/referral', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ code: incoming }),
+    }).catch(()=>{});
+  }catch(e){}
+})();
+
 document.getElementById('shareBtn').addEventListener('click', async ()=>{
   if(!lastResult){
     alert('First hit "Show me the damage" to calculate a result.');
