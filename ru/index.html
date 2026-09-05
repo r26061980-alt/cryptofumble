@@ -167,6 +167,7 @@
   .hero-receipt-wrap .r-big .label{ font-size:8.5px; margin-bottom:3px; }
   .hero-receipt-wrap .r-big .num{ font-size:24px; }
   .hero-receipt-wrap .r-tier{ font-size:9px; margin-bottom:5px; }
+  .hero-receipt-wrap .r-score-line{ font-size:8px; margin-bottom:5px; }
   .hero-receipt-wrap .r-mult{ font-size:9.5px; padding:3px 9px; }
   .hero-badge{
     position:absolute; top:-14px; right:-6px; z-index:2; background:var(--panel); border:1px solid var(--panel-border);
@@ -188,6 +189,7 @@
     .hero-receipt-wrap .r-big .label{ font-size:9.5px; }
     .hero-receipt-wrap .r-big .num{ font-size:30px; }
     .hero-receipt-wrap .r-tier{ font-size:10.5px; }
+    .hero-receipt-wrap .r-score-line{ font-size:9px; }
     .hero-receipt-wrap .r-mult{ font-size:10.5px; padding:4px 11px; }
     .hero-badge{ font-size:11.5px; padding:8px 13px; top:-16px; right:-10px; }
   }
@@ -928,6 +930,16 @@
   }
   .r-mult.pos{background:rgba(15,122,80,0.12); color:#0F7A50;}
   .r-mult.neg{background:rgba(168,42,48,0.12); color:#A82A30;}
+  .r-score-line{
+    text-align:center;
+    font-family:var(--mono);
+    font-size:11px;
+    font-weight:600;
+    letter-spacing:0.04em;
+    color:var(--paper-ink);
+    opacity:0.5;
+    margin-bottom:8px;
+  }
   .r-chart-wrap{margin:14px 0 4px; display:none;}
   .r-chart-wrap svg{width:100%; height:84px; display:block;}
   .r-chart-caption{
@@ -1371,6 +1383,7 @@
     .r-big{margin:10px 0 6px;}
     .r-mult-wrap{margin-bottom:3px;}
     .r-tier{margin-bottom:6px;}
+    .r-score-line{font-size:10px; margin-bottom:6px;}
     .r-chart-wrap{margin:8px 0 4px;}
     .r-compare{margin-top:8px;}
     .r-sold-peak{margin-top:8px;}
@@ -1504,8 +1517,8 @@
   <div class="hero-flex">
     <div>
       <div class="eyebrow">живые цены · coingecko</div>
-      <h1>Сколько бы ты <span>заработал</span>, если бы купил тогда?</h1>
-      <p class="sub">Выбери монету, сумму и дату — узнай, во что превратились бы твои деньги. Больно, но полезно.</p>
+      <h1>У каждого есть свой крипто-момент. <span>А у тебя какой?</span></h1>
+      <p class="sub">Выбери монету, сумму и дату, которую ты упустил — узнай, во сколько тебе обошлось это решение. Больно, но полезно.</p>
     </div>
     <div class="hero-visual" aria-hidden="true">
       <div class="hero-receipt-wrap">
@@ -1522,6 +1535,7 @@
             <div class="num pos">$297,674</div>
           </div>
           <div class="r-tier">💎 АЛМАЗНЫЕ РУКИ ОКУПИЛИСЬ</div>
+          <div class="r-score-line">Fumble Score: 95/100</div>
           <div class="r-mult-wrap"><span class="r-mult pos">x297.7</span></div>
         </div>
       </div>
@@ -1596,7 +1610,7 @@
       <button type="button" class="preset-btn" id="coffeePresetBtn">☕ Или посмотри, сколько бы стоил отказ от ежедневного кофе за 5 лет →</button>
     </div>
     <div class="field" style="margin-top:4px;">
-      <button class="cta" id="calcBtn">Покажи, что я упустил →</button>
+      <button class="cta" id="calcBtn">Покажи ущерб →</button>
     </div>
   </div>
   <div id="receipt-holder">
@@ -1616,6 +1630,7 @@
         <div class="r-local-currency" id="rLocalCurrency" style="display:none;"></div>
       </div>
       <div class="r-tier" id="rTier">🏆 ЛЕГЕНДАРНЫЙ ТАЙМИНГ</div>
+      <div class="r-score-line" id="rScore">Fumble Score: 93/100</div>
       <div class="r-mult-wrap"><span class="r-mult pos" id="rMult">x13.4</span></div>
       <div class="r-chart-wrap" id="rChartWrap" style="display:none;">
         <svg id="rChartSvg" viewBox="0 0 280 92" preserveAspectRatio="none"></svg>
@@ -3024,7 +3039,7 @@ const calcBtn = document.getElementById('calcBtn');
 function calcBtnLabelForMode(){
   if(currentMode === 'sold') return 'Покажи, сколько я потерял →';
   if(currentMode === 'dca') return 'Покажи, что получилось бы →';
-  return 'Покажи, что я упустил →';
+  return 'Покажи ущерб →';
 }
 // ---- Bought vs "Sold too early" mode ----
 // In "bought" mode, `amount` typed by the user is a DOLLAR amount invested
@@ -3060,7 +3075,7 @@ modeToggle.addEventListener('click', (e)=>{
   } else {
     amountLabel.textContent = 'Сумма';
     dateLabel.textContent = 'Дата покупки';
-    calcBtn.textContent = 'Покажи, что я упустил →';
+    calcBtn.textContent = 'Покажи ущерб →';
     amountWrap.classList.remove('no-prefix');
   }
 });
@@ -3123,6 +3138,15 @@ function getTier(mult){
   if(mult < 10)   return { label: 'ХОРОШИЙ УЛОВ', emoji: '🎣' };
   if(mult < 50)   return { label: 'ЛЕГЕНДАРНЫЙ ТАЙМИНГ', emoji: '🏆' };
   return { label: 'АЛМАЗНЫЕ РУКИ ОКУПИЛИСЬ', emoji: '💎' };
+}
+// ---- Fumble Score — тот же множитель, выраженный одним числом от 0 до 100 ----
+// (визуальный слой поверх уже существующих тиров, не новая механика:
+// логарифмическая шкала, отцентрованная на безубытке (mult=1 → 50), чтобы
+// оставаться читаемой хоть при 0.01x, хоть при 1 000 000x)
+function getFumbleScore(mult){
+  if(!(mult > 0)) return 0;
+  const raw = 50 + 18 * Math.log10(mult);
+  return Math.max(0, Math.min(100, Math.round(raw)));
 }
 // ---- Кривая стоимости позиции для графика на чеке ----
 // pointsCount — опциональный оверрайд числа точек (см. range.js: points=<N>).
@@ -3382,6 +3406,7 @@ async function runLumpSumCalculation(coin, opts){
   document.getElementById('rMult').className = 'r-mult '+(isGood?'pos':'neg');
   document.getElementById('rResult').className = 'num '+(isGood?'pos':'neg');
   document.getElementById('rTier').textContent = `${tier.emoji} ${tier.label}`;
+  document.getElementById('rScore').textContent = `Fumble Score: ${getFumbleScore(currentMode === 'sold' ? (1/mult) : mult)}/100`;
   const aaplBuy = interpPrice(AAPL, dateStr);
   const aaplNow = interpPrice(AAPL, '2026-08');
   const aaplResult = baseValue * (aaplNow/aaplBuy);
@@ -3618,6 +3643,7 @@ async function runDcaCalculation(coin, opts){
     document.getElementById('rMult').className = 'r-mult '+(isGood?'pos':'neg');
     document.getElementById('rResult').className = 'num '+(isGood?'pos':'neg');
     document.getElementById('rTier').textContent = `${tier.emoji} ${tier.label}`;
+    document.getElementById('rScore').textContent = `Fumble Score: ${getFumbleScore(mult)}/100`;
     const spBuy = interpPrice(SP500, dateStr);
     const spNow = interpPrice(SP500, '2026-08');
     const spResult = totalInvested * (spNow/spBuy);
@@ -4461,7 +4487,7 @@ document.getElementById('addToPfBtn').addEventListener('click', ()=>{
 });
 document.getElementById('certBtn').addEventListener('click', async ()=>{
   if(!lastResult){
-    alert('Сначала нажми «Покажи, что я упустил», чтобы посчитать результат.');
+    alert('Сначала нажми «Покажи ущерб», чтобы посчитать результат.');
     return;
   }
   const certBtn = document.getElementById('certBtn');
@@ -4618,7 +4644,7 @@ document.getElementById('donateCopyBtn').addEventListener('click', async () => {
 });
 document.getElementById('shareBtn').addEventListener('click', async ()=>{
   if(!lastResult){
-    alert('Сначала нажми «Покажи, что я упустил», чтобы посчитать результат.');
+    alert('Сначала нажми «Покажи ущерб», чтобы посчитать результат.');
     return;
   }
   const shareBtn = document.getElementById('shareBtn');
@@ -4652,7 +4678,7 @@ document.getElementById('shareBtn').addEventListener('click', async ()=>{
 // PNG-карточки, текст сообщения собирается прямо из lastResult
 document.getElementById('shareTgBtn').addEventListener('click', ()=>{
   if(!lastResult){
-    alert('Сначала нажми «Покажи, что я упустил», чтобы посчитать результат.');
+    alert('Сначала нажми «Покажи ущерб», чтобы посчитать результат.');
     return;
   }
   // "с" (DCA) требует родительного падежа, "в" (купил/продал) — предложного —
@@ -4662,11 +4688,11 @@ document.getElementById('shareTgBtn').addEventListener('click', ()=>{
   const verb = lastResult.mode === 'sold' ? 'продал' : 'купил';
   const text = lastResult.mode === 'dca'
     ? (lastResult.isGood
-        ? `${lastResult.tier.emoji} У меня было бы ${lastResult.resultFmt}, если бы я инвестировал каждый месяц в ${lastResult.coinName} с ${dateHumanGen}.\n\nПроверь, сколько было бы у тебя →`
-        : `${lastResult.tier.emoji} ${lastResult.tier.label}: у меня было бы ${lastResult.resultFmt}, если бы я инвестировал каждый месяц в ${lastResult.coinName} с ${dateHumanGen}.\n\nПроверь свой →`)
+        ? `${lastResult.tier.emoji} Если бы я инвестировал каждый месяц в ${lastResult.coinName} с ${dateHumanGen}, у меня было бы ${lastResult.resultFmt}.\n\nУ каждого есть свой крипто-момент — проверь свой →`
+        : `${lastResult.tier.emoji} ${lastResult.tier.label}. Всего ${lastResult.resultFmt} от DCA в ${lastResult.coinName} с ${dateHumanGen}.\n\nЯ облажался. А у тебя какой крипто-момент? →`)
     : lastResult.isGood
-      ? `${lastResult.tier.emoji} У меня было бы ${lastResult.resultFmt}, если бы я ${verb} ${lastResult.coinName} в ${dateHumanPrep}.\n\nПроверь, что упустил ты →`
-      : `${lastResult.tier.emoji} ${lastResult.tier.label}: у меня было бы ${lastResult.resultFmt}, если бы я ${verb} ${lastResult.coinName} в ${dateHumanPrep}.\n\nПроверь свой →`;
+      ? `${lastResult.tier.emoji} У меня было бы ${lastResult.resultFmt}, если бы я ${verb} ${lastResult.coinName} в ${dateHumanPrep}.\n\nУ каждого есть свой крипто-момент — проверь свой →`
+      : `${lastResult.tier.emoji} Я облажался с ${lastResult.coinName}. Было бы ${lastResult.resultFmt}, если бы ${verb} его в ${dateHumanPrep}.\n\nА у тебя какой крипто-момент? →`;
   // Ссылка ведёт на netlify/functions/share.js с параметром lang=ru — там
   // og:image указывает на og-image.js с картинкой именно этого результата
   // (см. share.js/og-image.js), а не на страницу /ru с одной и той же
