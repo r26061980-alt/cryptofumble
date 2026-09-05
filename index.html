@@ -2714,17 +2714,19 @@ document.getElementById('pizzaFactBtn').addEventListener('click', async ()=>{
     btn.disabled = false;
   }
 });
-// ---- Daily "N people checked their regret today" counter ----
+// ---- All-time "N regret receipts generated" counter ----
 // (this is a real usage count, backed by actual calculator submissions —
-// unlike the old feed below it, it's not shown as if it were market data)
+// unlike the old feed below it, it's not shown as if it were market data.
+// Was a "today" counter that reset daily; switched to an all-time total
+// so it never shows a small number during a slow hour and never resets.)
 async function loadRegretCounter(){
   try{
     const res = await fetch('/.netlify/functions/feed');
     if(!res.ok) return; // счётчик не настроен или временно недоступен — просто не показываем блок
-    const { count } = await res.json();
-    if(typeof count === 'number' && count > 0){
+    const { total } = await res.json();
+    if(typeof total === 'number' && total > 0){
       const counterEl = document.getElementById('regretCounter');
-      counterEl.innerHTML = `🔥 <b>${count.toLocaleString('en-US')}</b> ${count === 1 ? 'person has' : 'people have'} checked their regret today`;
+      counterEl.innerHTML = `🔥 <b>${total.toLocaleString('en-US')}</b> regret ${total === 1 ? 'receipt' : 'receipts'} generated so far`;
       counterEl.style.display = 'block';
     }
   }catch(err){
