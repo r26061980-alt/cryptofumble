@@ -1867,6 +1867,19 @@
     </div>
     <div id="donateStatus" style="font-size:11px;color:var(--muted);margin-top:10px;min-height:14px;"></div>
   </div>
+  <!-- ═══ Реферальная ссылка с атрибуцией — Фаза 49. Без аккаунтов: стабильный
+       код на браузер (localStorage) + счётчик переходов на сервере. См.
+       соответствующий блок скрипта рядом со скриптом доната. ═══ -->
+  <div id="referralSection" style="max-width:360px;margin:32px auto 0;padding-top:24px;border-top:1px solid var(--panel-border-soft);text-align:center;border-radius:12px;">
+    <div style="font-family:var(--mono);font-size:10px;letter-spacing:0.1em;color:var(--muted);text-transform:uppercase;margin-bottom:8px;">🔗 позови друга</div>
+    <div style="font-size:12px;color:var(--muted);margin-bottom:12px;">Скинь свою ссылку — узнаешь, сколько людей по ней зашло:</div>
+    <div style="display:flex;align-items:center;gap:8px;justify-content:center;flex-wrap:wrap;">
+      <code id="referralLink" style="font-family:var(--mono);font-size:11px;color:var(--gold-soft);background:var(--panel);border:1px solid var(--panel-border);border-radius:8px;padding:8px 10px;word-break:break-all;max-width:230px;">cryptofumble.com/ru</code>
+      <button type="button" id="referralCopyBtn" style="padding:8px 12px;background:var(--panel);border:1px solid var(--panel-border);border-radius:8px;font-size:12px;font-family:var(--mono);color:var(--gold-soft);cursor:pointer;">📋 Копировать</button>
+    </div>
+    <div id="referralStatus" style="font-size:11px;color:var(--muted);margin-top:10px;min-height:14px;"></div>
+    <div id="referralCounter" style="font-size:12px;color:var(--muted);margin-top:2px;display:none;"></div>
+  </div>
   <div style="max-width:480px;margin:24px auto 0;padding-top:20px;text-align:center;font-family:var(--mono);font-size:11.5px;color:var(--muted);">
     <a href="/ru/about.html" style="color:var(--muted);text-decoration:underline;text-underline-offset:2px;">О проекте</a>
     &nbsp;·&nbsp;
@@ -4662,6 +4675,86 @@ document.getElementById('donateCopyBtn').addEventListener('click', async () => {
     statusEl.textContent = 'Не получилось скопировать автоматически — выдели и скопируй адрес вручную.';
   }
 });
+
+// ---- Реферальная ссылка с атрибуцией (Фаза 49) ----
+// Без аккаунтов: у каждого браузера — короткий случайный код, один раз
+// сохранённый в localStorage (общий для EN/RU-версий — один origin, поэтому
+// у того, кто уже был на английской версии, код останется тем же). Ссылкой
+// /?ref=<код> делятся, и когда кто-то другой по ней заходит — засчитывается
+// один переход на сервере (netlify/functions/referral.js). Специально
+// сделано просто — тот же уровень доверия, что у живой ленты/общего
+// счётчика (декоративное число, а не проверенная/вознаграждаемая
+// реферальная программа): свой счётчик технически можно накрутить, вызвав
+// API напрямую — приемлемый компромисс ради отсутствия аккаунтов, заводить
+// авторизацию ради этого пока не стоит.
+const REF_CODE_KEY = 'cf_ref_code';
+function getOrCreateRefCode(){
+  try{
+    let code = localStorage.getItem(REF_CODE_KEY);
+    if(code) return code;
+    const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
+    const bytes = new Uint8Array(6);
+    (window.crypto || window.msCrypto).getRandomValues(bytes);
+    code = Array.from(bytes, b => chars[b % chars.length]).join('');
+    localStorage.setItem(REF_CODE_KEY, code);
+    return code;
+  }catch(e){
+    return null; // localStorage недоступен (приватный режим и т.п.) — виджет просто не покажет ссылку
+  }
+}
+const myRefCode = getOrCreateRefCode();
+if(myRefCode){
+  const referralLinkEl = document.getElementById('referralLink');
+  if(referralLinkEl) referralLinkEl.textContent = `cryptofumble.com/ru/?ref=${myRefCode}`;
+
+  document.getElementById('referralCopyBtn')?.addEventListener('click', async () => {
+    const statusEl = document.getElementById('referralStatus');
+    try{
+      await navigator.clipboard.writeText(`https://cryptofumble.com/ru/?ref=${myRefCode}`);
+      if(statusEl) statusEl.textContent = '✅ Скопировано!';
+      if(typeof gtag === 'function') gtag('event', 'referral_link_copied');
+    }catch(err){
+      if(statusEl) statusEl.textContent = 'Не получилось скопировать автоматически — выдели и скопируй ссылку вручную.';
+    }
+  });
+
+  // Показываем, сколько людей уже перешло по ссылке этого браузера.
+  (async function loadReferralCount(){
+    try{
+      const res = await fetch(`/api/referral?code=${encodeURIComponent(myRefCode)}`);
+      if(!res.ok) return;
+      const { count } = await res.json();
+      const el = document.getElementById('referralCounter');
+      if(el && typeof count === 'number' && count > 0){
+        const word = pluralForm(count, ['человек перешёл', 'человека перешли', 'человек перешли']);
+        el.textContent = `👀 ${count} ${word} по твоей ссылке`;
+        el.style.display = 'block';
+      }
+    }catch(e){
+      // виджет опциональный — при ошибке просто ничего не показываем
+    }
+  })();
+}
+
+// Засчитываем переход тому, чья ссылка /?ref=... привела этого посетителя —
+// только первый раз (перезагрузка/повторный визит на этом же браузере не
+// задвоит счётчик), и никогда не засчитываем переход по собственной ссылке.
+(function(){
+  try{
+    const params = new URLSearchParams(location.search);
+    const incoming = params.get('ref');
+    if(!incoming) return;
+    if(incoming === myRefCode) return;
+    if(localStorage.getItem('cf_referred_by')) return;
+    localStorage.setItem('cf_referred_by', incoming);
+    fetch('/api/referral', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ code: incoming }),
+    }).catch(()=>{});
+  }catch(e){}
+})();
+
 document.getElementById('shareBtn').addEventListener('click', async ()=>{
   if(!lastResult){
     alert('Сначала нажми «Покажи ущерб», чтобы посчитать результат.');
