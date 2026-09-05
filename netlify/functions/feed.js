@@ -4,7 +4,7 @@
 // (бесплатный тариф, доступ по обычному REST API через fetch — без npm,
 // без package.json, без шага сборки, тот же паттерн, что price.js/search.js).
 //
-// GET  -> вернуть последние 5 записей + счётчик расчётов за сегодня
+// GET  -> вернуть последние 5 записей + счётчик расчётов за сегодня + счётчик за всё время
 // POST -> добавить новую запись (вызывается после каждого успешного расчёта)
 //
 // Переменные окружения (задаются в Netlify так же, как COINGECKO_API_KEY):
@@ -19,6 +19,7 @@
 const FEED_KEY = 'feed';
 const MAX_ENTRIES = 50; // сколько храним всего (лента показывает меньше)
 const COUNTER_TTL_SECONDS = 172800; // 2 дня — с запасом, чтобы не копить ключи вечно
+const TOTAL_KEY = 'count:total'; // счётчик за всё время — постоянный ключ, без TTL, никогда не сбрасывается
 
 function upstashHeaders(token) {
   return { Authorization: `Bearer ${token}` };
@@ -59,14 +60,25 @@ exports.handler = async (event) => {
         })
         .filter(Boolean);
 
-      // счётчик — best effort: если Upstash недоступен именно на этот запрос,
-      // просто отдаём count:0 и не роняем всю ленту из-за этого
+      // счётчики — best effort: если Upstash недоступен именно на этот запрос,
+      // просто отдаём 0 и не роняем всю ленту из-за этого
       let count = 0;
       try {
         const countRes = await fetch(`${REST_URL}/get/${todayCounterKey()}`, { headers });
         if (countRes.ok) {
           const countJson = await countRes.json();
           count = parseInt(countJson.result, 10) || 0;
+        }
+      } catch {
+        // не критично — просто не покажем счётчик на этот раз
+      }
+
+      let total = 0;
+      try {
+        const totalRes = await fetch(`${REST_URL}/get/${TOTAL_KEY}`, { headers });
+        if (totalRes.ok) {
+          const totalJson = await totalRes.json();
+          total = parseInt(totalJson.result, 10) || 0;
         }
       } catch {
         // не критично — просто не покажем счётчик на этот раз
@@ -80,7 +92,7 @@ exports.handler = async (event) => {
           'Cache-Control': 'public, max-age=10, s-maxage=15, stale-while-revalidate=60',
           'Access-Control-Allow-Origin': '*',
         },
-        body: JSON.stringify({ entries, count }),
+        body: JSON.stringify({ entries, count, total }),
       };
     } catch (err) {
       return {
@@ -123,6 +135,13 @@ exports.handler = async (event) => {
         await fetch(`${REST_URL}/expire/${counterKey}/${COUNTER_TTL_SECONDS}`, { headers });
       } catch {
         // не критично — просто счётчик на сайте не подрастёт от этого расчёта
+      }
+
+      // счётчик за всё время — постоянный ключ, без EXPIRE, никогда не сбрасывается
+      try {
+        await fetch(`${REST_URL}/incr/${TOTAL_KEY}`, { headers });
+      } catch {
+        // не критично — просто общий счётчик на сайте не подрастёт от этого расчёта
       }
 
       return {
