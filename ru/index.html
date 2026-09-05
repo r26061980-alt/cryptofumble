@@ -2735,19 +2735,20 @@ document.getElementById('pizzaFactBtn').addEventListener('click', async ()=>{
     btn.disabled = false;
   }
 });
-// ---- Счётчик "N человек проверили свой регрет сегодня" ----
+// ---- Счётчик "N чеков упущенной прибыли сформировано" (за всё время) ----
 // (это реальное число обращений к калькулятору — в отличие от старой ленты
-// ниже, здесь не выдаём чужие гипотетические расчёты за похожее на рыночные данные)
+// ниже, здесь не выдаём чужие гипотетические расчёты за похожее на рыночные данные.
+// Раньше был счётчик "за сегодня", сбрасывался каждый день — заменили на
+// общий за всё время, чтобы не показывать маленькое число в тихий час и не сбрасываться)
 async function loadRegretCounter(){
   try{
     const res = await fetch('/.netlify/functions/feed');
     if(!res.ok) return; // счётчик не настроен или временно недоступен — просто не показываем блок
-    const { count } = await res.json();
-    if(typeof count === 'number' && count > 0){
+    const { total } = await res.json();
+    if(typeof total === 'number' && total > 0){
       const counterEl = document.getElementById('regretCounter');
-      const countWord = pluralForm(count, ['человек', 'человека', 'человек']);
-      const countVerb = pluralForm(count, ['проверил', 'проверили', 'проверили']);
-      counterEl.innerHTML = `🔥 <b>${count.toLocaleString('ru-RU')}</b> ${countWord} уже ${countVerb} свой регрет сегодня`;
+      const totalWord = pluralForm(total, ['чек упущенной прибыли', 'чека упущенной прибыли', 'чеков упущенной прибыли']);
+      counterEl.innerHTML = `🔥 Уже сформировано <b>${total.toLocaleString('ru-RU')}</b> ${totalWord}`;
       counterEl.style.display = 'block';
     }
   }catch(err){
