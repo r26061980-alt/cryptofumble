@@ -1651,6 +1651,8 @@
     <button class="share-cta" id="shareBtn">📸 Сгенерировать карточку для шеринга</button>
     <button class="share-cta" id="shareTgBtn">✈️ Поделиться в Telegram</button>
     <div id="shareTgThanks" style="display:none; font-size:11.5px; color:var(--muted); text-align:center; margin-top:-4px;"></div>
+    <button class="share-cta" id="shareWaBtn">💬 Поделиться в WhatsApp</button>
+    <div id="shareWaThanks" style="display:none; font-size:11.5px; color:var(--muted); text-align:center; margin-top:-4px;"></div>
     <div id="shareCardWrap" style="display:none; margin-top:14px; text-align:center;">
       <canvas id="shareCanvas" width="640" height="800" style="display:none;"></canvas>
       <img id="shareCardImg" style="width:100%; border-radius:14px; box-shadow:0 12px 40px rgba(0,0,0,0.5);">
@@ -4800,6 +4802,35 @@ document.getElementById('shareTgBtn').addEventListener('click', ()=>{
   thanksEl.style.display = 'block';
   if(typeof gtag === 'function'){
     gtag('event', 'share_tg_click', { outcome: lastResult.isGood?'win':'loss', coin: lastResult.coinSymbol });
+  }
+});
+document.getElementById('shareWaBtn').addEventListener('click', ()=>{
+  if(!lastResult){
+    alert('Сначала нажми «Покажи мой крипто-момент», чтобы посчитать результат.');
+    return;
+  }
+  // "с" (DCA) требует родительного падежа, "в" (купил/продал) — предложного —
+  // это разные формы месяца, считаем обе сразу из сырой даты.
+  const dateHumanGen = humanDateGen(lastResult.dateStr);
+  const dateHumanPrep = humanDatePrep(lastResult.dateStr);
+  const verb = lastResult.mode === 'sold' ? 'продал' : 'купил';
+  const text = lastResult.mode === 'dca'
+    ? (lastResult.isGood
+        ? `${lastResult.tier.emoji} Если бы я инвестировал каждый месяц в ${lastResult.coinName} с ${dateHumanGen}, у меня было бы ${lastResult.resultFmt}.\n\nУ каждого есть свой крипто-момент — проверь свой →`
+        : `${lastResult.tier.emoji} ${lastResult.tier.label}. Всего ${lastResult.resultFmt} от DCA в ${lastResult.coinName} с ${dateHumanGen}.\n\nЯ облажался. А у тебя какой крипто-момент? →`)
+    : lastResult.isGood
+      ? `${lastResult.tier.emoji} У меня было бы ${lastResult.resultFmt}, если бы я ${verb} ${lastResult.coinName} в ${dateHumanPrep}.\n\nУ каждого есть свой крипто-момент — проверь свой →`
+      : `${lastResult.tier.emoji} Я облажался с ${lastResult.coinName}. Было бы ${lastResult.resultFmt}, если бы ${verb} его в ${dateHumanPrep}.\n\nА у тебя какой крипто-момент? →`;
+  const shareUrl = buildShareUrl('ru');
+  // У WhatsApp нет отдельного параметра url, как у Telegram/X — ссылку
+  // добавляем прямо в текст сообщения.
+  const intentUrl = `https://wa.me/?text=${encodeURIComponent(text + '\n\n' + shareUrl)}`;
+  window.open(intentUrl, '_blank', 'noopener,noreferrer');
+  const thanksEl = document.getElementById('shareWaThanks');
+  thanksEl.innerHTML = 'Спасибо, что поделился! ☕ <a href="#donateWidgetSection" style="color:var(--gold-soft);">Если хочешь, ниже есть ссылка на донат</a>.';
+  thanksEl.style.display = 'block';
+  if(typeof gtag === 'function'){
+    gtag('event', 'share_wa_click', { outcome: lastResult.isGood?'win':'loss', coin: lastResult.coinSymbol });
   }
 });
 // ---- "Сравнить с другой монетой" — та же сумма/дата, другая монета (только режим "купил") ----
