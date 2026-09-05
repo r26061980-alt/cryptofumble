@@ -1393,11 +1393,12 @@
     .r-sold-peak{margin-top:8px;}
     .r-footer{margin-top:8px;}
     .share-cta, .cta-invest{margin-top:10px;}
-    /* Топ-10 тикер сворачивается до 5 строк на телефоне — сам тикер идёт уже
-       после чека и кнопок, так что это не приближает "Add to portfolio"
-       (это уже почти выжато выше), а просто укорачивает то, что осталось
-       ниже, для тех, кто листает до конца страницы. */
-    .live-feed-list:not(.expanded) .live-feed-row:nth-child(n+6){ display:none; }
+    /* Топ-10 тикер сворачивается до 3 строк на телефоне (Фаза 52, по просьбе
+       Руслана — было 5) — сам тикер идёт уже после чека и кнопок, так что
+       это не приближает "Add to portfolio" (это уже почти выжато выше), а
+       просто укорачивает то, что осталось ниже, для тех, кто листает до
+       конца страницы. */
+    .live-feed-list:not(.expanded) .live-feed-row:nth-child(n+4){ display:none; }
     .ticker-toggle{ display:block; }
     /* "True story" (bitcoin pizza easter egg) collapses on mobile — only the
        label and arrow show by default, the full text+button open on tap, so
@@ -1711,7 +1712,7 @@
   <div class="live-feed" id="marketTicker" style="display:none;">
     <div class="live-feed-title">📊 TOP 10 BY MARKET CAP</div>
     <div class="live-feed-list" id="marketTickerList"></div>
-    <button type="button" class="ticker-toggle" id="tickerToggle" aria-expanded="false">▼ Show 5 more</button>
+    <button type="button" class="ticker-toggle" id="tickerToggle" aria-expanded="false">▼ Show 7 more</button>
   </div>
   </div>
   </div>
@@ -2893,9 +2894,9 @@ async function loadMarketTicker(){
       slot.replaceWith(makeTickerIconEl(slot.dataset.image, slot.dataset.symbol));
     });
     document.getElementById('marketTicker').style.display = 'block';
-    // если монет 5 или меньше — сворачивать нечего, прячем стрелку
+    // если монет 3 или меньше — сворачивать нечего, прячем стрелку
     const toggle = document.getElementById('tickerToggle');
-    if (toggle) toggle.classList.toggle('tt-hide', coins.length <= 5);
+    if (toggle) toggle.classList.toggle('tt-hide', coins.length <= 3);
   }catch(err){
     // тихо ничего не показываем — тикер опциональная фича, не должен ничего ломать
   }
@@ -2915,7 +2916,7 @@ setInterval(loadMarketTicker, 60000); // держим цены свежими, �
     const list = document.getElementById('marketTickerList');
     if (!list) return;
     const expanded = list.classList.toggle('expanded');
-    tickerToggle.textContent = expanded ? '▲ Show less' : '▼ Show 5 more';
+    tickerToggle.textContent = expanded ? '▲ Show less' : '▼ Show 7 more';
     tickerToggle.setAttribute('aria-expanded', expanded ? 'true' : 'false');
   });
 })();
