@@ -1505,6 +1505,26 @@
 ">
   Tap <b>Share</b> ⬆️ in Safari&#39;s toolbar, then choose <b>&quot;Add to Home Screen&quot;</b>.
 </div>
+<!-- ═══ Push-notification opt-in — Фаза 48. See the comment above the
+     matching script block near the service-worker registration. ═══ -->
+<div id="pushBanner" style="
+  display:none; align-items:center; justify-content:center; gap:12px;
+  flex-wrap:wrap; text-align:center;
+  background:#14141A; border-bottom:1px solid #2A2A33;
+  color:#F5F5F7; font-family:'Manrope', sans-serif; font-weight:700;
+  font-size:14px; padding:12px 44px 12px 16px; position:relative;
+">
+  <span>🔔 Get notified when a coin hits a new all-time high</span>
+  <button id="pushBannerMain" style="
+    background:#F0B90B; color:#0D1117; padding:7px 16px; border-radius:8px;
+    border:none; font-weight:800; white-space:nowrap; cursor:pointer; font-size:14px;
+    font-family:'Manrope', sans-serif;
+  ">Enable</button>
+  <button id="pushBannerClose" aria-label="Close" style="
+    position:absolute; right:12px; top:12px; background:none; border:none;
+    font-size:18px; font-weight:700; color:#8B8B96; cursor:pointer; line-height:1;
+  ">×</button>
+</div>
 <div class="wrap">
   <div style="display:flex; align-items:center; gap:8px; margin-bottom:22px; flex-wrap:wrap;">
     <div class="page-tabs" id="pageTabs" style="margin-bottom:0; flex:1; min-width:0;">
@@ -5017,6 +5037,74 @@ if('serviceWorker' in navigator){
           iosHint.style.display = (iosHint.style.display === 'none' || !iosHint.style.display) ? 'block' : 'none';
         }
       });
+    }
+
+    if(document.readyState === 'loading'){
+      document.addEventListener('DOMContentLoaded', wireUp);
+    } else {
+      wireUp();
+    }
+  }catch(e){}
+})();
+
+// ---- Push notifications: "new all-time high" alerts (Фаза 48) ----
+// Opt-in only, dismissible, never re-shown after a decision (grant/deny/
+// close) — same UX pattern as the install banner above. Uses the standard
+// Push API + a VAPID-authenticated subscription stored server-side (see
+// netlify/functions/push-subscribe.js); the actual sending happens from a
+// scheduled function (check-ath.js) that polls each coin's live price and
+// compares it to the last known all-time high.
+(function(){
+  try{
+    if(!('serviceWorker' in navigator) || !('PushManager' in window) || !('Notification' in window)) return;
+    if(localStorage.getItem('cf_push_decided') === '1') return;
+    if(Notification.permission === 'denied'){ try{ localStorage.setItem('cf_push_decided','1'); }catch(e){} return; }
+
+    var VAPID_PUBLIC_KEY = 'BEm_Tbo4uchCVQeKpV-_3t7H5Ukiw3rG6qo3TN2hm-UsdNlpHT6Qa6RPBtGeMTatVTW9PZGagi7-LvuQa3eGI44';
+
+    function urlBase64ToUint8Array(base64String){
+      var padding = '='.repeat((4 - base64String.length % 4) % 4);
+      var base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+      var rawData = atob(base64);
+      var outputArray = new Uint8Array(rawData.length);
+      for(var i = 0; i < rawData.length; ++i) outputArray[i] = rawData.charCodeAt(i);
+      return outputArray;
+    }
+
+    var banner = null;
+    function showBanner(){ if(banner) banner.style.display = 'flex'; }
+    function hideBanner(){ if(banner) banner.style.display = 'none'; }
+    function decided(){ try{ localStorage.setItem('cf_push_decided','1'); }catch(e){} hideBanner(); }
+
+    async function subscribe(){
+      try{
+        var permission = await Notification.requestPermission();
+        if(permission !== 'granted'){ decided(); return; }
+        var reg = await navigator.serviceWorker.ready;
+        var sub = await reg.pushManager.subscribe({
+          userVisibleOnly: true,
+          applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY)
+        });
+        await fetch('/api/push-subscribe', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ subscription: sub.toJSON(), lang: 'en' })
+        });
+      }catch(e){}
+      decided();
+    }
+
+    function wireUp(){
+      banner = document.getElementById('pushBanner');
+      if(!banner) return;
+      // Small delay so this doesn't pop in at the exact same instant as the
+      // install banner above if both are eligible to show.
+      setTimeout(showBanner, 3500);
+
+      var mainBtn = document.getElementById('pushBannerMain');
+      var closeBtn = document.getElementById('pushBannerClose');
+      if(closeBtn) closeBtn.addEventListener('click', function(e){ e.stopPropagation(); decided(); });
+      if(mainBtn) mainBtn.addEventListener('click', subscribe);
     }
 
     if(document.readyState === 'loading'){
