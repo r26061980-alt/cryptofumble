@@ -50,3 +50,35 @@ self.addEventListener('fetch', (event) => {
       .catch(() => caches.match(req))
   );
 });
+
+// ---- Web Push (Фаза 48: new all-time-high alerts) ----
+// Payload sent by netlify/functions/check-ath.js is always JSON:
+// { title, body, url, tag }. icon/badge reuse the site's own PWA icons
+// (already part of the install shell cached above).
+self.addEventListener('push', (event) => {
+  let data = {};
+  try { data = event.data ? event.data.json() : {}; } catch (e) {}
+  const title = data.title || 'CryptoFumble';
+  const options = {
+    body: data.body || '',
+    icon: '/favicon-180.png',
+    badge: '/favicon-32.png',
+    tag: data.tag || 'cryptofumble-ath',
+    data: { url: data.url || '/' },
+  };
+  event.waitUntil(self.registration.showNotification(title, options));
+});
+
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close();
+  const targetUrl = (event.notification.data && event.notification.data.url) || '/';
+  event.waitUntil(
+    clients.matchAll({ type: 'window', includeUncontrolled: true }).then((windowClients) => {
+      const targetPath = new URL(targetUrl, self.location.origin).pathname;
+      for (const client of windowClients) {
+        if (client.url.includes(targetPath) && 'focus' in client) return client.focus();
+      }
+      if (clients.openWindow) return clients.openWindow(targetUrl);
+    })
+  );
+});
