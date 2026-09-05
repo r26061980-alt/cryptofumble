@@ -1850,10 +1850,10 @@ async function loadLiveFeed(){
   try{
     const res = await fetch('/.netlify/functions/feed');
     if(!res.ok) return; // лента не настроена или временно недоступна — просто не показываем блок
-    const { entries, count } = await res.json();
-    if(typeof count === 'number' && count > 0){
+    const { entries, total } = await res.json();
+    if(typeof total === 'number' && total > 0){
       const counterEl = document.getElementById('regretCounter');
-      counterEl.innerHTML = `🔥 <b>${count.toLocaleString('en-US')}</b> ${count === 1 ? 'persona ha' : 'personas han'} revisado su arrepentimiento hoy`;
+      counterEl.innerHTML = `🔥 <b>${total.toLocaleString('en-US')}</b> ${total === 1 ? 'recibo de arrepentimiento generado' : 'recibos de arrepentimiento generados'} hasta ahora`;
       counterEl.style.display = 'block';
     }
     if(!entries || entries.length === 0) return;
