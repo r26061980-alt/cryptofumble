@@ -1500,6 +1500,26 @@
 ">
   Нажми <b>«Поделиться»</b> ⬆️ в Safari, затем выбери <b>«На экран «Домой»»</b>.
 </div>
+<!-- ═══ Подписка на пуш-уведомления — Фаза 48. См. комментарий над соответствующим
+     блоком скрипта рядом с регистрацией service worker. ═══ -->
+<div id="pushBanner" style="
+  display:none; align-items:center; justify-content:center; gap:12px;
+  flex-wrap:wrap; text-align:center;
+  background:#14141A; border-bottom:1px solid #2A2A33;
+  color:#F5F5F7; font-family:'Manrope', sans-serif; font-weight:700;
+  font-size:14px; padding:12px 44px 12px 16px; position:relative;
+">
+  <span>🔔 Уведомим, когда монета обновит исторический максимум</span>
+  <button id="pushBannerMain" style="
+    background:#F0B90B; color:#0D1117; padding:7px 16px; border-radius:8px;
+    border:none; font-weight:800; white-space:nowrap; cursor:pointer; font-size:14px;
+    font-family:'Manrope', sans-serif;
+  ">Включить</button>
+  <button id="pushBannerClose" aria-label="Close" style="
+    position:absolute; right:12px; top:12px; background:none; border:none;
+    font-size:18px; font-weight:700; color:#8B8B96; cursor:pointer; line-height:1;
+  ">×</button>
+</div>
 <div class="wrap">
   <div style="display:flex; align-items:center; gap:8px; margin-bottom:22px; flex-wrap:wrap;">
     <div class="page-tabs" id="pageTabs" style="margin-bottom:0; flex:1; min-width:0;">
@@ -5015,6 +5035,74 @@ if('serviceWorker' in navigator){
           iosHint.style.display = (iosHint.style.display === 'none' || !iosHint.style.display) ? 'block' : 'none';
         }
       });
+    }
+
+    if(document.readyState === 'loading'){
+      document.addEventListener('DOMContentLoaded', wireUp);
+    } else {
+      wireUp();
+    }
+  }catch(e){}
+})();
+
+// ---- Пуш-уведомления: новый исторический максимум (Фаза 48) ----
+// Только по согласию, можно закрыть, больше не показывается после любого
+// решения (разрешил/запретил/закрыл) — та же логика, что у баннера установки
+// приложения выше. Стандартный Push API + подписка, подтверждённая VAPID-ключом,
+// хранится на сервере (см. netlify/functions/push-subscribe.js); саму отправку
+// делает отдельная функция по расписанию (check-ath.js), которая проверяет
+// текущую цену каждой монеты и сравнивает с последним известным максимумом.
+(function(){
+  try{
+    if(!('serviceWorker' in navigator) || !('PushManager' in window) || !('Notification' in window)) return;
+    if(localStorage.getItem('cf_push_decided') === '1') return;
+    if(Notification.permission === 'denied'){ try{ localStorage.setItem('cf_push_decided','1'); }catch(e){} return; }
+
+    var VAPID_PUBLIC_KEY = 'BEm_Tbo4uchCVQeKpV-_3t7H5Ukiw3rG6qo3TN2hm-UsdNlpHT6Qa6RPBtGeMTatVTW9PZGagi7-LvuQa3eGI44';
+
+    function urlBase64ToUint8Array(base64String){
+      var padding = '='.repeat((4 - base64String.length % 4) % 4);
+      var base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+      var rawData = atob(base64);
+      var outputArray = new Uint8Array(rawData.length);
+      for(var i = 0; i < rawData.length; ++i) outputArray[i] = rawData.charCodeAt(i);
+      return outputArray;
+    }
+
+    var banner = null;
+    function showBanner(){ if(banner) banner.style.display = 'flex'; }
+    function hideBanner(){ if(banner) banner.style.display = 'none'; }
+    function decided(){ try{ localStorage.setItem('cf_push_decided','1'); }catch(e){} hideBanner(); }
+
+    async function subscribe(){
+      try{
+        var permission = await Notification.requestPermission();
+        if(permission !== 'granted'){ decided(); return; }
+        var reg = await navigator.serviceWorker.ready;
+        var sub = await reg.pushManager.subscribe({
+          userVisibleOnly: true,
+          applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY)
+        });
+        await fetch('/api/push-subscribe', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ subscription: sub.toJSON(), lang: 'ru' })
+        });
+      }catch(e){}
+      decided();
+    }
+
+    function wireUp(){
+      banner = document.getElementById('pushBanner');
+      if(!banner) return;
+      // Небольшая задержка, чтобы не выскакивал в ту же секунду, что и
+      // баннер установки приложения выше, если оба применимы.
+      setTimeout(showBanner, 3500);
+
+      var mainBtn = document.getElementById('pushBannerMain');
+      var closeBtn = document.getElementById('pushBannerClose');
+      if(closeBtn) closeBtn.addEventListener('click', function(e){ e.stopPropagation(); decided(); });
+      if(mainBtn) mainBtn.addEventListener('click', subscribe);
     }
 
     if(document.readyState === 'loading'){
